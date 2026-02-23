@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15...3.27)
 project(pytalib VERSION 0.1.0)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # Build ta-lib
 # ta-lib provides a configure script, but CMake can build it directly if we list its sources.
 # Since ta-lib v0.6.4 is already a robust C library, a clean approach is either to use its configure/make (ExternalProject_Add) 
