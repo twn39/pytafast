@@ -1,8 +1,8 @@
 import numpy as np
 
 # We import the compiled extension module
-from . import pytalib_ext
-from .pytalib_ext import MAType
+from . import pytafast_ext
+from .pytafast_ext import MAType
 
 __version__ = "0.1.0"
 
@@ -32,7 +32,7 @@ def SMA(inReal, timeperiod=30):
     arr = np.ascontiguousarray(arr)
     
     # Call the C++ nanobind wrapper
-    out_arr = pytalib_ext.SMA(arr, timeperiod)
+    out_arr = pytafast_ext.SMA(arr, timeperiod)
     
     # Cast back to pandas Series if input was a Series
     if is_series:
@@ -47,7 +47,7 @@ def EMA(inReal, timeperiod=30):
     """
     is_series = _is_pandas_series(inReal)
     arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
-    out_arr = pytalib_ext.EMA(arr, timeperiod)
+    out_arr = pytafast_ext.EMA(arr, timeperiod)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inReal.index, name=inReal.name)
@@ -59,7 +59,7 @@ def RSI(inReal, timeperiod=14):
     """
     is_series = _is_pandas_series(inReal)
     arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
-    out_arr = pytalib_ext.RSI(arr, timeperiod)
+    out_arr = pytafast_ext.RSI(arr, timeperiod)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inReal.index, name=inReal.name)
@@ -72,7 +72,7 @@ def MACD(inReal, fastperiod=12, slowperiod=26, signalperiod=9):
     """
     is_series = _is_pandas_series(inReal)
     arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
-    macd, macdsignal, macdhist = pytalib_ext.MACD(arr, fastperiod, slowperiod, signalperiod)
+    macd, macdsignal, macdhist = pytafast_ext.MACD(arr, fastperiod, slowperiod, signalperiod)
     if is_series:
         import pandas as pd
         return (
@@ -90,7 +90,7 @@ def BBANDS(inReal, timeperiod=5, nbdevup=2.0, nbdevdn=2.0, matype=MAType.SMA):
     is_series = _is_pandas_series(inReal)
     arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
     # Convert Enum to int for C++ call if necessary, though nanobind handles enum bindings
-    upper, middle, lower = pytalib_ext.BBANDS(arr, timeperiod, nbdevup, nbdevdn, int(matype.value) if hasattr(matype, 'value') else int(matype))
+    upper, middle, lower = pytafast_ext.BBANDS(arr, timeperiod, nbdevup, nbdevdn, int(matype.value) if hasattr(matype, 'value') else int(matype))
     
     if is_series:
         import pandas as pd
@@ -109,7 +109,7 @@ def ATR(inHigh, inLow, inClose, timeperiod=14):
     arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
     arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
     arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
-    out_arr = pytalib_ext.ATR(arr_h, arr_l, arr_c, timeperiod)
+    out_arr = pytafast_ext.ATR(arr_h, arr_l, arr_c, timeperiod)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inClose.index, name="ATR")
@@ -123,7 +123,7 @@ def ADX(inHigh, inLow, inClose, timeperiod=14):
     arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
     arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
     arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
-    out_arr = pytalib_ext.ADX(arr_h, arr_l, arr_c, timeperiod)
+    out_arr = pytafast_ext.ADX(arr_h, arr_l, arr_c, timeperiod)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inClose.index, name="ADX")
@@ -137,7 +137,7 @@ def CCI(inHigh, inLow, inClose, timeperiod=14):
     arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
     arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
     arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
-    out_arr = pytalib_ext.CCI(arr_h, arr_l, arr_c, timeperiod)
+    out_arr = pytafast_ext.CCI(arr_h, arr_l, arr_c, timeperiod)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inClose.index, name="CCI")
@@ -150,7 +150,7 @@ def OBV(inReal, inVolume):
     is_series = _is_pandas_series(inReal)
     arr_c = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
     arr_v = np.ascontiguousarray(np.asarray(inVolume, dtype=np.float64))
-    out_arr = pytalib_ext.OBV(arr_c, arr_v)
+    out_arr = pytafast_ext.OBV(arr_c, arr_v)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inReal.index, name="OBV")
@@ -162,7 +162,7 @@ def ROC(inReal, timeperiod=10):
     """
     is_series = _is_pandas_series(inReal)
     arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
-    out_arr = pytalib_ext.ROC(arr, timeperiod)
+    out_arr = pytafast_ext.ROC(arr, timeperiod)
     if is_series:
         import pandas as pd
         return pd.Series(out_arr, index=inReal.index, name="ROC")
@@ -181,7 +181,7 @@ def STOCH(inHigh, inLow, inClose, fastk_period=5, slowk_period=3, slowk_matype=M
     sk_t = int(slowk_matype.value) if hasattr(slowk_matype, 'value') else int(slowk_matype)
     sd_t = int(slowd_matype.value) if hasattr(slowd_matype, 'value') else int(slowd_matype)
     
-    slowk, slowd = pytalib_ext.STOCH(arr_h, arr_l, arr_c, fastk_period, slowk_period, sk_t, slowd_period, sd_t)
+    slowk, slowd = pytafast_ext.STOCH(arr_h, arr_l, arr_c, fastk_period, slowk_period, sk_t, slowd_period, sd_t)
     
     if is_series:
         import pandas as pd
@@ -192,6 +192,6 @@ def STOCH(inHigh, inLow, inClose, fastk_period=5, slowk_period=3, slowk_matype=M
     return slowk, slowd
 
 # Initialize TA-Lib context when the module is loaded
-pytalib_ext.initialize()
+pytafast_ext.initialize()
 
-from pytalib import aio
+from pytafast import aio

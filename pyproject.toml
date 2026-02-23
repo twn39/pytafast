@@ -3,22 +3,50 @@ requires = ["scikit-build-core>=0.4.3", "nanobind>=2.11.0"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "pytalib"
+name = "pytafast"
 version = "0.1.0"
 description = "Python wrapper for ta-lib using nanobind"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
     "numpy",
     "pandas"
 ]
 authors = [
-  {name = "Developer", email = "developer@example.com"}
+  {name = "curry tang", email = "twn39@163.com"}
 ]
 
 [tool.scikit-build]
 minimum-version = "0.4"
 cmake.build-type = "Release"
+sdist.include = [
+    "third_party/ta-lib/src/**/*",
+    "third_party/ta-lib/include/**/*",
+    "third_party/ta-lib/CMakeLists.txt",
+    "third_party/ta-lib/ta_lib.cmake", 
+    "third_party/ta-lib/ta-lib-config.cmake.in",
+    "third_party/nanobind/src/**/*",
+    "third_party/nanobind/include/**/*",
+    "third_party/nanobind/ext/**/*",
+    "third_party/nanobind/cmake/**/*",
+    "third_party/nanobind/CMakeLists.txt",
+]
+sdist.exclude = [
+    "third_party/ta-lib/ide/**/*",
+    "third_party/ta-lib/dist/**/*",
+    "third_party/ta-lib/dotnet/**/*",
+    "third_party/ta-lib/java/**/*",
+    "third_party/ta-lib/docs/**/*",
+    "third_party/ta-lib/swig/**/*",
+    "third_party/nanobind/docs/**/*",
+    "third_party/**/*.deb",
+    "third_party/**/*.msi",
+    "third_party/**/*.zip",
+    "third_party/**/*.dll",
+    "third_party/**/*.class",
+    "third_party/**/*.pdf",
+    "third_party/**/*.sdf",
+]
 
 [dependency-groups]
 dev = [

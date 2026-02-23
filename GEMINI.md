@@ -1,4 +1,4 @@
-# pytalib
+# pytafast
 
 A high-performance Python wrapper for the `ta-lib` C library using `nanobind`.
 
@@ -6,8 +6,8 @@ A high-performance Python wrapper for the `ta-lib` C library using `nanobind`.
 
 - **Core Technology:** Uses `nanobind` for efficient C++/Python bindings and `scikit-build-core` for the build system.
 - **Architecture:** 
-    - A C++ extension (`pytalib_ext`) wraps the raw `ta-lib` functions.
-    - A Python layer (`pytalib`) provides a high-level API that supports both `numpy` arrays and `pandas` Series.
+    - A C++ extension (`pytafast_ext`) wraps the raw `ta-lib` functions.
+    - A Python layer (`pytafast`) provides a high-level API that supports both `numpy` arrays and `pandas` Series.
 - **Key Features:**
     - Preservation of `pandas.Series` metadata (index, name).
     - Automatic `TA_Initialize()` and `TA_Shutdown()` management.
@@ -19,7 +19,7 @@ A high-performance Python wrapper for the `ta-lib` C library using `nanobind`.
 
 - C++ compiler (supporting C++17 or later)
 - CMake (3.15+)
-- Python (3.12+)
+- Python (3.11+)
 
 ### Installation
 
@@ -51,8 +51,8 @@ pytest tests/test_benchmark.py
 
 ### Project Structure
 
-- `src/pytalib_ext.cpp`: The main C++ binding file. All `ta-lib` function wrappings should be added here.
-- `src/pytalib/__init__.py`: The public Python API. New functions added to the C++ extension should be exposed here with appropriate documentation and type handling.
+- `src/pytafast_ext.cpp`: The main C++ binding file. All `ta-lib` function wrappings should be added here.
+- `src/pytafast/__init__.py`: The public Python API. New functions added to the C++ extension should be exposed here with appropriate documentation and type handling.
 - `third_party/`: Contains git submodules for `ta-lib` and `nanobind`.
 - `tests/`: Contains `pytest` test cases.
 

@@ -2,7 +2,7 @@ import pytest
 import asyncio
 import tracemalloc
 import numpy as np
-import pytalib
+import pytafast
 import gc
 
 @pytest.mark.asyncio
@@ -11,9 +11,9 @@ async def test_high_concurrency_no_leak():
     in_real = np.random.random(5000) * 100 + 10
     
     # Pre-warm function to resolve lazy loads (e.g., pandas imports inside wrappers)
-    await pytalib.aio.SMA(in_real, timeperiod=14)
-    await pytalib.aio.MACD(in_real, fastperiod=12, slowperiod=26, signalperiod=9)
-    await pytalib.aio.BBANDS(in_real, timeperiod=5)
+    await pytafast.aio.SMA(in_real, timeperiod=14)
+    await pytafast.aio.MACD(in_real, fastperiod=12, slowperiod=26, signalperiod=9)
+    await pytafast.aio.BBANDS(in_real, timeperiod=5)
     
     # Setup tracemalloc to watch memory AFTER lazy loading
     tracemalloc.start()
@@ -24,9 +24,9 @@ async def test_high_concurrency_no_leak():
     # Define an async worker
     async def worker():
         # Mix of single output and tuple output indications
-        await pytalib.aio.SMA(in_real, timeperiod=14)
-        await pytalib.aio.MACD(in_real, fastperiod=12, slowperiod=26, signalperiod=9)
-        await pytalib.aio.BBANDS(in_real, timeperiod=5)
+        await pytafast.aio.SMA(in_real, timeperiod=14)
+        await pytafast.aio.MACD(in_real, fastperiod=12, slowperiod=26, signalperiod=9)
+        await pytafast.aio.BBANDS(in_real, timeperiod=5)
         
     # Take a memory snapshot before
     gc.collect()

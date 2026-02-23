@@ -9,14 +9,14 @@ project(pytalib VERSION 0.1.0)
 add_subdirectory(third_party/ta-lib)
 
 # include nanobind
-find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+find_package(Python 3.11 COMPONENTS Interpreter Development.Module REQUIRED)
 add_subdirectory(third_party/nanobind)
 
 # The main python module
-nanobind_add_module(pytalib_ext src/pytalib_ext.cpp)
+nanobind_add_module(pytafast_ext src/pytafast_ext.cpp)
 
 # Link against ta-lib
-target_link_libraries(pytalib_ext PRIVATE ta-lib-static)
+target_link_libraries(pytafast_ext PRIVATE ta-lib-static)
 
 # Install extension in package
-install(TARGETS pytalib_ext DESTINATION pytalib)
+install(TARGETS pytafast_ext DESTINATION pytafast)

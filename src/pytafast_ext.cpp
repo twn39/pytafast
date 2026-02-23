@@ -428,7 +428,7 @@ void shutdown() {
   check_ta_retcode(retcode, "TA_Shutdown");
 }
 
-NB_MODULE(pytalib_ext, m) {
+NB_MODULE(pytafast_ext, m) {
   m.doc() = "TA-Lib wrapper using nanobind";
 
   nb::enum_<TA_MAType>(m, "MAType")
