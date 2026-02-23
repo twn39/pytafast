@@ -1,0 +1,6 @@
+[submodule "third_party/nanobind"]
+	path = third_party/nanobind
+	url = https://github.com/wjakob/nanobind
+[submodule "third_party/ta-lib"]
+	path = third_party/ta-lib
+	url = https://github.com/TA-Lib/ta-lib
