@@ -18,3 +18,9 @@ dependencies = [
 minimum-version = "0.4"
 # Set CMake build type
 cmake.build-type = "Release"
+
+[dependency-groups]
+dev = [
+    "ta-lib>=0.6.8",
+    "pytest-benchmark>=4.0.0",
+]
