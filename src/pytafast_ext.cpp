@@ -774,6 +774,208 @@ DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
 }
 
+// ---------------------------------------------------------
+// ABSOLUTE PRICE OSCILLATOR (APO)
+// ---------------------------------------------------------
+DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
+                   int optInSlowPeriod = 26, int optInMAType = 0) {
+  if (inReal.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  int startIdx = 0;
+  int endIdx = inReal.shape(0) - 1;
+
+  double *outData = new double[inReal.shape(0)];
+  for (size_t i = 0; i < inReal.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback =
+      TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_APO(startIdx, endIdx, inReal.data(), optInFastPeriod,
+                     optInSlowPeriod, (TA_MAType)optInMAType, &outBegIdx,
+                     &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_APO");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// AROON (AROON)
+// ---------------------------------------------------------
+nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0) {
+    return nb::make_tuple(DoubleArrayOUT(nullptr, {0}, nb::handle()),
+                          DoubleArrayOUT(nullptr, {0}, nb::handle()));
+  }
+  if (inHigh.shape(0) != inLow.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outDown = new double[inHigh.shape(0)];
+  double *outUp = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i) {
+    outDown[i] = std::numeric_limits<double>::quiet_NaN();
+    outUp[i] = std::numeric_limits<double>::quiet_NaN();
+  }
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_AROON_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_AROON(startIdx, endIdx, inHigh.data(), inLow.data(),
+                       optInTimePeriod, &outBegIdx, &outNBElement,
+                       outDown + lookback, outUp + lookback);
+  }
+  check_ta_retcode(retCode, "TA_AROON");
+
+  nb::capsule owner1(outDown, [](void *p) noexcept { delete[] (double *)p; });
+  nb::capsule owner2(outUp, [](void *p) noexcept { delete[] (double *)p; });
+  return nb::make_tuple(DoubleArrayOUT(outDown, {inHigh.shape(0)}, owner1),
+                        DoubleArrayOUT(outUp, {inHigh.shape(0)}, owner2));
+}
+
+// ---------------------------------------------------------
+// AROON OSCILLATOR (AROONOSC)
+// ---------------------------------------------------------
+DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                        int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_AROONOSC(startIdx, endIdx, inHigh.data(), inLow.data(),
+                          optInTimePeriod, &outBegIdx, &outNBElement,
+                          outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_AROONOSC");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// PERCENTAGE PRICE OSCILLATOR (PPO)
+// ---------------------------------------------------------
+DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
+                   int optInSlowPeriod = 26, int optInMAType = 0) {
+  if (inReal.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  int startIdx = 0;
+  int endIdx = inReal.shape(0) - 1;
+
+  double *outData = new double[inReal.shape(0)];
+  for (size_t i = 0; i < inReal.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback =
+      TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_PPO(startIdx, endIdx, inReal.data(), optInFastPeriod,
+                     optInSlowPeriod, (TA_MAType)optInMAType, &outBegIdx,
+                     &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_PPO");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// 1-DAY RATE-OF-CHANGE (TRIX)
+// ---------------------------------------------------------
+DoubleArrayOUT trix(DoubleArrayIN inReal, int optInTimePeriod = 30) {
+  if (inReal.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  int startIdx = 0;
+  int endIdx = inReal.shape(0) - 1;
+
+  double *outData = new double[inReal.shape(0)];
+  for (size_t i = 0; i < inReal.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_TRIX_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_TRIX(startIdx, endIdx, inReal.data(), optInTimePeriod,
+                      &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_TRIX");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// ULTIMATE OSCILLATOR (ULTOSC)
+// ---------------------------------------------------------
+DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                      DoubleArrayIN inClose, int optInTimePeriod1 = 7,
+                      int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback =
+      TA_ULTOSC_Lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode =
+        TA_ULTOSC(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+                  optInTimePeriod1, optInTimePeriod2, optInTimePeriod3,
+                  &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_ULTOSC");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
 // Helper to initialize and shutdown TA-lib
 void initialize() {
   TA_RetCode retcode = TA_Initialize();
@@ -858,6 +1060,22 @@ NB_MODULE(pytafast_ext, m) {
         nb::arg("optInTimePeriod") = 14);
   m.def("PLUS_DM", &plus_dm, nb::arg("inHigh").noconvert(),
         nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("APO", &apo, nb::arg("inReal").noconvert(),
+        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
+        nb::arg("optInMAType") = 0);
+  m.def("AROON", &aroon, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("AROONOSC", &aroonosc, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("PPO", &ppo, nb::arg("inReal").noconvert(),
+        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
+        nb::arg("optInMAType") = 0);
+  m.def("TRIX", &trix, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("ULTOSC", &ultosc, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod1") = 7, nb::arg("optInTimePeriod2") = 14,
+        nb::arg("optInTimePeriod3") = 28);
 
   m.def("initialize", &initialize);
   m.def("shutdown", &shutdown);

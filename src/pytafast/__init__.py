@@ -338,6 +338,85 @@ def PLUS_DM(inHigh, inLow, timeperiod=14):
         return pd.Series(out_arr, index=inHigh.index, name="PLUS_DM")
     return out_arr
 
+def APO(inReal, fastperiod=12, slowperiod=26, matype=0):
+    """
+    Absolute Price Oscillator.
+    """
+    is_series = _is_pandas_series(inReal)
+    arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
+    out_arr = pytafast_ext.APO(arr, fastperiod, slowperiod, matype)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inReal.index, name="APO")
+    return out_arr
+
+def AROON(inHigh, inLow, timeperiod=14):
+    """
+    Aroon.
+    """
+    is_series = _is_pandas_series(inHigh)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    out_down, out_up = pytafast_ext.AROON(arr_h, arr_l, timeperiod)
+    if is_series:
+        import pandas as pd
+        return (
+            pd.Series(out_down, index=inHigh.index, name="AROON_DOWN"),
+            pd.Series(out_up, index=inHigh.index, name="AROON_UP")
+        )
+    return out_down, out_up
+
+def AROONOSC(inHigh, inLow, timeperiod=14):
+    """
+    Aroon Oscillator.
+    """
+    is_series = _is_pandas_series(inHigh)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    out_arr = pytafast_ext.AROONOSC(arr_h, arr_l, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inHigh.index, name="AROONOSC")
+    return out_arr
+
+def PPO(inReal, fastperiod=12, slowperiod=26, matype=0):
+    """
+    Percentage Price Oscillator.
+    """
+    is_series = _is_pandas_series(inReal)
+    arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
+    out_arr = pytafast_ext.PPO(arr, fastperiod, slowperiod, matype)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inReal.index, name="PPO")
+    return out_arr
+
+def TRIX(inReal, timeperiod=30):
+    """
+    1-day Rate-Of-Change (ROC) of a Triple Smooth EMA.
+    """
+    is_series = _is_pandas_series(inReal)
+    arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
+    out_arr = pytafast_ext.TRIX(arr, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inReal.index, name="TRIX")
+    return out_arr
+
+def ULTOSC(inHigh, inLow, inClose, timeperiod1=7, timeperiod2=14, timeperiod3=28):
+    """
+    Ultimate Oscillator.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    out_arr = pytafast_ext.ULTOSC(arr_h, arr_l, arr_c, timeperiod1, timeperiod2, timeperiod3)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="ULTOSC")
+    return out_arr
+
 # Initialize TA-Lib context when the module is loaded
 pytafast_ext.initialize()
 

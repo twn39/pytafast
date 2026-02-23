@@ -282,3 +282,64 @@ def test_plus_dm_against_official_talib():
         o_out = talib.PLUS_DM(in_high, in_low, timeperiod=period)
         p_out = pytafast.PLUS_DM(in_high, in_low, timeperiod=period)
         np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_apo_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_real = np.random.random(100) * 100 + 10
+    
+    for matype_val in [0, 1]:
+        o_out = talib.APO(in_real, fastperiod=12, slowperiod=26, matype=matype_val)
+        p_out = pytafast.APO(in_real, fastperiod=12, slowperiod=26, matype=matype_val)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_aroon_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    for period in [5, 14]:
+        o_down, o_up = talib.AROON(in_high, in_low, timeperiod=period)
+        p_down, p_up = pytafast.AROON(in_high, in_low, timeperiod=period)
+        np.testing.assert_allclose(p_down, o_down, equal_nan=True)
+        np.testing.assert_allclose(p_up, o_up, equal_nan=True)
+
+def test_aroonosc_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    for period in [5, 14]:
+        o_out = talib.AROONOSC(in_high, in_low, timeperiod=period)
+        p_out = pytafast.AROONOSC(in_high, in_low, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_ppo_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_real = np.random.random(100) * 100 + 10
+    
+    for matype_val in [0, 1]:
+        o_out = talib.PPO(in_real, fastperiod=12, slowperiod=26, matype=matype_val)
+        p_out = pytafast.PPO(in_real, fastperiod=12, slowperiod=26, matype=matype_val)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_trix_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_real = np.random.random(100) * 100 + 10
+    for period in [5, 10]:
+        o_out = talib.TRIX(in_real, timeperiod=period)
+        p_out = pytafast.TRIX(in_real, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_ultosc_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    
+    o_out = talib.ULTOSC(in_high, in_low, in_close, timeperiod1=7, timeperiod2=14, timeperiod3=28)
+    p_out = pytafast.ULTOSC(in_high, in_low, in_close, timeperiod1=7, timeperiod2=14, timeperiod3=28)
+    np.testing.assert_allclose(p_out, o_out, equal_nan=True)
