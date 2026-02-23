@@ -47,7 +47,7 @@ def test_invalid_input():
         pytalib.SMA(in_real, timeperiod=3)
 
 def test_sma_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     
     # Generate random price data
     np.random.seed(42)
@@ -62,7 +62,7 @@ def test_sma_against_official_talib():
         np.testing.assert_allclose(our_out, official_out, equal_nan=True)
 
 def test_ema_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_real = np.random.random(100) * 100
     for period in [5, 14, 30]:
@@ -71,7 +71,7 @@ def test_ema_against_official_talib():
         np.testing.assert_allclose(our_out, official_out, equal_nan=True)
 
 def test_rsi_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_real = np.random.random(100) * 100
     for period in [5, 14, 30]:
@@ -80,7 +80,7 @@ def test_rsi_against_official_talib():
         np.testing.assert_allclose(our_out, official_out, equal_nan=True)
 
 def test_macd_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_real = np.random.random(100) * 100
     
@@ -93,7 +93,7 @@ def test_macd_against_official_talib():
     np.testing.assert_allclose(p_hist, o_hist, equal_nan=True)
 
 def test_bbands_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_real = np.random.random(100) * 100
     
@@ -104,7 +104,7 @@ def test_bbands_against_official_talib():
         np.testing.assert_allclose(p_upper, o_upper, equal_nan=True)
         np.testing.assert_allclose(p_middle, o_middle, equal_nan=True)
 def test_atr_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_high = np.random.random(100) * 100 + 10
     in_low = in_high - np.random.random(100) * 5
@@ -115,7 +115,7 @@ def test_atr_against_official_talib():
         np.testing.assert_allclose(p_out, o_out, equal_nan=True)
 
 def test_adx_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_high = np.random.random(100) * 100 + 10
     in_low = in_high - np.random.random(100) * 5
@@ -126,7 +126,7 @@ def test_adx_against_official_talib():
         np.testing.assert_allclose(p_out, o_out, equal_nan=True)
 
 def test_cci_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_high = np.random.random(100) * 100 + 10
     in_low = in_high - np.random.random(100) * 5
@@ -137,7 +137,7 @@ def test_cci_against_official_talib():
         np.testing.assert_allclose(p_out, o_out, equal_nan=True)
 
 def test_obv_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_real = np.random.random(100) * 100 + 10
     in_vol = np.random.random(100) * 1000
@@ -146,7 +146,7 @@ def test_obv_against_official_talib():
     np.testing.assert_allclose(p_out, o_out, equal_nan=True)
 
 def test_roc_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_real = np.random.random(100) * 100 + 10
     for period in [5, 10]:
@@ -155,7 +155,7 @@ def test_roc_against_official_talib():
         np.testing.assert_allclose(p_out, o_out, equal_nan=True)
 
 def test_stoch_against_official_talib():
-    import talib
+    talib = pytest.importorskip("talib")
     np.random.seed(42)
     in_high = np.random.random(100) * 100 + 10
     in_low = in_high - np.random.random(100) * 5
