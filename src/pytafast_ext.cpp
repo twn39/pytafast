@@ -417,6 +417,363 @@ nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         DoubleArrayOUT(outSlowD, {inHigh.shape(0)}, owner2));
 }
 
+// ---------------------------------------------------------
+// MOMENTUM (MOM)
+// ---------------------------------------------------------
+DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
+  if (inReal.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  int startIdx = 0;
+  int endIdx = inReal.shape(0) - 1;
+
+  double *outData = new double[inReal.shape(0)];
+  for (size_t i = 0; i < inReal.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_MOM_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_MOM(startIdx, endIdx, inReal.data(), optInTimePeriod,
+                     &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_MOM");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// STANDARD DEVIATION (STDDEV)
+// ---------------------------------------------------------
+DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
+                      double optInNbDev = 1.0) {
+  if (inReal.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  int startIdx = 0;
+  int endIdx = inReal.shape(0) - 1;
+
+  double *outData = new double[inReal.shape(0)];
+  for (size_t i = 0; i < inReal.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode =
+        TA_STDDEV(startIdx, endIdx, inReal.data(), optInTimePeriod, optInNbDev,
+                  &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_STDDEV");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// WILLIAMS %R (WILLR)
+// ---------------------------------------------------------
+DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                     DoubleArrayIN inClose, int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_WILLR_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_WILLR(startIdx, endIdx, inHigh.data(), inLow.data(),
+                       inClose.data(), optInTimePeriod, &outBegIdx,
+                       &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_WILLR");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// NORMALIZED AVERAGE TRUE RANGE (NATR)
+// ---------------------------------------------------------
+DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                    DoubleArrayIN inClose, int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_NATR_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode =
+        TA_NATR(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+                optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_NATR");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// MONEY FLOW INDEX (MFI)
+// ---------------------------------------------------------
+DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                   DoubleArrayIN inClose, DoubleArrayIN inVolume,
+                   int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0 ||
+      inVolume.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) ||
+      inHigh.shape(0) != inClose.shape(0) ||
+      inHigh.shape(0) != inVolume.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_MFI_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_MFI(startIdx, endIdx, inHigh.data(), inLow.data(),
+                     inClose.data(), inVolume.data(), optInTimePeriod,
+                     &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_MFI");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// CHANDE MOMENTUM OSCILLATOR (CMO)
+// ---------------------------------------------------------
+DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
+  if (inReal.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  int startIdx = 0;
+  int endIdx = inReal.shape(0) - 1;
+
+  double *outData = new double[inReal.shape(0)];
+  for (size_t i = 0; i < inReal.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_CMO_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_CMO(startIdx, endIdx, inReal.data(), optInTimePeriod,
+                     &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_CMO");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// DIRECTIONAL MOVEMENT INDEX (DX)
+// ---------------------------------------------------------
+DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                  DoubleArrayIN inClose, int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_DX_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode =
+        TA_DX(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+              optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_DX");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// MINUS DIRECTIONAL INDICATOR (MINUS_DI)
+// ---------------------------------------------------------
+DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                        DoubleArrayIN inClose, int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_MINUS_DI(startIdx, endIdx, inHigh.data(), inLow.data(),
+                          inClose.data(), optInTimePeriod, &outBegIdx,
+                          &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_MINUS_DI");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// MINUS DIRECTIONAL MOVEMENT (MINUS_DM)
+// ---------------------------------------------------------
+DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                        int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_MINUS_DM(startIdx, endIdx, inHigh.data(), inLow.data(),
+                          optInTimePeriod, &outBegIdx, &outNBElement,
+                          outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_MINUS_DM");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// PLUS DIRECTIONAL INDICATOR (PLUS_DI)
+// ---------------------------------------------------------
+DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                       DoubleArrayIN inClose, int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_PLUS_DI(startIdx, endIdx, inHigh.data(), inLow.data(),
+                         inClose.data(), optInTimePeriod, &outBegIdx,
+                         &outNBElement, outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_PLUS_DI");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
+// ---------------------------------------------------------
+// PLUS DIRECTIONAL MOVEMENT (PLUS_DM)
+// ---------------------------------------------------------
+DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                       int optInTimePeriod = 14) {
+  if (inHigh.size() == 0 || inLow.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0))
+    throw std::runtime_error("Input lengths must match");
+  int startIdx = 0;
+  int endIdx = inHigh.shape(0) - 1;
+
+  double *outData = new double[inHigh.shape(0)];
+  for (size_t i = 0; i < inHigh.shape(0); ++i)
+    outData[i] = std::numeric_limits<double>::quiet_NaN();
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+  int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
+
+  TA_RetCode retCode;
+  {
+    nb::gil_scoped_release release;
+    retCode = TA_PLUS_DM(startIdx, endIdx, inHigh.data(), inLow.data(),
+                         optInTimePeriod, &outBegIdx, &outNBElement,
+                         outData + lookback);
+  }
+  check_ta_retcode(retCode, "TA_PLUS_DM");
+
+  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
+  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+}
+
 // Helper to initialize and shutdown TA-lib
 void initialize() {
   TA_RetCode retcode = TA_Initialize();
@@ -474,6 +831,33 @@ NB_MODULE(pytafast_ext, m) {
         nb::arg("optInFastK_Period") = 5, nb::arg("optInSlowK_Period") = 3,
         nb::arg("optInSlowK_MAType") = 0, nb::arg("optInSlowD_Period") = 3,
         nb::arg("optInSlowD_MAType") = 0);
+  m.def("MOM", &mom, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 10);
+  m.def("STDDEV", &stddev, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDev") = 1.0);
+  m.def("WILLR", &willr, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("NATR", &natr, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("MFI", &mfi, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("inVolume").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("CMO", &cmo, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("DX", &dx, nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),
+        nb::arg("inClose").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("MINUS_DI", &minus_di, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("MINUS_DM", &minus_dm, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("PLUS_DI", &plus_di, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("PLUS_DM", &plus_dm, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
 
   m.def("initialize", &initialize);
   m.def("shutdown", &shutdown);

@@ -28,6 +28,8 @@ jobs:
         env:
           CIBW_BUILD_FRONTEND: "build[uv]"
           CIBW_SKIP: "*-win32"
+          CIBW_TEST_REQUIRES: "pytest"
+          CIBW_TEST_COMMAND: "pytest {project}/tests"
 
       - uses: actions/upload-artifact@v4
         with:

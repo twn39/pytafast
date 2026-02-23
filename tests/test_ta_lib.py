@@ -167,3 +167,118 @@ def test_stoch_against_official_talib():
         
         np.testing.assert_allclose(p_slowk, o_slowk, equal_nan=True)
         np.testing.assert_allclose(p_slowd, o_slowd, equal_nan=True)
+
+def test_mom_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_real = np.random.random(100) * 100 + 10
+    for period in [5, 10, 14]:
+        o_out = talib.MOM(in_real, timeperiod=period)
+        p_out = pytafast.MOM(in_real, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_stddev_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_real = np.random.random(100) * 100 + 10
+    for period in [5, 10, 14]:
+        for nbdev in [1.0, 2.0]:
+            o_out = talib.STDDEV(in_real, timeperiod=period, nbdev=nbdev)
+            p_out = pytafast.STDDEV(in_real, timeperiod=period, nbdev=nbdev)
+            np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_willr_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    for period in [5, 14]:
+        o_out = talib.WILLR(in_high, in_low, in_close, timeperiod=period)
+        p_out = pytafast.WILLR(in_high, in_low, in_close, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_natr_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    for period in [5, 14]:
+        o_out = talib.NATR(in_high, in_low, in_close, timeperiod=period)
+        p_out = pytafast.NATR(in_high, in_low, in_close, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_mfi_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    in_vol = np.random.random(100) * 1000
+    for period in [5, 14]:
+        o_out = talib.MFI(in_high, in_low, in_close, in_vol, timeperiod=period)
+        p_out = pytafast.MFI(in_high, in_low, in_close, in_vol, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_cmo_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_real = np.random.random(100) * 100 + 10
+    for period in [5, 14]:
+        o_out = talib.CMO(in_real, timeperiod=period)
+        p_out = pytafast.CMO(in_real, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_dx_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    for period in [5, 14]:
+        o_out = talib.DX(in_high, in_low, in_close, timeperiod=period)
+        p_out = pytafast.DX(in_high, in_low, in_close, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_minus_di_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    for period in [5, 14]:
+        o_out = talib.MINUS_DI(in_high, in_low, in_close, timeperiod=period)
+        p_out = pytafast.MINUS_DI(in_high, in_low, in_close, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_minus_dm_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    for period in [5, 14]:
+        o_out = talib.MINUS_DM(in_high, in_low, timeperiod=period)
+        p_out = pytafast.MINUS_DM(in_high, in_low, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_plus_di_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    in_close = in_low + (in_high - in_low) / 2
+    for period in [5, 14]:
+        o_out = talib.PLUS_DI(in_high, in_low, in_close, timeperiod=period)
+        p_out = pytafast.PLUS_DI(in_high, in_low, in_close, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)
+
+def test_plus_dm_against_official_talib():
+    talib = pytest.importorskip("talib")
+    np.random.seed(42)
+    in_high = np.random.random(100) * 100 + 10
+    in_low = in_high - np.random.random(100) * 5
+    for period in [5, 14]:
+        o_out = talib.PLUS_DM(in_high, in_low, timeperiod=period)
+        p_out = pytafast.PLUS_DM(in_high, in_low, timeperiod=period)
+        np.testing.assert_allclose(p_out, o_out, equal_nan=True)

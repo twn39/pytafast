@@ -191,6 +191,153 @@ def STOCH(inHigh, inLow, inClose, fastk_period=5, slowk_period=3, slowk_matype=M
         )
     return slowk, slowd
 
+def MOM(inReal, timeperiod=10):
+    """
+    Momentum.
+    """
+    is_series = _is_pandas_series(inReal)
+    arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
+    out_arr = pytafast_ext.MOM(arr, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inReal.index, name="MOM")
+    return out_arr
+
+def STDDEV(inReal, timeperiod=5, nbdev=1.0):
+    """
+    Standard Deviation.
+    """
+    is_series = _is_pandas_series(inReal)
+    arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
+    out_arr = pytafast_ext.STDDEV(arr, timeperiod, nbdev)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inReal.index, name="STDDEV")
+    return out_arr
+
+def WILLR(inHigh, inLow, inClose, timeperiod=14):
+    """
+    Williams %R.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    out_arr = pytafast_ext.WILLR(arr_h, arr_l, arr_c, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="WILLR")
+    return out_arr
+
+def NATR(inHigh, inLow, inClose, timeperiod=14):
+    """
+    Normalized Average True Range.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    out_arr = pytafast_ext.NATR(arr_h, arr_l, arr_c, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="NATR")
+    return out_arr
+
+def MFI(inHigh, inLow, inClose, inVolume, timeperiod=14):
+    """
+    Money Flow Index.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    arr_v = np.ascontiguousarray(np.asarray(inVolume, dtype=np.float64))
+    out_arr = pytafast_ext.MFI(arr_h, arr_l, arr_c, arr_v, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="MFI")
+    return out_arr
+
+def CMO(inReal, timeperiod=14):
+    """
+    Chande Momentum Oscillator.
+    """
+    is_series = _is_pandas_series(inReal)
+    arr = np.ascontiguousarray(np.asarray(inReal, dtype=np.float64))
+    out_arr = pytafast_ext.CMO(arr, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inReal.index, name="CMO")
+    return out_arr
+
+def DX(inHigh, inLow, inClose, timeperiod=14):
+    """
+    Directional Movement Index.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    out_arr = pytafast_ext.DX(arr_h, arr_l, arr_c, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="DX")
+    return out_arr
+
+def MINUS_DI(inHigh, inLow, inClose, timeperiod=14):
+    """
+    Minus Directional Indicator.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    out_arr = pytafast_ext.MINUS_DI(arr_h, arr_l, arr_c, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="MINUS_DI")
+    return out_arr
+
+def MINUS_DM(inHigh, inLow, timeperiod=14):
+    """
+    Minus Directional Movement.
+    """
+    is_series = _is_pandas_series(inHigh)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    out_arr = pytafast_ext.MINUS_DM(arr_h, arr_l, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inHigh.index, name="MINUS_DM")
+    return out_arr
+
+def PLUS_DI(inHigh, inLow, inClose, timeperiod=14):
+    """
+    Plus Directional Indicator.
+    """
+    is_series = _is_pandas_series(inClose)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    arr_c = np.ascontiguousarray(np.asarray(inClose, dtype=np.float64))
+    out_arr = pytafast_ext.PLUS_DI(arr_h, arr_l, arr_c, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inClose.index, name="PLUS_DI")
+    return out_arr
+
+def PLUS_DM(inHigh, inLow, timeperiod=14):
+    """
+    Plus Directional Movement.
+    """
+    is_series = _is_pandas_series(inHigh)
+    arr_h = np.ascontiguousarray(np.asarray(inHigh, dtype=np.float64))
+    arr_l = np.ascontiguousarray(np.asarray(inLow, dtype=np.float64))
+    out_arr = pytafast_ext.PLUS_DM(arr_h, arr_l, timeperiod)
+    if is_series:
+        import pandas as pd
+        return pd.Series(out_arr, index=inHigh.index, name="PLUS_DM")
+    return out_arr
+
 # Initialize TA-Lib context when the module is loaded
 pytafast_ext.initialize()
 
