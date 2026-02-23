@@ -8,6 +8,22 @@ version = "0.1.0"
 description = "Python wrapper for ta-lib using nanobind"
 readme = "README.md"
 requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["ta-lib", "trading", "technical analysis", "finance", "nanobind", "pandas", "numpy"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: C++",
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
 dependencies = [
     "numpy",
     "pandas"
@@ -15,6 +31,11 @@ dependencies = [
 authors = [
   {name = "curry tang", email = "twn39@163.com"}
 ]
+
+[project.urls]
+Homepage = "https://github.com/twn39/pytafast"
+Repository = "https://github.com/twn39/pytafast"
+Issues = "https://github.com/twn39/pytafast/issues"
 
 [tool.scikit-build]
 minimum-version = "0.4"
