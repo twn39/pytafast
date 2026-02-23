@@ -29,8 +29,9 @@ jobs:
           platforms: all
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.22.0
         env:
+          CIBW_BUILD_FRONTEND: "build[uv]"
           CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_TEST_REQUIRES: "pytest pytest-asyncio pandas tracemalloc"
           # Skip testing Official TA Lib because it's not installed system-wide in CI containers
