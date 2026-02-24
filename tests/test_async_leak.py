@@ -5,8 +5,10 @@ import numpy as np
 import pytafast
 import gc
 
-@pytest.mark.asyncio
-async def test_high_concurrency_no_leak():
+def test_high_concurrency_no_leak():
+    asyncio.run(_test_high_concurrency_no_leak())
+
+async def _test_high_concurrency_no_leak():
     np.random.seed(42)
     in_real = np.random.random(5000) * 100 + 10
     

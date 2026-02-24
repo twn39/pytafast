@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 import pandas as pd
 import pytafast
-import talib
+talib = pytest.importorskip("talib")
 
 # Generate a large dataset for meaningful benchmarking
 np.random.seed(42)
