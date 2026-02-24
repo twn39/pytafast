@@ -73,6 +73,8 @@ sdist.exclude = [
 dev = [
     "ta-lib>=0.6.8",
     "pytest-benchmark>=4.0.0",
+    "akshare>=1.18.27",
+    "plotly>=6.5.2",
 ]
 
 [tool.pytest.ini_options]

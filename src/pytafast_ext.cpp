@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <limits>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
@@ -13,12 +14,28 @@ using DoubleArrayIN =
 // Define a type alias for out output numpy array
 using DoubleArrayOUT = nb::ndarray<nb::numpy, double, nb::ndim<1>>;
 
+static const double NaN = std::numeric_limits<double>::quiet_NaN();
+
 // Check return codes
 void check_ta_retcode(TA_RetCode code, const char *func) {
   if (code != TA_SUCCESS) {
     throw std::runtime_error(
         std::string(func) + " failed with TA_RetCode: " + std::to_string(code));
   }
+}
+
+// Helper: allocate a double array, wrap in capsule, fill lookback region with
+// NaN
+struct AllocResult {
+  double *data;
+  nb::capsule owner;
+};
+
+AllocResult alloc_output(size_t size, int lookback) {
+  double *data = new double[size];
+  nb::capsule owner(data, [](void *p) noexcept { delete[] (double *)p; });
+  std::fill(data, data + lookback, NaN);
+  return {data, std::move(owner)};
 }
 
 // ---------------------------------------------------------
@@ -29,32 +46,23 @@ DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
 
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
-
-  // Allocate the output numpy array. It will have the same size as input.
-  // We will initialize it with NaNs so the leading empty values are NaN.
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_SMA_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
 
-  int lookback = TA_SMA_Lookback(optInTimePeriod);
-
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_SMA(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_SMA(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
 
   check_ta_retcode(retCode, "TA_SMA");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -63,27 +71,23 @@ DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 DoubleArrayOUT ema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_EMA_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_EMA_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_EMA(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_EMA(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_EMA");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -92,27 +96,23 @@ DoubleArrayOUT ema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 DoubleArrayOUT rsi(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_RSI_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_RSI_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_RSI(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_RSI(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_RSI");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -125,41 +125,31 @@ nb::tuple macd(DoubleArrayIN inReal, int optInFastPeriod = 12,
                           DoubleArrayOUT(nullptr, {0}, nb::handle()),
                           DoubleArrayOUT(nullptr, {0}, nb::handle()));
   }
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outMACD = new double[inReal.shape(0)];
-  double *outSignal = new double[inReal.shape(0)];
-  double *outHist = new double[inReal.shape(0)];
+  size_t size = inReal.shape(0);
+  int lookback =
+      TA_MACD_Lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
 
-  for (size_t i = 0; i < inReal.shape(0); ++i) {
-    outMACD[i] = std::numeric_limits<double>::quiet_NaN();
-    outSignal[i] = std::numeric_limits<double>::quiet_NaN();
-    outHist[i] = std::numeric_limits<double>::quiet_NaN();
-  }
+  auto [outMACD, owner1] = alloc_output(size, lookback);
+  auto [outSignal, owner2] = alloc_output(size, lookback);
+  auto [outHist, owner3] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback =
-      TA_MACD_Lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_MACD(startIdx, endIdx, inReal.data(), optInFastPeriod,
-                optInSlowPeriod, optInSignalPeriod, &outBegIdx, &outNBElement,
+        TA_MACD(0, size - 1, inReal.data(), optInFastPeriod, optInSlowPeriod,
+                optInSignalPeriod, &outBegIdx, &outNBElement,
                 outMACD + lookback, outSignal + lookback, outHist + lookback);
   }
   check_ta_retcode(retCode, "TA_MACD");
 
-  nb::capsule owner1(outMACD, [](void *p) noexcept { delete[] (double *)p; });
-  nb::capsule owner2(outSignal, [](void *p) noexcept { delete[] (double *)p; });
-  nb::capsule owner3(outHist, [](void *p) noexcept { delete[] (double *)p; });
-
-  return nb::make_tuple(DoubleArrayOUT(outMACD, {inReal.shape(0)}, owner1),
-                        DoubleArrayOUT(outSignal, {inReal.shape(0)}, owner2),
-                        DoubleArrayOUT(outHist, {inReal.shape(0)}, owner3));
+  return nb::make_tuple(DoubleArrayOUT(outMACD, {size}, owner1),
+                        DoubleArrayOUT(outSignal, {size}, owner2),
+                        DoubleArrayOUT(outHist, {size}, owner3));
 }
 
 // ---------------------------------------------------------
@@ -173,41 +163,31 @@ nb::tuple bbands(DoubleArrayIN inReal, int optInTimePeriod = 5,
                           DoubleArrayOUT(nullptr, {0}, nb::handle()),
                           DoubleArrayOUT(nullptr, {0}, nb::handle()));
   }
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outUpper = new double[inReal.shape(0)];
-  double *outMiddle = new double[inReal.shape(0)];
-  double *outLower = new double[inReal.shape(0)];
+  size_t size = inReal.shape(0);
+  int lookback = TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn,
+                                    (TA_MAType)optInMAType);
 
-  for (size_t i = 0; i < inReal.shape(0); ++i) {
-    outUpper[i] = std::numeric_limits<double>::quiet_NaN();
-    outMiddle[i] = std::numeric_limits<double>::quiet_NaN();
-    outLower[i] = std::numeric_limits<double>::quiet_NaN();
-  }
+  auto [outUpper, owner1] = alloc_output(size, lookback);
+  auto [outMiddle, owner2] = alloc_output(size, lookback);
+  auto [outLower, owner3] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn,
-                                    (TA_MAType)optInMAType);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_BBANDS(startIdx, endIdx, inReal.data(), optInTimePeriod,
+    retCode = TA_BBANDS(0, size - 1, inReal.data(), optInTimePeriod,
                         optInNbDevUp, optInNbDevDn, (TA_MAType)optInMAType,
                         &outBegIdx, &outNBElement, outUpper + lookback,
                         outMiddle + lookback, outLower + lookback);
   }
   check_ta_retcode(retCode, "TA_BBANDS");
 
-  nb::capsule owner1(outUpper, [](void *p) noexcept { delete[] (double *)p; });
-  nb::capsule owner2(outMiddle, [](void *p) noexcept { delete[] (double *)p; });
-  nb::capsule owner3(outLower, [](void *p) noexcept { delete[] (double *)p; });
-
-  return nb::make_tuple(DoubleArrayOUT(outUpper, {inReal.shape(0)}, owner1),
-                        DoubleArrayOUT(outMiddle, {inReal.shape(0)}, owner2),
-                        DoubleArrayOUT(outLower, {inReal.shape(0)}, owner3));
+  return nb::make_tuple(DoubleArrayOUT(outUpper, {size}, owner1),
+                        DoubleArrayOUT(outMiddle, {size}, owner2),
+                        DoubleArrayOUT(outLower, {size}, owner3));
 }
 
 // ---------------------------------------------------------
@@ -219,28 +199,24 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_ATR_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_ATR_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_ATR(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+        TA_ATR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
                optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_ATR");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -252,28 +228,24 @@ DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_ADX_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_ADX_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_ADX(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+        TA_ADX(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
                optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_ADX");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -285,28 +257,24 @@ DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_CCI_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_CCI_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_CCI(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+        TA_CCI(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
                optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_CCI");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -317,27 +285,23 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inReal.shape(0) != inVolume.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_OBV_Lookback();
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_OBV_Lookback();
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_OBV(startIdx, endIdx, inReal.data(), inVolume.data(),
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_OBV(0, size - 1, inReal.data(), inVolume.data(), &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_OBV");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -346,27 +310,23 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
 DoubleArrayOUT roc(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_ROC_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_ROC_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ROC(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_ROC(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_ROC");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -382,39 +342,31 @@ nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outSlowK = new double[inHigh.shape(0)];
-  double *outSlowD = new double[inHigh.shape(0)];
-
-  for (size_t i = 0; i < inHigh.shape(0); ++i) {
-    outSlowK[i] = std::numeric_limits<double>::quiet_NaN();
-    outSlowD[i] = std::numeric_limits<double>::quiet_NaN();
-  }
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
+  size_t size = inHigh.shape(0);
   int lookback = TA_STOCH_Lookback(
       optInFastK_Period, optInSlowK_Period, (TA_MAType)optInSlowK_MAType,
       optInSlowD_Period, (TA_MAType)optInSlowD_MAType);
 
+  auto [outSlowK, owner1] = alloc_output(size, lookback);
+  auto [outSlowD, owner2] = alloc_output(size, lookback);
+
+  int outBegIdx = 0;
+  int outNBElement = 0;
+
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_STOCH(startIdx, endIdx, inHigh.data(), inLow.data(),
-                       inClose.data(), optInFastK_Period, optInSlowK_Period,
+    retCode = TA_STOCH(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
+                       optInFastK_Period, optInSlowK_Period,
                        (TA_MAType)optInSlowK_MAType, optInSlowD_Period,
                        (TA_MAType)optInSlowD_MAType, &outBegIdx, &outNBElement,
                        outSlowK + lookback, outSlowD + lookback);
   }
   check_ta_retcode(retCode, "TA_STOCH");
 
-  nb::capsule owner1(outSlowK, [](void *p) noexcept { delete[] (double *)p; });
-  nb::capsule owner2(outSlowD, [](void *p) noexcept { delete[] (double *)p; });
-
-  return nb::make_tuple(DoubleArrayOUT(outSlowK, {inHigh.shape(0)}, owner1),
-                        DoubleArrayOUT(outSlowD, {inHigh.shape(0)}, owner2));
+  return nb::make_tuple(DoubleArrayOUT(outSlowK, {size}, owner1),
+                        DoubleArrayOUT(outSlowD, {size}, owner2));
 }
 
 // ---------------------------------------------------------
@@ -423,27 +375,23 @@ nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_MOM_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_MOM_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MOM(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_MOM(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_MOM");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -453,28 +401,23 @@ DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
                       double optInNbDev = 1.0) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_STDDEV(startIdx, endIdx, inReal.data(), optInTimePeriod, optInNbDev,
-                  &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_STDDEV(0, size - 1, inReal.data(), optInTimePeriod, optInNbDev,
+                        &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_STDDEV");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -486,28 +429,24 @@ DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_WILLR_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_WILLR_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_WILLR(startIdx, endIdx, inHigh.data(), inLow.data(),
-                       inClose.data(), optInTimePeriod, &outBegIdx,
-                       &outNBElement, outData + lookback);
+    retCode = TA_WILLR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
+                       optInTimePeriod, &outBegIdx, &outNBElement,
+                       outData + lookback);
   }
   check_ta_retcode(retCode, "TA_WILLR");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -519,28 +458,24 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_NATR_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_NATR_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_NATR(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+        TA_NATR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
                 optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_NATR");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -556,28 +491,24 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
       inHigh.shape(0) != inClose.shape(0) ||
       inHigh.shape(0) != inVolume.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_MFI_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_MFI_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MFI(startIdx, endIdx, inHigh.data(), inLow.data(),
-                     inClose.data(), inVolume.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_MFI(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
+                     inVolume.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_MFI");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -586,27 +517,23 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_CMO_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_CMO_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_CMO(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_CMO(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                     &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_CMO");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -618,28 +545,24 @@ DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_DX_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_DX_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_DX(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+        TA_DX(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
               optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_DX");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -651,28 +574,24 @@ DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MINUS_DI(startIdx, endIdx, inHigh.data(), inLow.data(),
+    retCode = TA_MINUS_DI(0, size - 1, inHigh.data(), inLow.data(),
                           inClose.data(), optInTimePeriod, &outBegIdx,
                           &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_MINUS_DI");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -684,28 +603,24 @@ DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MINUS_DM(startIdx, endIdx, inHigh.data(), inLow.data(),
-                          optInTimePeriod, &outBegIdx, &outNBElement,
-                          outData + lookback);
+    retCode =
+        TA_MINUS_DM(0, size - 1, inHigh.data(), inLow.data(), optInTimePeriod,
+                    &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_MINUS_DM");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -717,28 +632,24 @@ DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_PLUS_DI(startIdx, endIdx, inHigh.data(), inLow.data(),
+    retCode = TA_PLUS_DI(0, size - 1, inHigh.data(), inLow.data(),
                          inClose.data(), optInTimePeriod, &outBegIdx,
                          &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_PLUS_DI");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -750,28 +661,24 @@ DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_PLUS_DM(startIdx, endIdx, inHigh.data(), inLow.data(),
-                         optInTimePeriod, &outBegIdx, &outNBElement,
-                         outData + lookback);
+    retCode =
+        TA_PLUS_DM(0, size - 1, inHigh.data(), inLow.data(), optInTimePeriod,
+                   &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_PLUS_DM");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -781,29 +688,25 @@ DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
                    int optInSlowPeriod = 26, int optInMAType = 0) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback =
+      TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback =
-      TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_APO(startIdx, endIdx, inReal.data(), optInFastPeriod,
+    retCode = TA_APO(0, size - 1, inReal.data(), optInFastPeriod,
                      optInSlowPeriod, (TA_MAType)optInMAType, &outBegIdx,
                      &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_APO");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -817,33 +720,27 @@ nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outDown = new double[inHigh.shape(0)];
-  double *outUp = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i) {
-    outDown[i] = std::numeric_limits<double>::quiet_NaN();
-    outUp[i] = std::numeric_limits<double>::quiet_NaN();
-  }
+  size_t size = inHigh.shape(0);
+  int lookback = TA_AROON_Lookback(optInTimePeriod);
+
+  auto [outDown, owner1] = alloc_output(size, lookback);
+  auto [outUp, owner2] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_AROON_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_AROON(startIdx, endIdx, inHigh.data(), inLow.data(),
+    retCode = TA_AROON(0, size - 1, inHigh.data(), inLow.data(),
                        optInTimePeriod, &outBegIdx, &outNBElement,
                        outDown + lookback, outUp + lookback);
   }
   check_ta_retcode(retCode, "TA_AROON");
 
-  nb::capsule owner1(outDown, [](void *p) noexcept { delete[] (double *)p; });
-  nb::capsule owner2(outUp, [](void *p) noexcept { delete[] (double *)p; });
-  return nb::make_tuple(DoubleArrayOUT(outDown, {inHigh.shape(0)}, owner1),
-                        DoubleArrayOUT(outUp, {inHigh.shape(0)}, owner2));
+  return nb::make_tuple(DoubleArrayOUT(outDown, {size}, owner1),
+                        DoubleArrayOUT(outUp, {size}, owner2));
 }
 
 // ---------------------------------------------------------
@@ -855,28 +752,24 @@ DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_AROONOSC(startIdx, endIdx, inHigh.data(), inLow.data(),
-                          optInTimePeriod, &outBegIdx, &outNBElement,
-                          outData + lookback);
+    retCode =
+        TA_AROONOSC(0, size - 1, inHigh.data(), inLow.data(), optInTimePeriod,
+                    &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_AROONOSC");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -886,29 +779,25 @@ DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
                    int optInSlowPeriod = 26, int optInMAType = 0) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback =
+      TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback =
-      TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_PPO(startIdx, endIdx, inReal.data(), optInFastPeriod,
+    retCode = TA_PPO(0, size - 1, inReal.data(), optInFastPeriod,
                      optInSlowPeriod, (TA_MAType)optInMAType, &outBegIdx,
                      &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_PPO");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -917,27 +806,23 @@ DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
 DoubleArrayOUT trix(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  int startIdx = 0;
-  int endIdx = inReal.shape(0) - 1;
 
-  double *outData = new double[inReal.shape(0)];
-  for (size_t i = 0; i < inReal.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inReal.shape(0);
+  int lookback = TA_TRIX_Lookback(optInTimePeriod);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback = TA_TRIX_Lookback(optInTimePeriod);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_TRIX(startIdx, endIdx, inReal.data(), optInTimePeriod,
-                      &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_TRIX(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
+                      &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_TRIX");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inReal.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -950,30 +835,26 @@ DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
-  int startIdx = 0;
-  int endIdx = inHigh.shape(0) - 1;
 
-  double *outData = new double[inHigh.shape(0)];
-  for (size_t i = 0; i < inHigh.shape(0); ++i)
-    outData[i] = std::numeric_limits<double>::quiet_NaN();
+  size_t size = inHigh.shape(0);
+  int lookback =
+      TA_ULTOSC_Lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+  auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
   int outNBElement = 0;
-  int lookback =
-      TA_ULTOSC_Lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
 
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_ULTOSC(startIdx, endIdx, inHigh.data(), inLow.data(), inClose.data(),
+        TA_ULTOSC(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
                   optInTimePeriod1, optInTimePeriod2, optInTimePeriod3,
                   &outBegIdx, &outNBElement, outData + lookback);
   }
   check_ta_retcode(retCode, "TA_ULTOSC");
 
-  nb::capsule owner(outData, [](void *p) noexcept { delete[] (double *)p; });
-  return DoubleArrayOUT(outData, {inHigh.shape(0)}, owner);
+  return DoubleArrayOUT(outData, {size}, owner);
 }
 
 // Helper to initialize and shutdown TA-lib
