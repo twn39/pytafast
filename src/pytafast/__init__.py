@@ -5,7 +5,7 @@ import atexit
 from . import pytafast_ext
 from .pytafast_ext import MAType
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 def _is_pandas_series(obj):
     try:
