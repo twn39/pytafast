@@ -34,7 +34,20 @@ find_package(Python 3.11 COMPONENTS Interpreter Development.Module REQUIRED)
 add_subdirectory(third_party/nanobind)
 
 # The main python module
-nanobind_add_module(pytafast_ext src/pytafast_ext.cpp)
+nanobind_add_module(pytafast_ext
+  src/pytafast_ext.cpp
+  src/overlap.cpp
+  src/momentum.cpp
+  src/volatility.cpp
+  src/price_transform.cpp
+  src/volume.cpp
+  src/statistic.cpp
+  src/math_operator.cpp
+  src/math_transform.cpp
+  src/cycle.cpp
+  src/candlestick.cpp
+)
+target_include_directories(pytafast_ext PRIVATE src)
 
 # Link against ta-lib
 target_link_libraries(pytafast_ext PRIVATE ta-lib-static)

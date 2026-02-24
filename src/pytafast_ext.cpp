@@ -1,861 +1,193 @@
-#include <algorithm>
-#include <limits>
-#include <nanobind/nanobind.h>
-#include <nanobind/ndarray.h>
-#include <stdexcept>
-#include <string>
-#include <ta_libc.h>
-
-namespace nb = nanobind;
-
-// Define a type alias for our preferred input array type
-using DoubleArrayIN =
-    nb::ndarray<nb::numpy, const double, nb::c_contig, nb::ndim<1>>;
-// Define a type alias for out output numpy array
-using DoubleArrayOUT = nb::ndarray<nb::numpy, double, nb::ndim<1>>;
-
-static const double NaN = std::numeric_limits<double>::quiet_NaN();
-
-// Check return codes
-void check_ta_retcode(TA_RetCode code, const char *func) {
-  if (code != TA_SUCCESS) {
-    throw std::runtime_error(
-        std::string(func) + " failed with TA_RetCode: " + std::to_string(code));
-  }
-}
-
-// Helper: allocate a double array, wrap in capsule, fill lookback region with
-// NaN
-struct AllocResult {
-  double *data;
-  nb::capsule owner;
-};
-
-AllocResult alloc_output(size_t size, int lookback) {
-  double *data = new double[size];
-  nb::capsule owner(data, [](void *p) noexcept { delete[] (double *)p; });
-  std::fill(data, data + lookback, NaN);
-  return {data, std::move(owner)};
-}
-
-// ---------------------------------------------------------
-// SIMPLE MOVING AVERAGE
-// ---------------------------------------------------------
-DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_SMA_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_SMA(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-
-  check_ta_retcode(retCode, "TA_SMA");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// EXPONENTIAL MOVING AVERAGE
-// ---------------------------------------------------------
-DoubleArrayOUT ema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_EMA_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_EMA(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_EMA");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// RELATIVE STRENGTH INDEX
-// ---------------------------------------------------------
-DoubleArrayOUT rsi(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_RSI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_RSI(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_RSI");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// MACD
-// ---------------------------------------------------------
-nb::tuple macd(DoubleArrayIN inReal, int optInFastPeriod = 12,
-               int optInSlowPeriod = 26, int optInSignalPeriod = 9) {
-  if (inReal.size() == 0) {
-    return nb::make_tuple(DoubleArrayOUT(nullptr, {0}, nb::handle()),
-                          DoubleArrayOUT(nullptr, {0}, nb::handle()),
-                          DoubleArrayOUT(nullptr, {0}, nb::handle()));
-  }
-
-  size_t size = inReal.shape(0);
-  int lookback =
-      TA_MACD_Lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
-
-  auto [outMACD, owner1] = alloc_output(size, lookback);
-  auto [outSignal, owner2] = alloc_output(size, lookback);
-  auto [outHist, owner3] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_MACD(0, size - 1, inReal.data(), optInFastPeriod, optInSlowPeriod,
-                optInSignalPeriod, &outBegIdx, &outNBElement,
-                outMACD + lookback, outSignal + lookback, outHist + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MACD");
-
-  return nb::make_tuple(DoubleArrayOUT(outMACD, {size}, owner1),
-                        DoubleArrayOUT(outSignal, {size}, owner2),
-                        DoubleArrayOUT(outHist, {size}, owner3));
-}
-
-// ---------------------------------------------------------
-// BOLLINGER BANDS
-// ---------------------------------------------------------
-nb::tuple bbands(DoubleArrayIN inReal, int optInTimePeriod = 5,
-                 double optInNbDevUp = 2.0, double optInNbDevDn = 2.0,
-                 int optInMAType = 0) {
-  if (inReal.size() == 0) {
-    return nb::make_tuple(DoubleArrayOUT(nullptr, {0}, nb::handle()),
-                          DoubleArrayOUT(nullptr, {0}, nb::handle()),
-                          DoubleArrayOUT(nullptr, {0}, nb::handle()));
-  }
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn,
-                                    (TA_MAType)optInMAType);
-
-  auto [outUpper, owner1] = alloc_output(size, lookback);
-  auto [outMiddle, owner2] = alloc_output(size, lookback);
-  auto [outLower, owner3] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_BBANDS(0, size - 1, inReal.data(), optInTimePeriod,
-                        optInNbDevUp, optInNbDevDn, (TA_MAType)optInMAType,
-                        &outBegIdx, &outNBElement, outUpper + lookback,
-                        outMiddle + lookback, outLower + lookback);
-  }
-  check_ta_retcode(retCode, "TA_BBANDS");
-
-  return nb::make_tuple(DoubleArrayOUT(outUpper, {size}, owner1),
-                        DoubleArrayOUT(outMiddle, {size}, owner2),
-                        DoubleArrayOUT(outLower, {size}, owner3));
-}
-
-// ---------------------------------------------------------
-// AVERAGE TRUE RANGE (ATR)
-// ---------------------------------------------------------
-DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                   DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_ATR_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_ATR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-               optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_ATR");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// AVERAGE DIRECTIONAL MOVEMENT INDEX (ADX)
-// ---------------------------------------------------------
-DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                   DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_ADX_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_ADX(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-               optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_ADX");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// COMMODITY CHANNEL INDEX (CCI)
-// ---------------------------------------------------------
-DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                   DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_CCI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_CCI(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-               optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_CCI");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// ON BALANCE VOLUME (OBV)
-// ---------------------------------------------------------
-DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
-  if (inReal.size() == 0 || inVolume.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inReal.shape(0) != inVolume.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_OBV_Lookback();
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_OBV(0, size - 1, inReal.data(), inVolume.data(), &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_OBV");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// RATE OF CHANGE (ROC)
-// ---------------------------------------------------------
-DoubleArrayOUT roc(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_ROC_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_ROC(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_ROC");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// STOCHASTIC (STOCH)
-// ---------------------------------------------------------
-nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                DoubleArrayIN inClose, int optInFastK_Period = 5,
-                int optInSlowK_Period = 3, int optInSlowK_MAType = 0,
-                int optInSlowD_Period = 3, int optInSlowD_MAType = 0) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
-    return nb::make_tuple(DoubleArrayOUT(nullptr, {0}, nb::handle()),
-                          DoubleArrayOUT(nullptr, {0}, nb::handle()));
-  }
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_STOCH_Lookback(
-      optInFastK_Period, optInSlowK_Period, (TA_MAType)optInSlowK_MAType,
-      optInSlowD_Period, (TA_MAType)optInSlowD_MAType);
-
-  auto [outSlowK, owner1] = alloc_output(size, lookback);
-  auto [outSlowD, owner2] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_STOCH(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                       optInFastK_Period, optInSlowK_Period,
-                       (TA_MAType)optInSlowK_MAType, optInSlowD_Period,
-                       (TA_MAType)optInSlowD_MAType, &outBegIdx, &outNBElement,
-                       outSlowK + lookback, outSlowD + lookback);
-  }
-  check_ta_retcode(retCode, "TA_STOCH");
-
-  return nb::make_tuple(DoubleArrayOUT(outSlowK, {size}, owner1),
-                        DoubleArrayOUT(outSlowD, {size}, owner2));
-}
-
-// ---------------------------------------------------------
-// MOMENTUM (MOM)
-// ---------------------------------------------------------
-DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_MOM_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MOM(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MOM");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// STANDARD DEVIATION (STDDEV)
-// ---------------------------------------------------------
-DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
-                      double optInNbDev = 1.0) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_STDDEV(0, size - 1, inReal.data(), optInTimePeriod, optInNbDev,
-                        &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_STDDEV");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// WILLIAMS %R (WILLR)
-// ---------------------------------------------------------
-DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                     DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_WILLR_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_WILLR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                       optInTimePeriod, &outBegIdx, &outNBElement,
-                       outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_WILLR");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// NORMALIZED AVERAGE TRUE RANGE (NATR)
-// ---------------------------------------------------------
-DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                    DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_NATR_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_NATR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_NATR");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// MONEY FLOW INDEX (MFI)
-// ---------------------------------------------------------
-DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                   DoubleArrayIN inClose, DoubleArrayIN inVolume,
-                   int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0 ||
-      inVolume.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) ||
-      inHigh.shape(0) != inClose.shape(0) ||
-      inHigh.shape(0) != inVolume.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_MFI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MFI(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                     inVolume.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MFI");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// CHANDE MOMENTUM OSCILLATOR (CMO)
-// ---------------------------------------------------------
-DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_CMO_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_CMO(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_CMO");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// DIRECTIONAL MOVEMENT INDEX (DX)
-// ---------------------------------------------------------
-DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                  DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_DX_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_DX(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-              optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_DX");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// MINUS DIRECTIONAL INDICATOR (MINUS_DI)
-// ---------------------------------------------------------
-DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                        DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MINUS_DI(0, size - 1, inHigh.data(), inLow.data(),
-                          inClose.data(), optInTimePeriod, &outBegIdx,
-                          &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MINUS_DI");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// MINUS DIRECTIONAL MOVEMENT (MINUS_DM)
-// ---------------------------------------------------------
-DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                        int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_MINUS_DM(0, size - 1, inHigh.data(), inLow.data(), optInTimePeriod,
-                    &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MINUS_DM");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// PLUS DIRECTIONAL INDICATOR (PLUS_DI)
-// ---------------------------------------------------------
-DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                       DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_PLUS_DI(0, size - 1, inHigh.data(), inLow.data(),
-                         inClose.data(), optInTimePeriod, &outBegIdx,
-                         &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_PLUS_DI");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// PLUS DIRECTIONAL MOVEMENT (PLUS_DM)
-// ---------------------------------------------------------
-DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                       int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_PLUS_DM(0, size - 1, inHigh.data(), inLow.data(), optInTimePeriod,
-                   &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_PLUS_DM");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// ABSOLUTE PRICE OSCILLATOR (APO)
-// ---------------------------------------------------------
-DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
-                   int optInSlowPeriod = 26, int optInMAType = 0) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback =
-      TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_APO(0, size - 1, inReal.data(), optInFastPeriod,
-                     optInSlowPeriod, (TA_MAType)optInMAType, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_APO");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// AROON (AROON)
-// ---------------------------------------------------------
-nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0) {
-    return nb::make_tuple(DoubleArrayOUT(nullptr, {0}, nb::handle()),
-                          DoubleArrayOUT(nullptr, {0}, nb::handle()));
-  }
-  if (inHigh.shape(0) != inLow.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_AROON_Lookback(optInTimePeriod);
-
-  auto [outDown, owner1] = alloc_output(size, lookback);
-  auto [outUp, owner2] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_AROON(0, size - 1, inHigh.data(), inLow.data(),
-                       optInTimePeriod, &outBegIdx, &outNBElement,
-                       outDown + lookback, outUp + lookback);
-  }
-  check_ta_retcode(retCode, "TA_AROON");
-
-  return nb::make_tuple(DoubleArrayOUT(outDown, {size}, owner1),
-                        DoubleArrayOUT(outUp, {size}, owner2));
-}
-
-// ---------------------------------------------------------
-// AROON OSCILLATOR (AROONOSC)
-// ---------------------------------------------------------
-DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                        int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_AROONOSC(0, size - 1, inHigh.data(), inLow.data(), optInTimePeriod,
-                    &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_AROONOSC");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// PERCENTAGE PRICE OSCILLATOR (PPO)
-// ---------------------------------------------------------
-DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
-                   int optInSlowPeriod = 26, int optInMAType = 0) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback =
-      TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_PPO(0, size - 1, inReal.data(), optInFastPeriod,
-                     optInSlowPeriod, (TA_MAType)optInMAType, &outBegIdx,
-                     &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_PPO");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// 1-DAY RATE-OF-CHANGE (TRIX)
-// ---------------------------------------------------------
-DoubleArrayOUT trix(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-
-  size_t size = inReal.shape(0);
-  int lookback = TA_TRIX_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_TRIX(0, size - 1, inReal.data(), optInTimePeriod, &outBegIdx,
-                      &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_TRIX");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
-
-// ---------------------------------------------------------
-// ULTIMATE OSCILLATOR (ULTOSC)
-// ---------------------------------------------------------
-DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
-                      DoubleArrayIN inClose, int optInTimePeriod1 = 7,
-                      int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
-
-  size_t size = inHigh.shape(0);
-  int lookback =
-      TA_ULTOSC_Lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
-  auto [outData, owner] = alloc_output(size, lookback);
-
-  int outBegIdx = 0;
-  int outNBElement = 0;
-
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_ULTOSC(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                  optInTimePeriod1, optInTimePeriod2, optInTimePeriod3,
-                  &outBegIdx, &outNBElement, outData + lookback);
-  }
-  check_ta_retcode(retCode, "TA_ULTOSC");
-
-  return DoubleArrayOUT(outData, {size}, owner);
-}
+// pytafast_ext - Main module definition
+// Function implementations are in separate files:
+//   overlap.cpp, momentum.cpp, volatility.cpp, price_transform.cpp, volume.cpp
+#include "common.h"
+
+// Forward declarations from overlap.cpp
+DoubleArrayOUT sma(DoubleArrayIN, int);
+DoubleArrayOUT ema(DoubleArrayIN, int);
+nb::tuple bbands(DoubleArrayIN, int, double, double, int);
+DoubleArrayOUT dema(DoubleArrayIN, int);
+DoubleArrayOUT kama(DoubleArrayIN, int);
+DoubleArrayOUT ma(DoubleArrayIN, int, int);
+DoubleArrayOUT t3(DoubleArrayIN, int, double);
+DoubleArrayOUT tema(DoubleArrayIN, int);
+DoubleArrayOUT trima(DoubleArrayIN, int);
+DoubleArrayOUT wma(DoubleArrayIN, int);
+DoubleArrayOUT sar(DoubleArrayIN, DoubleArrayIN, double, double);
+DoubleArrayOUT midpoint(DoubleArrayIN, int);
+
+// Forward declarations from momentum.cpp
+DoubleArrayOUT rsi(DoubleArrayIN, int);
+nb::tuple macd(DoubleArrayIN, int, int, int);
+nb::tuple macdext(DoubleArrayIN, int, int, int, int, int, int);
+nb::tuple macdfix(DoubleArrayIN, int);
+DoubleArrayOUT roc(DoubleArrayIN, int);
+DoubleArrayOUT rocp(DoubleArrayIN, int);
+DoubleArrayOUT rocr(DoubleArrayIN, int);
+DoubleArrayOUT rocr100(DoubleArrayIN, int);
+nb::tuple stoch(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int, int, int, int,
+                int);
+nb::tuple stochf(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int, int, int);
+nb::tuple stochrsi(DoubleArrayIN, int, int, int, int);
+DoubleArrayOUT mom(DoubleArrayIN, int);
+DoubleArrayOUT cmo(DoubleArrayIN, int);
+DoubleArrayOUT apo(DoubleArrayIN, int, int, int);
+DoubleArrayOUT ppo(DoubleArrayIN, int, int, int);
+DoubleArrayOUT trix(DoubleArrayIN, int);
+nb::tuple aroon(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT aroonosc(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT adx(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT adxr(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT dx(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT minus_di(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT minus_dm(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT plus_di(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT plus_dm(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT willr(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT mfi(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, DoubleArrayIN,
+                   int);
+DoubleArrayOUT cci(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT ultosc(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int, int,
+                      int);
+DoubleArrayOUT bop(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, DoubleArrayIN);
+
+// Forward declarations from volatility.cpp
+DoubleArrayOUT atr(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT natr(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT trange(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT stddev(DoubleArrayIN, int, double);
+
+// Forward declarations from volume.cpp
+DoubleArrayOUT obv(DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT ad(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT adosc(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, DoubleArrayIN,
+                     int, int);
+
+// Forward declarations from statistic.cpp
+DoubleArrayOUT beta(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT correl(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT linearreg(DoubleArrayIN, int);
+DoubleArrayOUT linearreg_angle(DoubleArrayIN, int);
+DoubleArrayOUT linearreg_intercept(DoubleArrayIN, int);
+DoubleArrayOUT linearreg_slope(DoubleArrayIN, int);
+DoubleArrayOUT tsf(DoubleArrayIN, int);
+DoubleArrayOUT var(DoubleArrayIN, int, double);
+DoubleArrayOUT avgdev(DoubleArrayIN, int);
+DoubleArrayOUT ta_max(DoubleArrayIN, int);
+DoubleArrayOUT ta_min(DoubleArrayIN, int);
+DoubleArrayOUT ta_sum(DoubleArrayIN, int);
+nb::tuple minmax(DoubleArrayIN, int);
+nb::tuple minmaxindex(DoubleArrayIN, int);
+
+// Forward declarations from cycle.cpp
+DoubleArrayOUT ht_dcperiod(DoubleArrayIN);
+DoubleArrayOUT ht_dcphase(DoubleArrayIN);
+nb::tuple ht_phasor(DoubleArrayIN);
+nb::tuple ht_sine(DoubleArrayIN);
+DoubleArrayOUT ht_trendline(DoubleArrayIN);
+nb::ndarray<int, nb::numpy, nb::ndim<1>> ht_trendmode(DoubleArrayIN);
+
+DoubleArrayOUT avgprice(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN,
+                        DoubleArrayIN);
+DoubleArrayOUT medprice(DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT typprice(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT wclprice(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT midprice(DoubleArrayIN, DoubleArrayIN, int);
+
+// Forward declarations from math_operator.cpp
+DoubleArrayOUT add(DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT sub(DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT mult(DoubleArrayIN, DoubleArrayIN);
+DoubleArrayOUT ta_div(DoubleArrayIN, DoubleArrayIN);
+
+// Forward declarations from math_transform.cpp
+DoubleArrayOUT ta_acos(DoubleArrayIN);
+DoubleArrayOUT ta_asin(DoubleArrayIN);
+DoubleArrayOUT ta_atan(DoubleArrayIN);
+DoubleArrayOUT ta_ceil(DoubleArrayIN);
+DoubleArrayOUT ta_cos(DoubleArrayIN);
+DoubleArrayOUT ta_cosh(DoubleArrayIN);
+DoubleArrayOUT ta_exp(DoubleArrayIN);
+DoubleArrayOUT ta_floor(DoubleArrayIN);
+DoubleArrayOUT ta_ln(DoubleArrayIN);
+DoubleArrayOUT ta_log10(DoubleArrayIN);
+DoubleArrayOUT ta_sin(DoubleArrayIN);
+DoubleArrayOUT ta_sinh(DoubleArrayIN);
+DoubleArrayOUT ta_sqrt(DoubleArrayIN);
+DoubleArrayOUT ta_tan(DoubleArrayIN);
+DoubleArrayOUT ta_tanh(DoubleArrayIN);
+
+// Forward declarations from candlestick.cpp
+using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
+#define CDL_FWD(NAME)                                                          \
+  IntArrayOUT NAME(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, DoubleArrayIN)
+#define CDL_FWD_PEN(NAME)                                                      \
+  IntArrayOUT NAME(DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, DoubleArrayIN, \
+                   double)
+CDL_FWD(cdl2crows);
+CDL_FWD(cdl3blackcrows);
+CDL_FWD(cdl3inside);
+CDL_FWD(cdl3linestrike);
+CDL_FWD(cdl3outside);
+CDL_FWD(cdl3starsinsouth);
+CDL_FWD(cdl3whitesoldiers);
+CDL_FWD(cdladvanceblock);
+CDL_FWD(cdlbelthold);
+CDL_FWD(cdlbreakaway);
+CDL_FWD(cdlclosingmarubozu);
+CDL_FWD(cdlconcealbabyswall);
+CDL_FWD(cdlcounterattack);
+CDL_FWD(cdldoji);
+CDL_FWD(cdldojistar);
+CDL_FWD(cdldragonflydoji);
+CDL_FWD(cdlengulfing);
+CDL_FWD(cdlgapsidesidewhite);
+CDL_FWD(cdlgravestonedoji);
+CDL_FWD(cdlhammer);
+CDL_FWD(cdlhangingman);
+CDL_FWD(cdlharami);
+CDL_FWD(cdlharamicross);
+CDL_FWD(cdlhighwave);
+CDL_FWD(cdlhikkake);
+CDL_FWD(cdlhikkakemod);
+CDL_FWD(cdlhomingpigeon);
+CDL_FWD(cdlidentical3crows);
+CDL_FWD(cdlinneck);
+CDL_FWD(cdlinvertedhammer);
+CDL_FWD(cdlkicking);
+CDL_FWD(cdlkickingbylength);
+CDL_FWD(cdlladderbottom);
+CDL_FWD(cdllongleggeddoji);
+CDL_FWD(cdllongline);
+CDL_FWD(cdlmarubozu);
+CDL_FWD(cdlmatchinglow);
+CDL_FWD(cdlonneck);
+CDL_FWD(cdlpiercing);
+CDL_FWD(cdlrickshawman);
+CDL_FWD(cdlrisefall3methods);
+CDL_FWD(cdlseparatinglines);
+CDL_FWD(cdlshootingstar);
+CDL_FWD(cdlshortline);
+CDL_FWD(cdlspinningtop);
+CDL_FWD(cdlstalledpattern);
+CDL_FWD(cdlsticksandwich);
+CDL_FWD(cdltakuri);
+CDL_FWD(cdltasukigap);
+CDL_FWD(cdlthrusting);
+CDL_FWD(cdltristar);
+CDL_FWD(cdlunique3river);
+CDL_FWD(cdlupsidegap2crows);
+CDL_FWD(cdlxsidegap3methods);
+CDL_FWD_PEN(cdlabandonedbaby);
+CDL_FWD_PEN(cdldarkcloudcover);
+CDL_FWD_PEN(cdleveningdojistar);
+CDL_FWD_PEN(cdleveningstar);
+CDL_FWD_PEN(cdlmathold);
+CDL_FWD_PEN(cdlmorningdojistar);
+CDL_FWD_PEN(cdlmorningstar);
+#undef CDL_FWD
+#undef CDL_FWD_PEN
 
 // Helper to initialize and shutdown TA-lib
 void initialize() {
@@ -882,52 +214,87 @@ NB_MODULE(pytafast_ext, m) {
       .value("MAMA", TA_MAType_MAMA)
       .value("T3", TA_MAType_T3);
 
+  // --- Overlap Studies ---
   m.def("SMA", &sma, nb::arg("inReal").noconvert(),
         nb::arg("optInTimePeriod") = 30);
   m.def("EMA", &ema, nb::arg("inReal").noconvert(),
         nb::arg("optInTimePeriod") = 30);
+  m.def("BBANDS", &bbands, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDevUp") = 2.0,
+        nb::arg("optInNbDevDn") = 2.0, nb::arg("optInMAType") = 0);
+  m.def("DEMA", &dema, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("KAMA", &kama, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("MA", &ma, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30, nb::arg("optInMAType") = 0);
+  m.def("T3", &t3, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 5, nb::arg("optInVFactor") = 0.7);
+  m.def("TEMA", &tema, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("TRIMA", &trima, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("WMA", &wma, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("SAR", &sar, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInAcceleration") = 0.02,
+        nb::arg("optInMaximum") = 0.2);
+  m.def("MIDPOINT", &midpoint, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+
+  // --- Momentum ---
   m.def("RSI", &rsi, nb::arg("inReal").noconvert(),
         nb::arg("optInTimePeriod") = 14);
   m.def("MACD", &macd, nb::arg("inReal").noconvert(),
         nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
         nb::arg("optInSignalPeriod") = 9);
-  m.def("BBANDS", &bbands, nb::arg("inReal").noconvert(),
-        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDevUp") = 2.0,
-        nb::arg("optInNbDevDn") = 2.0, nb::arg("optInMAType") = 0);
-
-  // Additional Indicators
-  m.def("ATR", &atr, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("ADX", &adx, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("CCI", &cci, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("OBV", &obv, nb::arg("inReal").noconvert(),
-        nb::arg("inVolume").noconvert());
+  m.def("MACDEXT", &macdext, nb::arg("inReal").noconvert(),
+        nb::arg("optInFastPeriod") = 12, nb::arg("optInFastMAType") = 0,
+        nb::arg("optInSlowPeriod") = 26, nb::arg("optInSlowMAType") = 0,
+        nb::arg("optInSignalPeriod") = 9, nb::arg("optInSignalMAType") = 0);
+  m.def("MACDFIX", &macdfix, nb::arg("inReal").noconvert(),
+        nb::arg("optInSignalPeriod") = 9);
   m.def("ROC", &roc, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 10);
+  m.def("ROCP", &rocp, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 10);
+  m.def("ROCR", &rocr, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 10);
+  m.def("ROCR100", &rocr100, nb::arg("inReal").noconvert(),
         nb::arg("optInTimePeriod") = 10);
   m.def("STOCH", &stoch, nb::arg("inHigh").noconvert(),
         nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
         nb::arg("optInFastK_Period") = 5, nb::arg("optInSlowK_Period") = 3,
         nb::arg("optInSlowK_MAType") = 0, nb::arg("optInSlowD_Period") = 3,
         nb::arg("optInSlowD_MAType") = 0);
+  m.def("STOCHF", &stochf, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInFastK_Period") = 5, nb::arg("optInFastD_Period") = 3,
+        nb::arg("optInFastD_MAType") = 0);
+  m.def("STOCHRSI", &stochrsi, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14, nb::arg("optInFastK_Period") = 5,
+        nb::arg("optInFastD_Period") = 3, nb::arg("optInFastD_MAType") = 0);
   m.def("MOM", &mom, nb::arg("inReal").noconvert(),
         nb::arg("optInTimePeriod") = 10);
-  m.def("STDDEV", &stddev, nb::arg("inReal").noconvert(),
-        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDev") = 1.0);
-  m.def("WILLR", &willr, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("NATR", &natr, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("MFI", &mfi, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
-        nb::arg("inVolume").noconvert(), nb::arg("optInTimePeriod") = 14);
   m.def("CMO", &cmo, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("APO", &apo, nb::arg("inReal").noconvert(),
+        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
+        nb::arg("optInMAType") = 0);
+  m.def("PPO", &ppo, nb::arg("inReal").noconvert(),
+        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
+        nb::arg("optInMAType") = 0);
+  m.def("TRIX", &trix, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("AROON", &aroon, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("AROONOSC", &aroonosc, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("ADX", &adx, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("ADXR", &adxr, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
         nb::arg("optInTimePeriod") = 14);
   m.def("DX", &dx, nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),
         nb::arg("inClose").noconvert(), nb::arg("optInTimePeriod") = 14);
@@ -941,22 +308,199 @@ NB_MODULE(pytafast_ext, m) {
         nb::arg("optInTimePeriod") = 14);
   m.def("PLUS_DM", &plus_dm, nb::arg("inHigh").noconvert(),
         nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
-  m.def("APO", &apo, nb::arg("inReal").noconvert(),
-        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
-        nb::arg("optInMAType") = 0);
-  m.def("AROON", &aroon, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
-  m.def("AROONOSC", &aroonosc, nb::arg("inHigh").noconvert(),
-        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
-  m.def("PPO", &ppo, nb::arg("inReal").noconvert(),
-        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
-        nb::arg("optInMAType") = 0);
-  m.def("TRIX", &trix, nb::arg("inReal").noconvert(),
-        nb::arg("optInTimePeriod") = 30);
+  m.def("WILLR", &willr, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("MFI", &mfi, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("inVolume").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("CCI", &cci, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
   m.def("ULTOSC", &ultosc, nb::arg("inHigh").noconvert(),
         nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
         nb::arg("optInTimePeriod1") = 7, nb::arg("optInTimePeriod2") = 14,
         nb::arg("optInTimePeriod3") = 28);
+  m.def("BOP", &bop, nb::arg("inOpen").noconvert(),
+        nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),
+        nb::arg("inClose").noconvert());
+
+  // --- Volatility ---
+  m.def("ATR", &atr, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("NATR", &natr, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("TRANGE", &trange, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert());
+  m.def("STDDEV", &stddev, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDev") = 1.0);
+
+  // --- Volume ---
+  m.def("OBV", &obv, nb::arg("inReal").noconvert(),
+        nb::arg("inVolume").noconvert());
+  m.def("AD", &ad, nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),
+        nb::arg("inClose").noconvert(), nb::arg("inVolume").noconvert());
+  m.def("ADOSC", &adosc, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert(),
+        nb::arg("inVolume").noconvert(), nb::arg("optInFastPeriod") = 3,
+        nb::arg("optInSlowPeriod") = 10);
+
+  // --- Statistics ---
+  m.def("BETA", &beta, nb::arg("inReal0").noconvert(),
+        nb::arg("inReal1").noconvert(), nb::arg("optInTimePeriod") = 5);
+  m.def("CORREL", &correl, nb::arg("inReal0").noconvert(),
+        nb::arg("inReal1").noconvert(), nb::arg("optInTimePeriod") = 30);
+  m.def("LINEARREG", &linearreg, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("LINEARREG_ANGLE", &linearreg_angle, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("LINEARREG_INTERCEPT", &linearreg_intercept,
+        nb::arg("inReal").noconvert(), nb::arg("optInTimePeriod") = 14);
+  m.def("LINEARREG_SLOPE", &linearreg_slope, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("TSF", &tsf, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("VAR", &var, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDev") = 1.0);
+  m.def("AVGDEV", &avgdev, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 14);
+
+  // --- Price Transform ---
+  m.def("AVGPRICE", &avgprice, nb::arg("inOpen").noconvert(),
+        nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),
+        nb::arg("inClose").noconvert());
+  m.def("MEDPRICE", &medprice, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert());
+  m.def("TYPPRICE", &typprice, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert());
+  m.def("WCLPRICE", &wclprice, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("inClose").noconvert());
+  m.def("MIDPRICE", &midprice, nb::arg("inHigh").noconvert(),
+        nb::arg("inLow").noconvert(), nb::arg("optInTimePeriod") = 14);
+
+  // --- Math Operators ---
+  m.def("ADD", &add, nb::arg("inReal0").noconvert(),
+        nb::arg("inReal1").noconvert());
+  m.def("SUB", &sub, nb::arg("inReal0").noconvert(),
+        nb::arg("inReal1").noconvert());
+  m.def("MULT", &mult, nb::arg("inReal0").noconvert(),
+        nb::arg("inReal1").noconvert());
+  m.def("DIV", &ta_div, nb::arg("inReal0").noconvert(),
+        nb::arg("inReal1").noconvert());
+
+  // --- Math Transforms ---
+  m.def("ACOS", &ta_acos, nb::arg("inReal").noconvert());
+  m.def("ASIN", &ta_asin, nb::arg("inReal").noconvert());
+  m.def("ATAN", &ta_atan, nb::arg("inReal").noconvert());
+  m.def("CEIL", &ta_ceil, nb::arg("inReal").noconvert());
+  m.def("COS", &ta_cos, nb::arg("inReal").noconvert());
+  m.def("COSH", &ta_cosh, nb::arg("inReal").noconvert());
+  m.def("EXP", &ta_exp, nb::arg("inReal").noconvert());
+  m.def("FLOOR", &ta_floor, nb::arg("inReal").noconvert());
+  m.def("LN", &ta_ln, nb::arg("inReal").noconvert());
+  m.def("LOG10", &ta_log10, nb::arg("inReal").noconvert());
+  m.def("SIN", &ta_sin, nb::arg("inReal").noconvert());
+  m.def("SINH", &ta_sinh, nb::arg("inReal").noconvert());
+  m.def("SQRT", &ta_sqrt, nb::arg("inReal").noconvert());
+  m.def("TAN", &ta_tan, nb::arg("inReal").noconvert());
+  m.def("TANH", &ta_tanh, nb::arg("inReal").noconvert());
+
+  // --- Statistics (MIN/MAX/SUM/MINMAX/MINMAXINDEX) ---
+  m.def("MAX", &ta_max, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("MIN", &ta_min, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("SUM", &ta_sum, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("MINMAX", &minmax, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+  m.def("MINMAXINDEX", &minmaxindex, nb::arg("inReal").noconvert(),
+        nb::arg("optInTimePeriod") = 30);
+
+  // --- Cycle ---
+  m.def("HT_DCPERIOD", &ht_dcperiod, nb::arg("inReal").noconvert());
+  m.def("HT_DCPHASE", &ht_dcphase, nb::arg("inReal").noconvert());
+  m.def("HT_PHASOR", &ht_phasor, nb::arg("inReal").noconvert());
+  m.def("HT_SINE", &ht_sine, nb::arg("inReal").noconvert());
+  m.def("HT_TRENDLINE", &ht_trendline, nb::arg("inReal").noconvert());
+  m.def("HT_TRENDMODE", &ht_trendmode, nb::arg("inReal").noconvert());
+
+  // --- Candlestick Patterns (standard OHLC) ---
+#define CDL_BIND(NAME, FUNC)                                                   \
+  m.def(#NAME, &FUNC, nb::arg("inOpen").noconvert(),                           \
+        nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),           \
+        nb::arg("inClose").noconvert())
+  CDL_BIND(CDL2CROWS, cdl2crows);
+  CDL_BIND(CDL3BLACKCROWS, cdl3blackcrows);
+  CDL_BIND(CDL3INSIDE, cdl3inside);
+  CDL_BIND(CDL3LINESTRIKE, cdl3linestrike);
+  CDL_BIND(CDL3OUTSIDE, cdl3outside);
+  CDL_BIND(CDL3STARSINSOUTH, cdl3starsinsouth);
+  CDL_BIND(CDL3WHITESOLDIERS, cdl3whitesoldiers);
+  CDL_BIND(CDLADVANCEBLOCK, cdladvanceblock);
+  CDL_BIND(CDLBELTHOLD, cdlbelthold);
+  CDL_BIND(CDLBREAKAWAY, cdlbreakaway);
+  CDL_BIND(CDLCLOSINGMARUBOZU, cdlclosingmarubozu);
+  CDL_BIND(CDLCONCEALBABYSWALL, cdlconcealbabyswall);
+  CDL_BIND(CDLCOUNTERATTACK, cdlcounterattack);
+  CDL_BIND(CDLDOJI, cdldoji);
+  CDL_BIND(CDLDOJISTAR, cdldojistar);
+  CDL_BIND(CDLDRAGONFLYDOJI, cdldragonflydoji);
+  CDL_BIND(CDLENGULFING, cdlengulfing);
+  CDL_BIND(CDLGAPSIDESIDEWHITE, cdlgapsidesidewhite);
+  CDL_BIND(CDLGRAVESTONEDOJI, cdlgravestonedoji);
+  CDL_BIND(CDLHAMMER, cdlhammer);
+  CDL_BIND(CDLHANGINGMAN, cdlhangingman);
+  CDL_BIND(CDLHARAMI, cdlharami);
+  CDL_BIND(CDLHARAMICROSS, cdlharamicross);
+  CDL_BIND(CDLHIGHWAVE, cdlhighwave);
+  CDL_BIND(CDLHIKKAKE, cdlhikkake);
+  CDL_BIND(CDLHIKKAKEMOD, cdlhikkakemod);
+  CDL_BIND(CDLHOMINGPIGEON, cdlhomingpigeon);
+  CDL_BIND(CDLIDENTICAL3CROWS, cdlidentical3crows);
+  CDL_BIND(CDLINNECK, cdlinneck);
+  CDL_BIND(CDLINVERTEDHAMMER, cdlinvertedhammer);
+  CDL_BIND(CDLKICKING, cdlkicking);
+  CDL_BIND(CDLKICKINGBYLENGTH, cdlkickingbylength);
+  CDL_BIND(CDLLADDERBOTTOM, cdlladderbottom);
+  CDL_BIND(CDLLONGLEGGEDDOJI, cdllongleggeddoji);
+  CDL_BIND(CDLLONGLINE, cdllongline);
+  CDL_BIND(CDLMARUBOZU, cdlmarubozu);
+  CDL_BIND(CDLMATCHINGLOW, cdlmatchinglow);
+  CDL_BIND(CDLONNECK, cdlonneck);
+  CDL_BIND(CDLPIERCING, cdlpiercing);
+  CDL_BIND(CDLRICKSHAWMAN, cdlrickshawman);
+  CDL_BIND(CDLRISEFALL3METHODS, cdlrisefall3methods);
+  CDL_BIND(CDLSEPARATINGLINES, cdlseparatinglines);
+  CDL_BIND(CDLSHOOTINGSTAR, cdlshootingstar);
+  CDL_BIND(CDLSHORTLINE, cdlshortline);
+  CDL_BIND(CDLSPINNINGTOP, cdlspinningtop);
+  CDL_BIND(CDLSTALLEDPATTERN, cdlstalledpattern);
+  CDL_BIND(CDLSTICKSANDWICH, cdlsticksandwich);
+  CDL_BIND(CDLTAKURI, cdltakuri);
+  CDL_BIND(CDLTASUKIGAP, cdltasukigap);
+  CDL_BIND(CDLTHRUSTING, cdlthrusting);
+  CDL_BIND(CDLTRISTAR, cdltristar);
+  CDL_BIND(CDLUNIQUE3RIVER, cdlunique3river);
+  CDL_BIND(CDLUPSIDEGAP2CROWS, cdlupsidegap2crows);
+  CDL_BIND(CDLXSIDEGAP3METHODS, cdlxsidegap3methods);
+#undef CDL_BIND
+
+  // --- Candlestick Patterns (with penetration) ---
+#define CDL_BIND_PEN(NAME, FUNC, DEF)                                          \
+  m.def(#NAME, &FUNC, nb::arg("inOpen").noconvert(),                           \
+        nb::arg("inHigh").noconvert(), nb::arg("inLow").noconvert(),           \
+        nb::arg("inClose").noconvert(), nb::arg("penetration") = DEF)
+  CDL_BIND_PEN(CDLABANDONEDBABY, cdlabandonedbaby, 0.3);
+  CDL_BIND_PEN(CDLDARKCLOUDCOVER, cdldarkcloudcover, 0.5);
+  CDL_BIND_PEN(CDLEVENINGDOJISTAR, cdleveningdojistar, 0.3);
+  CDL_BIND_PEN(CDLEVENINGSTAR, cdleveningstar, 0.3);
+  CDL_BIND_PEN(CDLMATHOLD, cdlmathold, 0.5);
+  CDL_BIND_PEN(CDLMORNINGDOJISTAR, cdlmorningdojistar, 0.3);
+  CDL_BIND_PEN(CDLMORNINGSTAR, cdlmorningstar, 0.3);
+#undef CDL_BIND_PEN
 
   m.def("initialize", &initialize);
   m.def("shutdown", &shutdown);
