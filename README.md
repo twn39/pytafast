@@ -91,6 +91,36 @@ async def compute():
 ### Candlestick Patterns (61 patterns)
 `CDL2CROWS`, `CDL3BLACKCROWS`, `CDL3INSIDE`, `CDL3LINESTRIKE`, `CDL3OUTSIDE`, `CDL3STARSINSOUTH`, `CDL3WHITESOLDIERS`, `CDLABANDONEDBABY`, `CDLADVANCEBLOCK`, `CDLBELTHOLD`, `CDLBREAKAWAY`, `CDLCLOSINGMARUBOZU`, `CDLCONCEALBABYSWALL`, `CDLCOUNTERATTACK`, `CDLDARKCLOUDCOVER`, `CDLDOJI`, `CDLDOJISTAR`, `CDLDRAGONFLYDOJI`, `CDLENGULFING`, `CDLEVENINGDOJISTAR`, `CDLEVENINGSTAR`, `CDLGAPSIDESIDEWHITE`, `CDLGRAVESTONEDOJI`, `CDLHAMMER`, `CDLHANGINGMAN`, `CDLHARAMI`, `CDLHARAMICROSS`, `CDLHIGHWAVE`, `CDLHIKKAKE`, `CDLHIKKAKEMOD`, `CDLHOMINGPIGEON`, `CDLIDENTICAL3CROWS`, `CDLINNECK`, `CDLINVERTEDHAMMER`, `CDLKICKING`, `CDLKICKINGBYLENGTH`, `CDLLADDERBOTTOM`, `CDLLONGLEGGEDDOJI`, `CDLLONGLINE`, `CDLMARUBOZU`, `CDLMATCHINGLOW`, `CDLMATHOLD`, `CDLMORNINGDOJISTAR`, `CDLMORNINGSTAR`, `CDLONNECK`, `CDLPIERCING`, `CDLRICKSHAWMAN`, `CDLRISEFALL3METHODS`, `CDLSEPARATINGLINES`, `CDLSHOOTINGSTAR`, `CDLSHORTLINE`, `CDLSPINNINGTOP`, `CDLSTALLEDPATTERN`, `CDLSTICKSANDWICH`, `CDLTAKURI`, `CDLTASUKIGAP`, `CDLTHRUSTING`, `CDLTRISTAR`, `CDLUNIQUE3RIVER`, `CDLUPSIDEGAP2CROWS`, `CDLXSIDEGAP3METHODS`
 
+## Performance
+
+pytafast achieves **near-parity** with the official [ta-lib-python](https://github.com/TA-Lib/ta-lib-python) — both wrap the same underlying TA-Lib C library. Benchmarked across **62 indicators** on 100,000 data points:
+
+| Category | Indicators | Avg Speedup |
+|----------|-----------|-------------|
+| Overlap Studies | SMA, EMA, BBANDS, DEMA, KAMA, TEMA, TRIMA, T3, SAR, MIDPOINT | **1.03x** |
+| Momentum | RSI, MACD, ADX, CCI, STOCH, ROC, MOM, WILLR, PPO, BOP, MFI… | **1.03x** |
+| Volatility | ATR, NATR, TRANGE | **0.99x** |
+| Volume | OBV, AD, ADOSC | **1.00x** |
+| Price Transform | AVGPRICE, MEDPRICE, TYPPRICE, WCLPRICE | **0.98x** |
+| Statistics | STDDEV, BETA, CORREL, LINEARREG, VAR, TSF | **1.07x** |
+| Math Operators | ADD, SUB, MULT, DIV | **0.97x** |
+| Math Transforms | SIN, COS, SQRT, LN, EXP | **1.00x** |
+| Cycle | HT_DCPERIOD, HT_DCPHASE, HT_TRENDLINE, HT_TRENDMODE | **1.01x** |
+| Candlestick | CDLENGULFING, CDLDOJI, CDL3WHITESOLDIERS, CDLHAMMER… | **0.97x** |
+
+**Overall**: 39/62 indicators equal or faster · Average speedup **1.01x** · Notable: BETA 1.42x, BBANDS 1.27x, CCI 1.13x
+
+> pytafast's key advantages are **pandas native support**, **async capabilities**, and **GIL release** for true parallelism — not raw single-call speed (both use the same C core).
+
+Run benchmarks yourself:
+
+```bash
+uv run python run_benchmark.py              # Standalone report
+uv run pytest tests/test_benchmark.py -v     # pytest-benchmark
+```
+
+See [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) for full details.
+
 ## API Compatibility
 
 pytafast follows the same function signatures as the official [TA-Lib Python wrapper](https://github.com/TA-Lib/ta-lib-python), making it a drop-in replacement in most cases.
