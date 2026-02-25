@@ -5,8 +5,9 @@
 // VECTOR ARITHMETIC ADD
 // ---------------------------------------------------------
 DoubleArrayOUT add(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
-  if (inReal0.size() == 0 || inReal1.size() == 0)
+  if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal0.shape(0);
   int lookback = TA_ADD_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -25,8 +26,9 @@ DoubleArrayOUT add(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
 // VECTOR ARITHMETIC SUB
 // ---------------------------------------------------------
 DoubleArrayOUT sub(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
-  if (inReal0.size() == 0 || inReal1.size() == 0)
+  if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal0.shape(0);
   int lookback = TA_SUB_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -45,8 +47,9 @@ DoubleArrayOUT sub(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
 // VECTOR ARITHMETIC MULT
 // ---------------------------------------------------------
 DoubleArrayOUT mult(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
-  if (inReal0.size() == 0 || inReal1.size() == 0)
+  if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal0.shape(0);
   int lookback = TA_MULT_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -65,8 +68,9 @@ DoubleArrayOUT mult(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
 // VECTOR ARITHMETIC DIV
 // ---------------------------------------------------------
 DoubleArrayOUT ta_div(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
-  if (inReal0.size() == 0 || inReal1.size() == 0)
+  if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal0.shape(0);
   int lookback = TA_DIV_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);

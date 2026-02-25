@@ -17,8 +17,7 @@ static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
 #define CDL_FUNC(NAME, TA_FUNC)                                                \
   IntArrayOUT NAME(DoubleArrayIN inOpen, DoubleArrayIN inHigh,                 \
                    DoubleArrayIN inLow, DoubleArrayIN inClose) {               \
-    if (inOpen.size() == 0)                                                    \
-      return IntArrayOUT(nullptr, {0}, nb::handle());                          \
+    if (inOpen.size() == 0) return IntArrayOUT(nullptr, {0}, nb::handle());    \
     if (inOpen.shape(0) != inHigh.shape(0) ||                                  \
         inOpen.shape(0) != inLow.shape(0) ||                                   \
         inOpen.shape(0) != inClose.shape(0))                                   \
@@ -43,8 +42,7 @@ static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
   IntArrayOUT NAME(DoubleArrayIN inOpen, DoubleArrayIN inHigh,                 \
                    DoubleArrayIN inLow, DoubleArrayIN inClose,                 \
                    double optInPenetration = DEFAULT_PEN) {                    \
-    if (inOpen.size() == 0)                                                    \
-      return IntArrayOUT(nullptr, {0}, nb::handle());                          \
+    if (inOpen.size() == 0) return IntArrayOUT(nullptr, {0}, nb::handle());    \
     if (inOpen.shape(0) != inHigh.shape(0) ||                                  \
         inOpen.shape(0) != inLow.shape(0) ||                                   \
         inOpen.shape(0) != inClose.shape(0))                                   \

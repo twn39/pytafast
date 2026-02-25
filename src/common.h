@@ -33,7 +33,7 @@ struct AllocResult {
 };
 
 inline AllocResult alloc_output(size_t size, int lookback) {
-  double *data = new double[size];
+  auto *data = new double[size];
   nb::capsule owner(data, [](void *p) noexcept { delete[] (double *)p; });
   std::fill(data, data + lookback, NaN);
   return {data, std::move(owner)};

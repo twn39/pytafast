@@ -7,8 +7,9 @@
 DoubleArrayOUT avgprice(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
                         DoubleArrayIN inLow, DoubleArrayIN inClose) {
   if (inOpen.size() == 0 || inHigh.size() == 0 || inLow.size() == 0 ||
-      inClose.size() == 0)
+      inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inOpen.shape(0);
   int lookback = TA_AVGPRICE_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -28,8 +29,9 @@ DoubleArrayOUT avgprice(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
 // MEDIAN PRICE
 // ---------------------------------------------------------
 DoubleArrayOUT medprice(DoubleArrayIN inHigh, DoubleArrayIN inLow) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -51,8 +53,9 @@ DoubleArrayOUT medprice(DoubleArrayIN inHigh, DoubleArrayIN inLow) {
 // ---------------------------------------------------------
 DoubleArrayOUT typprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         DoubleArrayIN inClose) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -75,8 +78,9 @@ DoubleArrayOUT typprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT wclprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         DoubleArrayIN inClose) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -99,8 +103,9 @@ DoubleArrayOUT wclprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT midprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);

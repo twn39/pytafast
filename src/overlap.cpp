@@ -33,8 +33,9 @@ DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // EXPONENTIAL MOVING AVERAGE
 // ---------------------------------------------------------
 DoubleArrayOUT ema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
 
   size_t size = inReal.shape(0);
   int lookback = TA_EMA_Lookback(optInTimePeriod);
@@ -96,8 +97,9 @@ nb::tuple bbands(DoubleArrayIN inReal, int optInTimePeriod = 5,
 // DOUBLE EXPONENTIAL MOVING AVERAGE (DEMA)
 // ---------------------------------------------------------
 DoubleArrayOUT dema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_DEMA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -116,8 +118,9 @@ DoubleArrayOUT dema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // KAUFMAN ADAPTIVE MOVING AVERAGE (KAMA)
 // ---------------------------------------------------------
 DoubleArrayOUT kama(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_KAMA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -137,8 +140,9 @@ DoubleArrayOUT kama(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // ---------------------------------------------------------
 DoubleArrayOUT ma(DoubleArrayIN inReal, int optInTimePeriod = 30,
                   int optInMAType = 0) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_MA_Lookback(optInTimePeriod, (TA_MAType)optInMAType);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -159,8 +163,9 @@ DoubleArrayOUT ma(DoubleArrayIN inReal, int optInTimePeriod = 30,
 // ---------------------------------------------------------
 DoubleArrayOUT t3(DoubleArrayIN inReal, int optInTimePeriod = 5,
                   double optInVFactor = 0.7) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_T3_Lookback(optInTimePeriod, optInVFactor);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -179,8 +184,9 @@ DoubleArrayOUT t3(DoubleArrayIN inReal, int optInTimePeriod = 5,
 // TRIPLE EXPONENTIAL MOVING AVERAGE (TEMA)
 // ---------------------------------------------------------
 DoubleArrayOUT tema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_TEMA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -199,8 +205,9 @@ DoubleArrayOUT tema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // TRIANGULAR MOVING AVERAGE (TRIMA)
 // ---------------------------------------------------------
 DoubleArrayOUT trima(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_TRIMA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -219,8 +226,9 @@ DoubleArrayOUT trima(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // WEIGHTED MOVING AVERAGE (WMA)
 // ---------------------------------------------------------
 DoubleArrayOUT wma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_WMA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -240,8 +248,9 @@ DoubleArrayOUT wma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // ---------------------------------------------------------
 DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    double optInAcceleration = 0.02, double optInMaximum = 0.2) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -263,8 +272,9 @@ DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // MIDPOINT
 // ---------------------------------------------------------
 DoubleArrayOUT midpoint(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_MIDPOINT_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);

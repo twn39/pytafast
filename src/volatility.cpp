@@ -6,8 +6,9 @@
 // ---------------------------------------------------------
 DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
 
@@ -35,8 +36,9 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                     DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
 
@@ -64,8 +66,9 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                       DoubleArrayIN inClose) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -88,8 +91,9 @@ DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
                       double optInNbDev = 1.0) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
 
   size_t size = inReal.shape(0);
   int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);

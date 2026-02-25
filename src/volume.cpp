@@ -5,8 +5,9 @@
 // ON BALANCE VOLUME (OBV)
 // ---------------------------------------------------------
 DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
-  if (inReal.size() == 0 || inVolume.size() == 0)
+  if (inReal.size() == 0 || inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inReal.shape(0) != inVolume.shape(0))
     throw std::runtime_error("Input lengths must match");
 
@@ -34,8 +35,9 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
 DoubleArrayOUT ad(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                   DoubleArrayIN inClose, DoubleArrayIN inVolume) {
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0 ||
-      inVolume.size() == 0)
+      inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inHigh.shape(0);
   int lookback = TA_AD_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -58,8 +60,9 @@ DoubleArrayOUT adosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                      DoubleArrayIN inClose, DoubleArrayIN inVolume,
                      int optInFastPeriod = 3, int optInSlowPeriod = 10) {
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0 ||
-      inVolume.size() == 0)
+      inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inHigh.shape(0);
   int lookback = TA_ADOSC_Lookback(optInFastPeriod, optInSlowPeriod);
   auto [outData, owner] = alloc_output(size, lookback);

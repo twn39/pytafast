@@ -8,8 +8,9 @@
 // RELATIVE STRENGTH INDEX
 // ---------------------------------------------------------
 DoubleArrayOUT rsi(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
 
   size_t size = inReal.shape(0);
   int lookback = TA_RSI_Lookback(optInTimePeriod);
@@ -132,8 +133,9 @@ nb::tuple macdfix(DoubleArrayIN inReal, int optInSignalPeriod = 9) {
 // RATE OF CHANGE (ROC)
 // ---------------------------------------------------------
 DoubleArrayOUT roc(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_ROC_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -153,8 +155,9 @@ DoubleArrayOUT roc(DoubleArrayIN inReal, int optInTimePeriod = 10) {
 // RATE OF CHANGE PERCENTAGE (ROCP)
 // ---------------------------------------------------------
 DoubleArrayOUT rocp(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_ROCP_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -173,8 +176,9 @@ DoubleArrayOUT rocp(DoubleArrayIN inReal, int optInTimePeriod = 10) {
 // RATE OF CHANGE RATIO (ROCR)
 // ---------------------------------------------------------
 DoubleArrayOUT rocr(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_ROCR_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -193,8 +197,9 @@ DoubleArrayOUT rocr(DoubleArrayIN inReal, int optInTimePeriod = 10) {
 // RATE OF CHANGE RATIO 100 SCALE (ROCR100)
 // ---------------------------------------------------------
 DoubleArrayOUT rocr100(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_ROCR100_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -312,8 +317,9 @@ nb::tuple stochrsi(DoubleArrayIN inReal, int optInTimePeriod = 14,
 // MOMENTUM (MOM)
 // ---------------------------------------------------------
 DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_MOM_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -333,8 +339,9 @@ DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
 // CHANDE MOMENTUM OSCILLATOR (CMO)
 // ---------------------------------------------------------
 DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_CMO_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -355,8 +362,9 @@ DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // ---------------------------------------------------------
 DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
                    int optInSlowPeriod = 26, int optInMAType = 0) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback =
       TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
@@ -379,8 +387,9 @@ DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
 // ---------------------------------------------------------
 DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
                    int optInSlowPeriod = 26, int optInMAType = 0) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback =
       TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, (TA_MAType)optInMAType);
@@ -402,8 +411,9 @@ DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
 // 1-DAY RATE-OF-CHANGE (TRIX)
 // ---------------------------------------------------------
 DoubleArrayOUT trix(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_TRIX_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -453,8 +463,9 @@ nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -478,8 +489,9 @@ DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -503,8 +515,9 @@ DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT adxr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                     DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -527,8 +540,9 @@ DoubleArrayOUT adxr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                   DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -552,8 +566,9 @@ DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -577,8 +592,9 @@ DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                         int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -602,8 +618,9 @@ DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                        DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -627,8 +644,9 @@ DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                        int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -652,8 +670,9 @@ DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                      DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -679,8 +698,9 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    DoubleArrayIN inClose, DoubleArrayIN inVolume,
                    int optInTimePeriod = 14) {
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0 ||
-      inVolume.size() == 0)
+      inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) ||
       inHigh.shape(0) != inClose.shape(0) ||
       inHigh.shape(0) != inVolume.shape(0))
@@ -706,8 +726,9 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    DoubleArrayIN inClose, int optInTimePeriod = 14) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -732,8 +753,9 @@ DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                       DoubleArrayIN inClose, int optInTimePeriod1 = 7,
                       int optInTimePeriod2 = 14, int optInTimePeriod3 = 28) {
-  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
+  if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
@@ -760,8 +782,9 @@ DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 DoubleArrayOUT bop(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
                    DoubleArrayIN inLow, DoubleArrayIN inClose) {
   if (inOpen.size() == 0 || inHigh.size() == 0 || inLow.size() == 0 ||
-      inClose.size() == 0)
+      inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   if (inOpen.shape(0) != inHigh.shape(0) || inOpen.shape(0) != inLow.shape(0) ||
       inOpen.shape(0) != inClose.shape(0))
     throw std::runtime_error("Input lengths must match");

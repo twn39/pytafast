@@ -5,8 +5,7 @@
 // Helper macro for single-input no-param transforms
 #define MATH_TRANSFORM_FUNC(NAME, TA_FUNC)                                     \
   DoubleArrayOUT NAME(DoubleArrayIN inReal) {                                  \
-    if (inReal.size() == 0)                                                    \
-      return DoubleArrayOUT(nullptr, {0}, nb::handle());                       \
+    if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle()); \
     size_t size = inReal.shape(0);                                             \
     int lookback = TA_FUNC##_Lookback();                                       \
     auto [outData, owner] = alloc_output(size, lookback);                      \

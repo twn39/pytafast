@@ -6,8 +6,9 @@
 // HILBERT TRANSFORM - DOMINANT CYCLE PERIOD (HT_DCPERIOD)
 // ---------------------------------------------------------
 DoubleArrayOUT ht_dcperiod(DoubleArrayIN inReal) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_DCPERIOD_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -26,8 +27,9 @@ DoubleArrayOUT ht_dcperiod(DoubleArrayIN inReal) {
 // HILBERT TRANSFORM - DOMINANT CYCLE PHASE (HT_DCPHASE)
 // ---------------------------------------------------------
 DoubleArrayOUT ht_dcphase(DoubleArrayIN inReal) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_DCPHASE_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -95,8 +97,9 @@ nb::tuple ht_sine(DoubleArrayIN inReal) {
 // HILBERT TRANSFORM - INSTANTANEOUS TRENDLINE (HT_TRENDLINE)
 // ---------------------------------------------------------
 DoubleArrayOUT ht_trendline(DoubleArrayIN inReal) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_TRENDLINE_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -117,14 +120,12 @@ DoubleArrayOUT ht_trendline(DoubleArrayIN inReal) {
 // ---------------------------------------------------------
 nb::ndarray<int, nb::numpy, nb::ndim<1>> ht_trendmode(DoubleArrayIN inReal) {
   using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
-  if (inReal.size() == 0)
-    return IntArrayOUT(nullptr, {0}, nb::handle());
+  if (inReal.size() == 0) return IntArrayOUT(nullptr, {0}, nb::handle());
   size_t size = inReal.shape(0);
   int lookback = TA_HT_TRENDMODE_Lookback();
 
   int *outData = new int[size];
-  for (size_t i = 0; i < (size_t)lookback && i < size; ++i)
-    outData[i] = 0;
+  for (size_t i = 0; i < (size_t)lookback && i < size; ++i) outData[i] = 0;
 
   nb::capsule owner(outData, [](void *p) noexcept { delete[] (int *)p; });
 

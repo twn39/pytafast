@@ -75,6 +75,7 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "akshare>=1.18.27",
     "plotly>=6.5.2",
+    "clang-tidy>=21.1.6",
 ]
 
 [tool.pytest.ini_options]

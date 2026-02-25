@@ -7,8 +7,9 @@
 // ---------------------------------------------------------
 DoubleArrayOUT beta(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
                     int optInTimePeriod = 5) {
-  if (inReal0.size() == 0 || inReal1.size() == 0)
+  if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal0.shape(0);
   int lookback = TA_BETA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -29,8 +30,9 @@ DoubleArrayOUT beta(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
 // ---------------------------------------------------------
 DoubleArrayOUT correl(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
                       int optInTimePeriod = 30) {
-  if (inReal0.size() == 0 || inReal1.size() == 0)
+  if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal0.shape(0);
   int lookback = TA_CORREL_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -50,8 +52,9 @@ DoubleArrayOUT correl(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
 // LINEAR REGRESSION (LINEARREG)
 // ---------------------------------------------------------
 DoubleArrayOUT linearreg(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_LINEARREG_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -70,8 +73,9 @@ DoubleArrayOUT linearreg(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // LINEAR REGRESSION ANGLE (LINEARREG_ANGLE)
 // ---------------------------------------------------------
 DoubleArrayOUT linearreg_angle(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -91,8 +95,9 @@ DoubleArrayOUT linearreg_angle(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // ---------------------------------------------------------
 DoubleArrayOUT linearreg_intercept(DoubleArrayIN inReal,
                                    int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_LINEARREG_INTERCEPT_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -112,8 +117,9 @@ DoubleArrayOUT linearreg_intercept(DoubleArrayIN inReal,
 // LINEAR REGRESSION SLOPE (LINEARREG_SLOPE)
 // ---------------------------------------------------------
 DoubleArrayOUT linearreg_slope(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_LINEARREG_SLOPE_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -132,8 +138,9 @@ DoubleArrayOUT linearreg_slope(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // TIME SERIES FORECAST (TSF)
 // ---------------------------------------------------------
 DoubleArrayOUT tsf(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_TSF_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -153,8 +160,9 @@ DoubleArrayOUT tsf(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // ---------------------------------------------------------
 DoubleArrayOUT var(DoubleArrayIN inReal, int optInTimePeriod = 5,
                    double optInNbDev = 1.0) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_VAR_Lookback(optInTimePeriod, optInNbDev);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -173,8 +181,9 @@ DoubleArrayOUT var(DoubleArrayIN inReal, int optInTimePeriod = 5,
 // AVERAGE DEVIATION (AVGDEV)
 // ---------------------------------------------------------
 DoubleArrayOUT avgdev(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_AVGDEV_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -193,8 +202,9 @@ DoubleArrayOUT avgdev(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // HIGHEST VALUE (MAX)
 // ---------------------------------------------------------
 DoubleArrayOUT ta_max(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_MAX_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -213,8 +223,9 @@ DoubleArrayOUT ta_max(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // LOWEST VALUE (MIN)
 // ---------------------------------------------------------
 DoubleArrayOUT ta_min(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_MIN_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -233,8 +244,9 @@ DoubleArrayOUT ta_min(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // SUMMATION (SUM)
 // ---------------------------------------------------------
 DoubleArrayOUT ta_sum(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0)
+  if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  }
   size_t size = inReal.shape(0);
   int lookback = TA_SUM_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
