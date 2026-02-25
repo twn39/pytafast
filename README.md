@@ -1,7 +1,11 @@
 # pytafast
 
-[![PyPI](https://img.shields.io/pypi/v/pytafast)](https://pypi.org/project/pytafast/)
+[![PyPI](https://img.shields.io/pypi/v/pytafast?color=blue)](https://pypi.org/project/pytafast/)
 [![Python](https://img.shields.io/pypi/pyversions/pytafast)](https://pypi.org/project/pytafast/)
+[![License](https://img.shields.io/pypi/l/pytafast)](https://github.com/twn39/pytafast/blob/main/LICENSE)
+[![Downloads](https://img.shields.io/pypi/dm/pytafast)](https://pypi.org/project/pytafast/)
+[![CI](https://img.shields.io/github/actions/workflow/status/twn39/pytafast/build.yml?label=CI)](https://github.com/twn39/pytafast/actions)
+[![GitHub Stars](https://img.shields.io/github/stars/twn39/pytafast?style=flat)](https://github.com/twn39/pytafast)
 
 A high-performance Python wrapper for [TA-Lib](https://ta-lib.org/) built with [nanobind](https://github.com/wjakob/nanobind). Provides **150+ technical analysis functions** with pandas/numpy support and async capabilities.
 
@@ -9,9 +13,10 @@ A high-performance Python wrapper for [TA-Lib](https://ta-lib.org/) built with [
 
 - 🚀 **High Performance** — C++ bindings via nanobind with GIL release for true parallelism
 - 📊 **Full TA-Lib Coverage** — 150+ indicators including overlaps, momentum, volatility, volume, statistics, cycle indicators, and 61 candlestick patterns
-- 🐼 **Pandas Native** — Seamless support for both `numpy.ndarray` and `pandas.Series` (preserves index and name)
+- 🐼 **Pandas Native** — Seamless support for both `numpy.ndarray` and `pandas.Series` (preserves index)
 - ⚡ **Async Support** — All functions available as async via `pytafast.aio`
 - 🔒 **Memory Safe** — Zero-copy data access with proper ownership management
+- 📦 **Drop-in Replacement** — Same API as [ta-lib-python](https://github.com/TA-Lib/ta-lib-python), easy migration
 
 ## Installation
 
@@ -29,34 +34,148 @@ pip install -v -e .
 
 ## Quick Start
 
+### Basic Usage with NumPy
+
 ```python
 import numpy as np
 import pytafast
 
-# Using numpy arrays
-close = np.random.random(100) * 100
+# Generate sample price data
+np.random.seed(42)
+close = np.cumsum(np.random.randn(200)) + 100
 
+# Moving Averages
 sma = pytafast.SMA(close, timeperiod=20)
-rsi = pytafast.RSI(close, timeperiod=14)
-upper, middle, lower = pytafast.BBANDS(close, timeperiod=20)
-macd, signal, hist = pytafast.MACD(close)
+ema = pytafast.EMA(close, timeperiod=12)
+wma = pytafast.WMA(close, timeperiod=10)
 ```
 
+### Momentum Indicators
+
 ```python
-# Using pandas Series
+# RSI — Relative Strength Index
+rsi = pytafast.RSI(close, timeperiod=14)
+
+# MACD — returns 3 arrays: macd line, signal line, histogram
+macd, signal, hist = pytafast.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
+
+# Stochastic Oscillator — requires high, low, close
+high = close + np.abs(np.random.randn(200)) * 2
+low = close - np.abs(np.random.randn(200)) * 2
+slowk, slowd = pytafast.STOCH(high, low, close, fastk_period=5, slowk_period=3, slowd_period=3)
+
+# ADX — Average Directional Index
+adx = pytafast.ADX(high, low, close, timeperiod=14)
+```
+
+### Bollinger Bands & Volatility
+
+```python
+# Bollinger Bands — returns upper, middle, lower bands
+upper, middle, lower = pytafast.BBANDS(close, timeperiod=20, nbdevup=2.0, nbdevdn=2.0)
+
+# ATR — Average True Range
+atr = pytafast.ATR(high, low, close, timeperiod=14)
+```
+
+### Volume Indicators
+
+```python
+volume = np.random.random(200) * 1_000_000
+
+# On-Balance Volume
+obv = pytafast.OBV(close, volume)
+
+# Chaikin A/D Line
+ad = pytafast.AD(high, low, close, volume)
+
+# Money Flow Index
+mfi = pytafast.MFI(high, low, close, volume, timeperiod=14)
+```
+
+### Statistics & Math
+
+```python
+# Linear Regression
+linreg = pytafast.LINEARREG(close, timeperiod=14)
+slope = pytafast.LINEARREG_SLOPE(close, timeperiod=14)
+
+# Correlation between two series
+beta = pytafast.BETA(close, ema, timeperiod=5)
+correl = pytafast.CORREL(close, ema, timeperiod=30)
+
+# Standard Deviation
+stddev = pytafast.STDDEV(close, timeperiod=20, nbdev=1.0)
+```
+
+### Candlestick Pattern Recognition
+
+```python
+# Generate OHLC data
+open_ = close + np.random.randn(200) * 0.5
+
+# Detect patterns — returns integer array (100=bullish, -100=bearish, 0=none)
+engulfing = pytafast.CDLENGULFING(open_, high, low, close)
+doji = pytafast.CDLDOJI(open_, high, low, close)
+hammer = pytafast.CDLHAMMER(open_, high, low, close)
+morning_star = pytafast.CDLMORNINGSTAR(open_, high, low, close, penetration=0.3)
+
+# Find bullish signals
+bullish_idx = np.where(engulfing == 100)[0]
+```
+
+### Pandas Support
+
+```python
 import pandas as pd
 
-close = pd.Series(np.random.random(100) * 100, name="close")
-sma = pytafast.SMA(close, timeperiod=20)  # Returns pd.Series with preserved index
+# Create a DataFrame of stock prices
+df = pd.DataFrame({
+    "open": open_,
+    "high": high,
+    "low": low,
+    "close": close,
+    "volume": volume,
+}, index=pd.date_range("2024-01-01", periods=200, freq="D"))
+
+# All functions accept and return pd.Series, preserving the DatetimeIndex
+df["sma_20"] = pytafast.SMA(df["close"], timeperiod=20)
+df["rsi_14"] = pytafast.RSI(df["close"], timeperiod=14)
+df["atr_14"] = pytafast.ATR(df["high"], df["low"], df["close"], timeperiod=14)
+
+upper, middle, lower = pytafast.BBANDS(df["close"], timeperiod=20)
+df["bb_upper"] = upper
+df["bb_lower"] = lower
 ```
 
-```python
-# Async support
-import pytafast.aio as aio
+### Async Support
 
-async def compute():
-    sma = await aio.SMA(close, timeperiod=20)
-    rsi = await aio.RSI(close, timeperiod=14)
+```python
+import asyncio
+import pytafast
+
+async def compute_indicators(close, high, low, volume):
+    """Compute multiple indicators concurrently."""
+    sma, rsi, macd_result, atr = await asyncio.gather(
+        pytafast.aio.SMA(close, timeperiod=20),
+        pytafast.aio.RSI(close, timeperiod=14),
+        pytafast.aio.MACD(close),
+        pytafast.aio.ATR(high, low, close, timeperiod=14),
+    )
+    macd, signal, hist = macd_result
+    return sma, rsi, macd, atr
+
+# asyncio.run(compute_indicators(close, high, low, volume))
+```
+
+### Cycle Indicators
+
+```python
+# Hilbert Transform indicators for cycle analysis
+ht_period = pytafast.HT_DCPERIOD(close)
+ht_trendline = pytafast.HT_TRENDLINE(close)
+sine, leadsine = pytafast.HT_SINE(close)
+trend_mode = pytafast.HT_TRENDMODE(close)  # 1 = trend, 0 = cycle
 ```
 
 ## Supported Indicators
@@ -111,13 +230,6 @@ pytafast achieves **near-parity** with the official [ta-lib-python](https://gith
 **Overall**: 39/62 indicators equal or faster · Average speedup **1.01x** · Notable: BETA 1.42x, BBANDS 1.27x, CCI 1.13x
 
 > pytafast's key advantages are **pandas native support**, **async capabilities**, and **GIL release** for true parallelism — not raw single-call speed (both use the same C core).
-
-Run benchmarks yourself:
-
-```bash
-uv run python run_benchmark.py              # Standalone report
-uv run pytest tests/test_benchmark.py -v     # pytest-benchmark
-```
 
 See [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) for full details.
 
