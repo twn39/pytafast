@@ -505,6 +505,8 @@ DoubleArrayOUT adxr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                     DoubleArrayIN inClose, int optInTimePeriod = 14) {
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
   int lookback = TA_ADXR_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -760,6 +762,9 @@ DoubleArrayOUT bop(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
   if (inOpen.size() == 0 || inHigh.size() == 0 || inLow.size() == 0 ||
       inClose.size() == 0)
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inOpen.shape(0) != inHigh.shape(0) || inOpen.shape(0) != inLow.shape(0) ||
+      inOpen.shape(0) != inClose.shape(0))
+    throw std::runtime_error("Input lengths must match");
   size_t size = inOpen.shape(0);
   int lookback = TA_BOP_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);

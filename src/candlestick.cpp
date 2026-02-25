@@ -8,8 +8,7 @@ using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
 static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
                                                       int lookback) {
   int *data = new int[size];
-  for (size_t i = 0; i < (size_t)lookback && i < size; ++i)
-    data[i] = 0;
+  std::fill(data, data + std::min(static_cast<size_t>(lookback), size), 0);
   nb::capsule owner(data, [](void *p) noexcept { delete[] (int *)p; });
   return {data, std::move(owner)};
 }
@@ -20,6 +19,10 @@ static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
                    DoubleArrayIN inLow, DoubleArrayIN inClose) {               \
     if (inOpen.size() == 0)                                                    \
       return IntArrayOUT(nullptr, {0}, nb::handle());                          \
+    if (inOpen.shape(0) != inHigh.shape(0) ||                                  \
+        inOpen.shape(0) != inLow.shape(0) ||                                   \
+        inOpen.shape(0) != inClose.shape(0))                                   \
+      throw std::runtime_error("Input lengths must match");                    \
     size_t size = inOpen.shape(0);                                             \
     int lookback = TA_FUNC##_Lookback();                                       \
     auto [outData, owner] = alloc_int_output(size, lookback);                  \
@@ -42,6 +45,10 @@ static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
                    double optInPenetration = DEFAULT_PEN) {                    \
     if (inOpen.size() == 0)                                                    \
       return IntArrayOUT(nullptr, {0}, nb::handle());                          \
+    if (inOpen.shape(0) != inHigh.shape(0) ||                                  \
+        inOpen.shape(0) != inLow.shape(0) ||                                   \
+        inOpen.shape(0) != inClose.shape(0))                                   \
+      throw std::runtime_error("Input lengths must match");                    \
     size_t size = inOpen.shape(0);                                             \
     int lookback = TA_FUNC##_Lookback(optInPenetration);                       \
     auto [outData, owner] = alloc_int_output(size, lookback);                  \

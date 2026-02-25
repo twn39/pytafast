@@ -28,7 +28,7 @@ def test_sma_pandas():
     
     assert isinstance(out, pd.Series)
     assert len(out) == 10
-    assert out.name == "prices"
+    assert out.name == "SMA"
     assert out.index.tolist() == list("abcdefghij")
     
     assert np.isnan(out.iloc[0])
