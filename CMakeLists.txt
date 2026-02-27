@@ -52,5 +52,19 @@ target_include_directories(pytafast_ext PRIVATE src)
 # Link against ta-lib
 target_link_libraries(pytafast_ext PRIVATE ta-lib-static)
 
+# Enable Interprocedural Optimization (LTO) if supported
+include(CheckIPOSupported)
+check_ipo_supported(RESULT ipo_supported OUTPUT error)
+if(ipo_supported)
+    set_property(TARGET pytafast_ext PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
+endif()
+
+# Additional compiler optimizations for Release builds
+if(MSVC)
+    target_compile_options(pytafast_ext PRIVATE $<$<CONFIG:Release>:/O2> $<$<CONFIG:Release>:/Oi>)
+else()
+    target_compile_options(pytafast_ext PRIVATE $<$<CONFIG:Release>:-O3>)
+endif()
+
 # Install extension in package
 install(TARGETS pytafast_ext DESTINATION pytafast)

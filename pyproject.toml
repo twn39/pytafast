@@ -76,6 +76,7 @@ dev = [
     "akshare>=1.18.27",
     "plotly>=6.5.2",
     "clang-tidy>=21.1.6",
+    "pytest>=9.0.2",
 ]
 
 [tool.pytest.ini_options]

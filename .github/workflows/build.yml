@@ -2,10 +2,43 @@ name: Build and Publish
 
 on:
   push:
-    tags: ["v*"]
+    branches:
+      - main
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
+  test_and_coverage:
+    name: Run tests and collect coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies and package
+        run: uv sync --all-groups
+
+      - name: Run pytest with coverage
+        run: uv run pytest tests --ignore=tests/test_benchmark.py --cov=pytafast --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -28,8 +61,8 @@ jobs:
         env:
           CIBW_BUILD_FRONTEND: "build[uv]"
           CIBW_SKIP: "*-win32"
-          CIBW_TEST_REQUIRES: "pytest"
-          CIBW_TEST_COMMAND: "pytest {project}/tests"
+          CIBW_TEST_REQUIRES: "pytest pytest-cov"
+          CIBW_TEST_COMMAND: "pytest {project}/tests --ignore={project}/tests/test_benchmark.py"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -58,7 +91,7 @@ jobs:
           path: dist/*.tar.gz
 
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build_wheels, build_sdist, test_and_coverage]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:

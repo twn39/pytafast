@@ -239,4 +239,7 @@ pytafast follows the same function signatures as the official [TA-Lib Python wra
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+This project includes and statically links to the [TA-Lib](https://ta-lib.org/) C library, which is distributed under a BSD License.
+Copyright (c) 1999-2025, Mario Fortier. See `third_party/ta-lib/LICENSE` for details.

@@ -695,6 +695,7 @@ dev = [
     { name = "akshare" },
     { name = "clang-tidy" },
     { name = "plotly" },
+    { name = "pytest" },
     { name = "pytest-benchmark" },
     { name = "ta-lib" },
 ]
@@ -710,6 +711,7 @@ dev = [
     { name = "akshare", specifier = ">=1.18.27" },
     { name = "clang-tidy", specifier = ">=21.1.6" },
     { name = "plotly", specifier = ">=6.5.2" },
+    { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "ta-lib", specifier = ">=0.6.8" },
 ]
