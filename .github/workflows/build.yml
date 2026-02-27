@@ -37,7 +37,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          file: ./coverage.xml
+          files: ./coverage.xml
 
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
