@@ -13,40 +13,42 @@ on:
 
 jobs:
   # 1. Build and Test on 3 platforms (Ubuntu, macOS, Windows)
-  # This runs on every push to main and every tag.
-  build_and_test:
+  build_wheels:
     name: Build & Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # Using 2026 standard runners (Removing Intel macos-15)
+        os: [ubuntu-latest, windows-latest, macos-14]
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
+          cache-dependency-path: "pyproject.toml"
 
       - name: Build and Test Wheels
-        uses: pypa/cibuildwheel@v2.22.0
+        uses: pypa/cibuildwheel@v3.3.1
+        with:
+          package-dir: .
+          output-dir: wheelhouse
+          # NEW in v3.3: Native uv integration
+          extras: "uv"
         env:
+          # Massive speed gains using uv as the build frontend
           CIBW_BUILD_FRONTEND: "build[uv]"
+          # Skip 32-bit Windows
           CIBW_SKIP: "*-win32 *-musllinux_*"
-          # Requirements for running tests
+          # Test configuration using uv
           CIBW_TEST_REQUIRES: "pytest pytest-cov pandas numpy"
-          # Exclude benchmark tests as requested
           CIBW_TEST_COMMAND: "pytest {project}/tests --ignore={project}/tests/test_benchmark.py"
-          # Note: Official ta-lib python wrapper is skipped if not present in test environment
-          # installing it across all cibuildwheel targets is complex due to C dependency.
+          # Support latest Python versions in 2026
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"
 
       - name: Upload Wheels as Artifacts
         uses: actions/upload-artifact@v4
@@ -64,7 +66,7 @@ jobs:
           submodules: recursive
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
 
@@ -78,10 +80,9 @@ jobs:
           path: dist/*.tar.gz
 
   # 3. Publish to PyPI
-  # Only runs on tag push (v*)
   publish:
     name: Publish to PyPI
-    needs: [build_and_test, build_sdist]
+    needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     environment: pypi
