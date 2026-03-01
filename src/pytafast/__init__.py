@@ -5,7 +5,7 @@ import atexit
 from . import pytafast_ext
 from .pytafast_ext import MAType
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 # --- Module-level pandas detection (optimization #1) ---
 try:
