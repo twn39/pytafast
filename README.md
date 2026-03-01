@@ -353,7 +353,6 @@ Thanks to efficient GIL release in C++, `pytafast` scales near-linearly with CPU
 
 > **Recommendation**: Use `pytafast` for multi-threaded backtesting or high-concurrency web servers to unlock full CPU potential.
 
-See [BENCHMARK_RESULTS.md](BENCHMARK_RESULTS.md) for full details.
 
 ## API Compatibility
 
