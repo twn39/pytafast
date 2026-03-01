@@ -12,6 +12,39 @@ on:
   workflow_dispatch:
 
 jobs:
+  # 0. Code Coverage
+  # Runs on every push to main and every PR to collect coverage data.
+  test_and_coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run tests with coverage
+        run: uv run pytest tests --ignore=tests/test_benchmark.py --cov=pytafast --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true
+
   # 1. Build and Test on 3 platforms (Ubuntu, macOS, Windows)
   build_wheels:
     name: Build & Test on ${{ matrix.os }}
