@@ -15,11 +15,11 @@ DoubleArrayOUT add(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ADD(0, size - 1, inReal0.data(), inReal1.data(), &outBegIdx,
-                     &outNBElement, outData + lookback);
+    retCode = TA_ADD(0, gsl::narrow<int>(size - 1), inReal0.data(), inReal1.data(), &outBegIdx,
+                     &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ADD");
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -36,11 +36,11 @@ DoubleArrayOUT sub(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_SUB(0, size - 1, inReal0.data(), inReal1.data(), &outBegIdx,
-                     &outNBElement, outData + lookback);
+    retCode = TA_SUB(0, gsl::narrow<int>(size - 1), inReal0.data(), inReal1.data(), &outBegIdx,
+                     &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_SUB");
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -57,11 +57,11 @@ DoubleArrayOUT mult(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MULT(0, size - 1, inReal0.data(), inReal1.data(), &outBegIdx,
-                      &outNBElement, outData + lookback);
+    retCode = TA_MULT(0, gsl::narrow<int>(size - 1), inReal0.data(), inReal1.data(), &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MULT");
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -78,9 +78,9 @@ DoubleArrayOUT ta_div(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_DIV(0, size - 1, inReal0.data(), inReal1.data(), &outBegIdx,
-                     &outNBElement, outData + lookback);
+    retCode = TA_DIV(0, gsl::narrow<int>(size - 1), inReal0.data(), inReal1.data(), &outBegIdx,
+                     &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_DIV");
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }

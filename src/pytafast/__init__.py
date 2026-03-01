@@ -161,6 +161,19 @@ def T3(inReal, timeperiod=5, vfactor=0.7):
     return out
 
 
+def MAMA(inReal, fastlimit=0.5, slowlimit=0.05):
+    """MESA Adaptive Moving Average. Returns: (mama, fama)"""
+    is_series = _is_pandas_series(inReal)
+    arr = _ensure_array(inReal)
+    mama_out, fama_out = pytafast_ext.MAMA(arr, fastlimit, slowlimit)
+    if is_series:
+        return (
+            pd.Series(mama_out, index=inReal.index, name="MAMA"),
+            pd.Series(fama_out, index=inReal.index, name="FAMA"),
+        )
+    return mama_out, fama_out
+
+
 def BBANDS(inReal, timeperiod=5, nbdevup=2.0, nbdevdn=2.0, matype=MAType.SMA):
     """Bollinger Bands. Returns: (upperband, middleband, lowerband)"""
     is_series = _is_pandas_series(inReal)
@@ -705,7 +718,7 @@ Usage:
 # Auto-generate async versions of all public indicator functions
 _ALL_FUNCTIONS = [
     # Overlap
-    "SMA", "EMA", "DEMA", "KAMA", "MA", "T3", "TEMA", "TRIMA", "WMA",
+    "SMA", "EMA", "DEMA", "KAMA", "MA", "T3", "MAMA", "TEMA", "TRIMA", "WMA",
     "BBANDS", "SAR", "MIDPOINT", "MIDPRICE",
     # Momentum
     "RSI", "MACD", "MACDEXT", "MACDFIX", "MOM", "ROC", "ROCP", "ROCR",

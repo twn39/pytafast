@@ -4,15 +4,6 @@
 
 using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
 
-// Helper to allocate int output with 0-fill for lookback region
-static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
-                                                      int lookback) {
-  int *data = new int[size];
-  std::fill(data, data + std::min(static_cast<size_t>(lookback), size), 0);
-  nb::capsule owner(data, [](void *p) noexcept { delete[] (int *)p; });
-  return {data, std::move(owner)};
-}
-
 // Macro for standard CDL functions (OHLC → int, no extra params)
 #define CDL_FUNC(NAME, TA_FUNC)                                                \
   IntArrayOUT NAME(DoubleArrayIN inOpen, DoubleArrayIN inHigh,                 \
@@ -29,12 +20,12 @@ static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
     TA_RetCode retCode;                                                        \
     {                                                                          \
       nb::gil_scoped_release release;                                          \
-      retCode = TA_FUNC(0, size - 1, inOpen.data(), inHigh.data(),             \
+      retCode = TA_FUNC(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(),             \
                         inLow.data(), inClose.data(), &outBegIdx,              \
-                        &outNBElement, outData + lookback);                    \
+                        &outNBElement, outData.get() + lookback);                    \
     }                                                                          \
     check_ta_retcode(retCode, #TA_FUNC);                                       \
-    return IntArrayOUT(outData, {size}, owner);                                \
+    return IntArrayOUT(outData.get(), {size}, owner);                                \
   }
 
 // Macro for CDL functions with penetration parameter
@@ -54,12 +45,12 @@ static std::pair<int *, nb::capsule> alloc_int_output(size_t size,
     TA_RetCode retCode;                                                        \
     {                                                                          \
       nb::gil_scoped_release release;                                          \
-      retCode = TA_FUNC(0, size - 1, inOpen.data(), inHigh.data(),             \
+      retCode = TA_FUNC(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(),             \
                         inLow.data(), inClose.data(), optInPenetration,        \
-                        &outBegIdx, &outNBElement, outData + lookback);        \
+                        &outBegIdx, &outNBElement, outData.get() + lookback);        \
     }                                                                          \
     check_ta_retcode(retCode, #TA_FUNC);                                       \
-    return IntArrayOUT(outData, {size}, owner);                                \
+    return IntArrayOUT(outData.get(), {size}, owner);                                \
   }
 
 // Standard CDL functions (no extra params)

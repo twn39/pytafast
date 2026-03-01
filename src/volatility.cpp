@@ -23,12 +23,12 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_ATR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-               optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
+        TA_ATR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
+               optInTimePeriod, &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ATR");
 
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -53,12 +53,12 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_NATR(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                optInTimePeriod, &outBegIdx, &outNBElement, outData + lookback);
+        TA_NATR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
+                optInTimePeriod, &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_NATR");
 
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -79,11 +79,11 @@ DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   {
     nb::gil_scoped_release release;
     retCode =
-        TA_TRANGE(0, size - 1, inHigh.data(), inLow.data(), inClose.data(),
-                  &outBegIdx, &outNBElement, outData + lookback);
+        TA_TRANGE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
+                  &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_TRANGE");
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
 // ---------------------------------------------------------
@@ -105,10 +105,10 @@ DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_STDDEV(0, size - 1, inReal.data(), optInTimePeriod, optInNbDev,
-                        &outBegIdx, &outNBElement, outData + lookback);
+    retCode = TA_STDDEV(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, optInNbDev,
+                        &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_STDDEV");
 
-  return DoubleArrayOUT(outData, {size}, owner);
+  return DoubleArrayOUT(outData.get(), {size}, owner);
 }

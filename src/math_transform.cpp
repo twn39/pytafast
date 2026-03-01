@@ -13,11 +13,11 @@
     TA_RetCode retCode;                                                        \
     {                                                                          \
       nb::gil_scoped_release release;                                          \
-      retCode = TA_FUNC(0, size - 1, inReal.data(), &outBegIdx, &outNBElement, \
-                        outData + lookback);                                   \
+      retCode = TA_FUNC(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx, &outNBElement, \
+                        outData.get() + lookback);                                   \
     }                                                                          \
     check_ta_retcode(retCode, #TA_FUNC);                                       \
-    return DoubleArrayOUT(outData, {size}, owner);                             \
+    return DoubleArrayOUT(outData.get(), {size}, owner);                             \
   }
 
 MATH_TRANSFORM_FUNC(ta_acos, TA_ACOS)

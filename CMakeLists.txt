@@ -29,6 +29,15 @@ endif()
 
 add_subdirectory(third_party/ta-lib)
 
+# include Microsoft GSL (Guidelines Support Library)
+include(FetchContent)
+FetchContent_Declare(
+    Microsoft_GSL
+    GIT_REPOSITORY https://github.com/microsoft/GSL.git
+    GIT_TAG v4.2.1
+)
+FetchContent_MakeAvailable(Microsoft_GSL)
+
 # include nanobind
 find_package(Python 3.11 COMPONENTS Interpreter Development.Module REQUIRED)
 add_subdirectory(third_party/nanobind)
@@ -49,8 +58,8 @@ nanobind_add_module(pytafast_ext
 )
 target_include_directories(pytafast_ext PRIVATE src)
 
-# Link against ta-lib
-target_link_libraries(pytafast_ext PRIVATE ta-lib-static)
+# Link against ta-lib and GSL
+target_link_libraries(pytafast_ext PRIVATE ta-lib-static GSL)
 
 # Enable Interprocedural Optimization (LTO) if supported
 include(CheckIPOSupported)

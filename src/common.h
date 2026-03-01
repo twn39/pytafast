@@ -1,6 +1,6 @@
 #pragma once
 
-#include <algorithm>
+#include <gsl/gsl>
 #include <limits>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
@@ -28,13 +28,36 @@ inline void check_ta_retcode(TA_RetCode code, const char *func) {
 // Helper: allocate a double array, wrap in capsule, fill lookback region with
 // NaN
 struct AllocResult {
-  double *data;
+  gsl::not_null<double *> data;
   nb::capsule owner;
 };
 
 inline AllocResult alloc_output(size_t size, int lookback) {
   auto *data = new double[size];
   nb::capsule owner(data, [](void *p) noexcept { delete[] (double *)p; });
-  std::fill(data, data + lookback, NaN);
-  return {data, std::move(owner)};
+
+  // Only fill the lookback region which won't be touched by TA-Lib
+  if (lookback > 0 && size > 0) {
+    gsl::span<double> data_span(data, std::min(static_cast<size_t>(lookback), size));
+    std::fill(data_span.begin(), data_span.end(), NaN);
+  }
+
+  return {gsl::make_not_null(data), std::move(owner)};
+}
+
+struct AllocIntResult {
+  gsl::not_null<int *> data;
+  nb::capsule owner;
+};
+
+inline AllocIntResult alloc_int_output(size_t size, int lookback) {
+  auto *data = new int[size];
+  nb::capsule owner(data, [](void *p) noexcept { delete[] (int *)p; });
+
+  if (lookback > 0 && size > 0) {
+    gsl::span<int> data_span(data, std::min(static_cast<size_t>(lookback), size));
+    std::fill(data_span.begin(), data_span.end(), 0);
+  }
+
+  return {gsl::make_not_null(data), std::move(owner)};
 }
