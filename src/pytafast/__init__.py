@@ -29,6 +29,9 @@ def _is_pandas_series(obj):
 
 def _ensure_array(x):
     """Fast-path: skip np.ascontiguousarray when already float64 C-contiguous."""
+    if _HAS_PANDAS and isinstance(x, pd.Series):
+        x = x.to_numpy()
+
     if isinstance(x, np.ndarray) and x.dtype == np.float64 and x.flags["C_CONTIGUOUS"]:
         return x
     return np.ascontiguousarray(x, dtype=np.float64)
@@ -1001,17 +1004,20 @@ def EMV(inHigh, inLow, inVolume, timeperiod=9, vol_divisor=10000.0):
     mid_move = mid.diff() if is_s else np.diff(mid, prepend=np.nan)
 
     box_ratio = (inVolume / vol_divisor) / (inHigh - inLow)
-    # Avoid div by zero in box_ratio if high == low
-    box_ratio = np.where(inHigh != inLow, box_ratio, np.nan)
+    # R TTR replaces box_ratio infinites with NA
+    box_ratio = np.where((inHigh - inLow) == 0, np.nan, box_ratio)
 
-    emv = mid_move / box_ratio
+    emv = np.where(np.isnan(box_ratio), np.nan, mid_move / box_ratio)
     if is_s:
-        ma_emv = SMA(emv.dropna(), timeperiod).reindex(emv.index)
+        # TTR EMV ma uses SMA natively
+        with np.errstate(invalid='ignore'):
+             ma_emv = SMA(emv, timeperiod)
+        return pd.Series(emv, index=inHigh.index, name="emv"), pd.Series(ma_emv, index=inHigh.index, name="maEMV")
     else:
         ma_emv = np.full_like(emv, np.nan)
         valid_mask = ~np.isnan(emv)
         if valid_mask.sum() >= timeperiod:
-            ma_emv[valid_mask] = SMA(emv[valid_mask], timeperiod)
+             ma_emv[valid_mask] = SMA(emv[valid_mask], timeperiod)
     return emv, ma_emv
 
 

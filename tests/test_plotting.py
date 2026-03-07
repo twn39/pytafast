@@ -13,7 +13,7 @@ chart = (
     .add_zigzag(change=2.0)
     .add_volume()
     .add_rsi(n=14)
-    .add_macd(fast=12, slow=26, signal=9)
+    .add_macd(f=12, s=26, sig=9)
 )
 
 # Save the interactive chart to HTML for inspection

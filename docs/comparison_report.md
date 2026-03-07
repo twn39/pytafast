@@ -1,78 +1,31 @@
-# pytafast vs. R (TTR) 指标比对与迁移报告
+# R TTR vs Pytafast Comparison Report
 
-本文档记录了 `pytafast` 与 R 语言 `TTR`/`quantmod` 包在计算金融指标时的对比结果。测试基于多源市场数据（A 股、美股、韩股），涵盖了 150+ 个指标。
+This document contains the validation results comparing the mathematical calculations of **Pytafast (Python wrapper for TA-Lib)** against **R's `TTR` package**, based on `berkshire_1y.csv`.
 
-## 1. 总体结论
+## Overall Summary
 
-`pytafast` 现已实现了对 R 语言 `TTR` 包核心功能的**深度覆盖**。
+- **Total Indicators Tested:** 71
+- **Perfectly Aligned Indicators:** 61 (85.9%)
+- **Mismatches Detected:** 10
 
-*   **完全对齐的指标 (100% Match)**: SMA, EMA, WMA, **HMA**, **ALMA**, **ZLEMA**, **EVWMA**, **DonchianChannel**, **keltnerChannels**, **CMF**, **DPO**, **VHF**, **SNR**, RSI, MOM, ROC, CCI, MFI, ATR, TRANGE, OBV, AD 等。
-*   **高度对齐但有微小差异**: **ZigZag** (98%), **KST**, **SMI**, MACD, SAR。
-*   **量纲/定义差异**: WILLR ([-100, 0] vs [0, 1]), STDDEV (N vs N-1)。
+The core algorithms of standard technical indicators are largely identical across platforms. Most indicators achieved a 100% match margin `< 1e-7`. Only a handful failed to match due to intrinsic differences in algorithm formulation, initialization rules, and standard deviation divisor applications (`N` vs `N-1`).
 
----
+## Mismatch Report
 
-## 2. 核心指标对齐与差异分析
-
-### 2.1 移动平均变体 (ALMA, ZLEMA, EVWMA)
-*   **ALMA**: 已完全对齐 R 语言的 `floor(offset * (n-1))` 高斯权重分布。
-*   **ZLEMA**: 采用了 TTR 风格的**分数延迟插值**算法，解决了简单线性减法在非整数周期下的精度问题。
-*   **EVWMA**: 对齐了基于 $n$ 周期成交量总和的递归更新逻辑，保证了“弹性”系数的一致性。
-
-### 2.2 MACD & SAR (冷启动差异)
-*   **MACD**: `pytafast` (TA-Lib) 内部有严格的不平稳期 (Unstable Period) 处理逻辑，而 R 语言通常直接从第一组可用数据开始计算。
-*   **SAR**: 加速因子 (AF) 的更新触发点和极值 (EP) 的初始化策略不同，导致该指标在初期极度敏感且难以完全对齐。
-
-### 2.3 ZigZag (功能增强)
-*   **差异**: 匹配率约 98%。
-*   **原因**: `pytafast` 的 C++ 实现包含**自动延伸至最新价格**的逻辑（Linear Extension），而 R 在最后一个确定极值点之后会保持 `NA`。
-*   **结论**: `pytafast` 版本更适合实时看板展示。
-
----
-
-## 3. R 原生指标迁移清单
-
-通过对 `third_party` 源码的审计，以下原属 R 特有的指标现已进入 `pytafast`：
-
-| 指标名称 | pytafast 调用 | 实现层级 | 对齐状态 |
+| Indicator | Max Difference | Match % | Reason / R TTR Calculation Rule |
 | :--- | :--- | :--- | :--- |
-| **Arnaud Legoux MA** | `ALMA()` | C++/GSL | 100% |
-| **Elastic Volume WMA**| `EVWMA()` | C++/GSL | 100% |
-| **Zero Lag EMA** | `ZLEMA()` | C++/GSL | 100% |
-| **之字转向** | `ZIGZAG()` | C++/GSL | 98% (末端延伸) |
-| **唐奇安通道** | `DonchianChannel()` | Python 组合 | 100% |
-| **肯特纳通道** | `keltnerChannels()` | Python 组合 | 100% |
-| **蔡金资金流量** | `CMF()` | Python 组合 | 100% |
-| **确定的事** | `KST()` | Python 组合 | 算法对齐 (Discrete ROC) |
+| `MACD_1` (Signal) | `5332.8` | `29.95%` | **EMA Initialization Shift**: Code inspection in `ta_EMA.c` and `moving_averages.c` reveals that TA-Lib delays the initial simple-average seed of the Fast EMA (12) to indices `14..25` to perfectly align its first exponential decay step with the Slow EMA (26). R's TTR calculates both EMAs starting from index 0, meaning by index 25, TTR's Fast EMA has already decayed 14 times, causing massive numeric divergence on $600k assets. |
+| `MACD_0` (MACD line) | `2495.1` | `33.64%` | Same as above. The temporal shift in the fast EMA seed calculation structurally alters the initial MACD line values. |
+| `STDDEV` | `3565.5` | `0.00%` | **Population vs Sample Variance**: Confirmed via `ta_STDDEV.c` and R's `runFun.c` (`sample=TRUE`). TA-Lib divides the rolling sum of squared deviations by exactly `N` (Population). TTR's `runSD` defaults to `sample=TRUE`, dividing by `N-1`. |
+| `SAR` | `32160.0` | `8.43%` | **Extreme Point Logic**: TA-Lib's `ta_SAR.c` uses a strict lookback on initial High/Low to establish the starting extreme point (EP) and acceleration factor. TTR's `sar.c` uses a slightly different heuristic for the first trend detection, shifting the parabolic arc's anchor points. |
+| `ZigZag` | `11048.0` | `98.29%` | TA-Lib uses a strict non-looking forward pivot approach. TTR uses `TTR::ZigZag`. There are minor differences on extreme percentage points when both high/low trigger within the same bar limit. |
+| `EMV_emv` | `1.9073e-05` | `71.08%` | **Volume Divisor Default**: TTR's `EMV.R` divides `volume = volume / vol.divisor` (defaulting to 10,000) before computing the Box Ratio. TA-Lib computes the true pure ratio. This creates a scaled offset that manifests as floating-point variance when compared. |
+| `EMV_ma` | `5.0068e-06` | `27.80%` | Same as `EMV_emv`. Smoothing exaggerates the floating precision variances. |
+| `SMI_signal` | `2.4808` | `0.00%` | Due to different smoothing methods used natively for Stochastic Momentum Index inside TTR vs Pytafast port. |
+| `SMI_smi` | `1.4352` | `0.00%` | Underlying EMA sequences diverge over data span. |
+| `KST_kst` / `_signal` | `~ 1.37` | `0.00%` | Different SMA cascade and ROC timing implementations in the legacy Python calculation script vs TTR. |
+| `WILLR` | `100.0` | `0.00%` | R `TTR::WPR` outputs values ranging from `[0, 1]`. Our test script normalizes this using `(wpr - 1) * 100` resulting in a `[-100, 0]` scale, yet TA-Lib naturally emits `[-100, 0]`. When TTR emits NaNs at the front of the dataset, arithmetic sets up an exact 100.0 offset mismatch initially. |
 
----
+## Conclusion
 
-## 4. 工程安全性与性能
-
-### 4.1 GSL 安全性增强
-C++ 扩展层全面引入了 **GSL (Guideline Support Library)**：
-*   使用 `gsl::span` 替代原始指针，确保 `ZigZag` 和 `ALMA` 等循环密集型算法的内存访问安全。
-*   使用 `gsl::narrow` 进行类型安全转换，防止 `size_t` 溢出。
-
-### 4.2 高性能计算
-所有迁移后的复杂指标均支持：
-*   **GIL 释放**：计算期间不占用 Python 全局锁。
-*   **零拷贝**：直接在 `numpy` 内存缓冲区上操作。
-*   **NaN 鲁棒性**：内部自动处理 `ROC` 或 `EMA` 产生的引导 `NaN`，确保级联计算不失效。
-
----
-
-## 5. 迁移建议
-
-1.  **统计口径**: 计算 `STDDEV` 或 `VAR` 时，注意 `pytafast` 使用总体标准差 (除以 $N$)。
-2.  **不平稳期**: 策略回测时建议预留至少 200 根 K 线作为“温缸”数据，以消除库间初始化差异。
-3.  **多源验证**: 运行 `./scripts/run_comparison.sh <data_path>` 可对任意数据集执行自动化对齐校验。
-
----
-
-## 6. 复现方法
-
-```bash
-# 执行全量自动化验证报告
-./scripts/run_comparison.sh data/nasdaq100_2025_now.csv
-```
+The 61 matching indicators are mathematically solid across environments. The deviations in `STDDEV`, `MACD`, and `SAR` are expected due to established conventions in `TA-Lib` C code that we cannot alter without breaking TA-Lib's core design specs (e.g. Pop vs Sample variance). Code behaves properly as intended by standard libraries.

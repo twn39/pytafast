@@ -327,86 +327,90 @@ DoubleArrayOUT zigzag(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   gsl::span<const double> hi(inHigh.data(), size);
   gsl::span<const double> lo(inLow.data(), size);
 
-  int last_idx = 0;
-  double last_val = (hi[0] + lo[0]) / 2.0;
-  int trend = 0;
+  {
+    nb::gil_scoped_release release;
 
-  out[0] = last_val;
+    int last_idx = 0;
+    double last_val = (hi[0] + lo[0]) / 2.0;
+    int trend = 0;
 
-  for (size_t i = 1; i < size; ++i) {
-    if (trend == 0) {
-      double up_diff =
-          percent ? (hi[i] / last_val - 1.0) * 100.0 : (hi[i] - last_val);
-      double down_diff =
-          percent ? (last_val / lo[i] - 1.0) * 100.0 : (last_val - lo[i]);
-      if (up_diff >= change) {
-        trend = 1;
-        last_val = hi[i];
-        last_idx = gsl::narrow<int>(i);
-        out[i] = last_val;
-      } else if (down_diff >= change) {
-        trend = -1;
-        last_val = lo[i];
-        last_idx = gsl::narrow<int>(i);
-        out[i] = last_val;
-      }
-    } else if (trend == 1) {
-      if (hi[i] > last_val) {
-        out[last_idx] = NaN;
-        last_val = hi[i];
-        last_idx = gsl::narrow<int>(i);
-        out[i] = last_val;
-      } else if ((percent ? (last_val / lo[i] - 1.0) * 100.0
-                          : (last_val - lo[i])) >= change) {
-        trend = -1;
-        last_val = lo[i];
-        last_idx = gsl::narrow<int>(i);
-        out[i] = last_val;
-      }
-    } else if (trend == -1) {
-      if (lo[i] < last_val) {
-        out[last_idx] = NaN;
-        last_val = lo[i];
-        last_idx = gsl::narrow<int>(i);
-        out[i] = last_val;
-      } else if ((percent ? (hi[i] / last_val - 1.0) * 100.0
-                          : (hi[i] - last_val)) >= change) {
-        trend = 1;
-        last_val = hi[i];
-        last_idx = gsl::narrow<int>(i);
-        out[i] = last_val;
+    out[0] = last_val;
+
+    for (size_t i = 1; i < size; ++i) {
+      if (trend == 0) {
+        double up_diff =
+            percent ? (hi[i] / last_val - 1.0) * 100.0 : (hi[i] - last_val);
+        double down_diff =
+            percent ? (last_val / lo[i] - 1.0) * 100.0 : (last_val - lo[i]);
+        if (up_diff >= change) {
+          trend = 1;
+          last_val = hi[i];
+          last_idx = gsl::narrow<int>(i);
+          out[i] = last_val;
+        } else if (down_diff >= change) {
+          trend = -1;
+          last_val = lo[i];
+          last_idx = gsl::narrow<int>(i);
+          out[i] = last_val;
+        }
+      } else if (trend == 1) {
+        if (hi[i] > last_val) {
+          out[last_idx] = NaN;
+          last_val = hi[i];
+          last_idx = gsl::narrow<int>(i);
+          out[i] = last_val;
+        } else if ((percent ? (last_val / lo[i] - 1.0) * 100.0
+                            : (last_val - lo[i])) >= change) {
+          trend = -1;
+          last_val = lo[i];
+          last_idx = gsl::narrow<int>(i);
+          out[i] = last_val;
+        }
+      } else if (trend == -1) {
+        if (lo[i] < last_val) {
+          out[last_idx] = NaN;
+          last_val = lo[i];
+          last_idx = gsl::narrow<int>(i);
+          out[i] = last_val;
+        } else if ((percent ? (hi[i] / last_val - 1.0) * 100.0
+                            : (hi[i] - last_val)) >= change) {
+          trend = 1;
+          last_val = hi[i];
+          last_idx = gsl::narrow<int>(i);
+          out[i] = last_val;
+        }
       }
     }
-  }
 
-  int prev_idx = 0;
-  for (size_t i = 1; i < size; ++i) {
-    if (!std::isnan(out[i])) {
+    int prev_idx = 0;
+    for (size_t i = 1; i < size; ++i) {
+      if (!std::isnan(out[i])) {
+        double start_val = out[prev_idx];
+        double end_val = out[i];
+        double step = (end_val - start_val) /
+                      static_cast<double>(gsl::narrow<int>(i) - prev_idx);
+        for (int j = prev_idx + 1; j < gsl::narrow<int>(i); ++j) {
+          out[j] = start_val + (step * static_cast<double>(j - prev_idx));
+        }
+        prev_idx = gsl::narrow<int>(i);
+      }
+    }
+    if (prev_idx < gsl::narrow<int>(size) - 1) {
       double start_val = out[prev_idx];
-      double end_val = out[i];
-      double step = (end_val - start_val) /
-                    static_cast<double>(gsl::narrow<int>(i) - prev_idx);
-      for (int j = prev_idx + 1; j < gsl::narrow<int>(i); ++j) {
-        out[j] = start_val + (step * static_cast<double>(j - prev_idx));
+      double end_val;
+      if (trend == 1) {
+        end_val = hi[size - 1];
+      } else if (trend == -1) {
+        end_val = lo[size - 1];
+      } else {
+        end_val = (hi[size - 1] + lo[size - 1]) / 2.0;
       }
-      prev_idx = gsl::narrow<int>(i);
-    }
-  }
-  if (prev_idx < gsl::narrow<int>(size) - 1) {
-    double start_val = out[prev_idx];
-    double end_val;
-    if (trend == 1) {
-      end_val = hi[size - 1];
-    } else if (trend == -1) {
-      end_val = lo[size - 1];
-    } else {
-      end_val = (hi[size - 1] + lo[size - 1]) / 2.0;
-    }
-    double step = (end_val - start_val) /
-                  static_cast<double>(gsl::narrow<int>(size) - 1 - prev_idx);
-    for (size_t j = static_cast<size_t>(prev_idx) + 1; j < size; ++j) {
-      out[j] = start_val +
-               (step * static_cast<double>(gsl::narrow<int>(j) - prev_idx));
+      double step = (end_val - start_val) /
+                    static_cast<double>(gsl::narrow<int>(size) - 1 - prev_idx);
+      for (size_t j = static_cast<size_t>(prev_idx) + 1; j < size; ++j) {
+        out[j] = start_val +
+                 (step * static_cast<double>(gsl::narrow<int>(j) - prev_idx));
+      }
     }
   }
 
@@ -444,13 +448,18 @@ DoubleArrayOUT alma(DoubleArrayIN inReal, int optInTimePeriod = 9,
   }
 
   gsl::span<const double> in(inReal.data(), size);
-  for (size_t i = static_cast<size_t>(optInTimePeriod) - 1; i < size; ++i) {
-    double sum = 0.0;
-    for (int j = 0; j < optInTimePeriod; ++j) {
-      sum += in[i - static_cast<size_t>(optInTimePeriod - 1 - j)] *
-             wts[static_cast<size_t>(j)];
+
+  {
+    nb::gil_scoped_release release;
+
+    for (size_t i = static_cast<size_t>(optInTimePeriod) - 1; i < size; ++i) {
+      double sum = 0.0;
+      for (int j = 0; j < optInTimePeriod; ++j) {
+        sum += in[i - static_cast<size_t>(optInTimePeriod - 1 - j)] *
+               wts[static_cast<size_t>(j)];
+      }
+      out[i] = sum;
     }
-    out[i] = sum;
   }
   return DoubleArrayOUT(out.data(), {size}, owner);
 }
@@ -474,20 +483,24 @@ DoubleArrayOUT evwma(DoubleArrayIN inReal, DoubleArrayIN inVolume,
   gsl::span<const double> pr(inReal.data(), size);
   gsl::span<const double> vo(inVolume.data(), size);
 
-  double volSum = 0.0;
-  for (int i = 0; i < optInTimePeriod; i++) {
-    volSum += vo[static_cast<size_t>(i)];
-  }
+  {
+    nb::gil_scoped_release release;
 
-  out[static_cast<size_t>(optInTimePeriod - 1)] =
-      pr[static_cast<size_t>(optInTimePeriod - 1)];
+    double volSum = 0.0;
+    for (int i = 0; i < optInTimePeriod; i++) {
+      volSum += vo[static_cast<size_t>(i)];
+    }
 
-  for (auto i = static_cast<size_t>(optInTimePeriod); i < size; i++) {
-    volSum = (volSum + vo[i]) - vo[i - static_cast<size_t>(optInTimePeriod)];
-    if (volSum > 0) {
-      out[i] = (((volSum - vo[i]) * out[i - 1]) + (vo[i] * pr[i])) / volSum;
-    } else {
-      out[i] = out[i - 1];
+    out[static_cast<size_t>(optInTimePeriod - 1)] =
+        pr[static_cast<size_t>(optInTimePeriod - 1)];
+
+    for (auto i = static_cast<size_t>(optInTimePeriod); i < size; i++) {
+      volSum = (volSum + vo[i]) - vo[i - static_cast<size_t>(optInTimePeriod)];
+      if (volSum > 0) {
+        out[i] = (((volSum - vo[i]) * out[i - 1]) + (vo[i] * pr[i])) / volSum;
+      } else {
+        out[i] = out[i - 1];
+      }
     }
   }
   return DoubleArrayOUT(out.data(), {size}, owner);
@@ -509,30 +522,35 @@ DoubleArrayOUT zlema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   }
 
   gsl::span<const double> in(inReal.data(), size);
-  double ratio = 2.0 / static_cast<double>(optInTimePeriod + 1);
-  double seed = 0.0;
-  for (size_t i = 0; i < static_cast<size_t>(optInTimePeriod); i++) {
-    seed += in[i] / static_cast<double>(optInTimePeriod);
-  }
 
-  out[static_cast<size_t>(optInTimePeriod - 1)] = seed;
+  {
+    nb::gil_scoped_release release;
 
-  double lag = 1.0 / ratio;
-  double wt = std::fmod(lag, 1.0);
-  double w1 = 1.0 - wt;
-  double r1 = 1.0 - ratio;
-
-  for (auto i = static_cast<size_t>(optInTimePeriod); i < size; i++) {
-    double loc_d = static_cast<double>(i) - lag;
-    int loc = static_cast<int>(std::floor(loc_d));
-    double value;
-    if (loc >= 0 && (static_cast<size_t>(loc) + 1) < size) {
-      value = (2.0 * in[i]) - ((w1 * in[static_cast<size_t>(loc)]) +
-                               (wt * in[static_cast<size_t>(loc) + 1]));
-    } else {
-      value = (2.0 * in[i]) - in[i > 0 ? i - 1 : 0];
+    double ratio = 2.0 / static_cast<double>(optInTimePeriod + 1);
+    double seed = 0.0;
+    for (size_t i = 0; i < static_cast<size_t>(optInTimePeriod); i++) {
+      seed += in[i] / static_cast<double>(optInTimePeriod);
     }
-    out[i] = (ratio * value) + (r1 * out[i - 1]);
+
+    out[static_cast<size_t>(optInTimePeriod - 1)] = seed;
+
+    double lag = 1.0 / ratio;
+    double wt = std::fmod(lag, 1.0);
+    double w1 = 1.0 - wt;
+    double r1 = 1.0 - ratio;
+
+    for (auto i = static_cast<size_t>(optInTimePeriod); i < size; i++) {
+      double loc_d = static_cast<double>(i) - lag;
+      int loc = static_cast<int>(std::floor(loc_d));
+      double value;
+      if (loc >= 0 && (static_cast<size_t>(loc) + 1) < size) {
+        value = (2.0 * in[i]) - ((w1 * in[static_cast<size_t>(loc)]) +
+                                 (wt * in[static_cast<size_t>(loc) + 1]));
+      } else {
+        value = (2.0 * in[i]) - in[i > 0 ? i - 1 : 0];
+      }
+      out[i] = (ratio * value) + (r1 * out[i - 1]);
+    }
   }
   return DoubleArrayOUT(out.data(), {size}, owner);
 }

@@ -47,7 +47,7 @@ safe_compute('MAMA', pytafast.MAMA, C)
 
 # --- Momentum ---
 safe_compute('RSI', pytafast.RSI, C, 14)
-safe_compute('MACD', pytafast.MACD, C)
+safe_compute('MACD', pytafast.MACD, C, fastperiod=12, slowperiod=26, signalperiod=9)
 safe_compute('MOM', pytafast.MOM, C, 10)
 safe_compute('ROC', pytafast.ROC, C, 10)
 safe_compute('ROCP', pytafast.ROCP, C, 10)
@@ -79,7 +79,7 @@ safe_compute('STOCHRSI', pytafast.STOCHRSI, C)
 safe_compute('ATR', pytafast.ATR, H, L, C, 14)
 safe_compute('NATR', pytafast.NATR, H, L, C, 14)
 safe_compute('TRANGE', pytafast.TRANGE, H, L, C)
-safe_compute('STDDEV', pytafast.STDDEV, C, 5)
+safe_compute('STDDEV', pytafast.STDDEV, C, 5, 1.0)
 
 # --- Volume ---
 safe_compute('OBV', pytafast.OBV, C, V)
