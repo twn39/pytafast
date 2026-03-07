@@ -80,6 +80,7 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=6.0.0",
     "kaleido>=1.2.0",
+    "ty>=0.0.21",
 ]
 
 [tool.pytest.ini_options]
