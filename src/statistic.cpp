@@ -10,6 +10,7 @@ DoubleArrayOUT beta(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
   if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("BETA", inReal0.shape(0), {inReal1.shape(0)});
   size_t size = inReal0.shape(0);
   int lookback = TA_BETA_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -33,6 +34,7 @@ DoubleArrayOUT correl(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
   if (inReal0.size() == 0 || inReal1.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("CORREL", inReal0.shape(0), {inReal1.shape(0)});
   size_t size = inReal0.shape(0);
   int lookback = TA_CORREL_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);

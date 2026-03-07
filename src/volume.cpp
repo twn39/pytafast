@@ -39,6 +39,8 @@ DoubleArrayOUT ad(DoubleArrayIN inHigh, DoubleArrayIN inLow,
       inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("AD", inHigh.shape(0),
+                {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_AD_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);
@@ -64,6 +66,8 @@ DoubleArrayOUT adosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
       inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("ADOSC", inHigh.shape(0),
+                {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_ADOSC_Lookback(optInFastPeriod, optInSlowPeriod);
   auto [outData, owner] = alloc_output(size, lookback);

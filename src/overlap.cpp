@@ -203,6 +203,7 @@ DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("SAR", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_SAR_Lookback(optInAcceleration, optInMaximum);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -315,6 +316,7 @@ DoubleArrayOUT zigzag(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0 || inLow.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("ZIGZAG", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   auto [outData, owner] = alloc_output(size, 0);
   gsl::span<double> out(outData.get(), size);
@@ -472,6 +474,7 @@ DoubleArrayOUT evwma(DoubleArrayIN inReal, DoubleArrayIN inVolume,
   if (inReal.size() == 0 || inVolume.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("EVWMA", inReal.shape(0), {inVolume.shape(0)});
   size_t size = inReal.shape(0);
   auto [outData, owner] = alloc_output(size, 0);
   gsl::span<double> out(outData.get(), size);

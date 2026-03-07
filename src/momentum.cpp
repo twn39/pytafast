@@ -128,6 +128,7 @@ nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
+  check_lengths("STOCH", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_STOCH_Lookback(optInFastK_Period, optInSlowK_Period,
                                    static_cast<TA_MAType>(optInSlowK_MAType),
@@ -161,6 +162,7 @@ nb::tuple stochf(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
+  check_lengths("STOCHF", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_STOCHF_Lookback(optInFastK_Period, optInFastD_Period,
                                     static_cast<TA_MAType>(optInFastD_MAType));
@@ -425,6 +427,7 @@ nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
+  check_lengths("AROON", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_AROON_Lookback(optInTimePeriod);
   auto [outDown, ownerD] = alloc_output(size, lookback);
@@ -450,6 +453,7 @@ DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("AROONOSC", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -473,6 +477,7 @@ DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("ADX", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_ADX_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -496,6 +501,7 @@ DoubleArrayOUT adxr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("ADXR", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_ADXR_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -519,6 +525,7 @@ DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("DX", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_DX_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -542,6 +549,8 @@ DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("MINUS_DI", inHigh.shape(0),
+                {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -565,6 +574,7 @@ DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("MINUS_DM", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -588,6 +598,7 @@ DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("PLUS_DI", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -611,6 +622,7 @@ DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("PLUS_DM", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -634,6 +646,7 @@ DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("WILLR", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_WILLR_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -658,6 +671,8 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("MFI", inHigh.shape(0),
+                {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_MFI_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -681,6 +696,7 @@ DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("CCI", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_CCI_Lookback(optInTimePeriod);
   auto [outData, owner] = alloc_output(size, lookback);
@@ -705,6 +721,7 @@ DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("ULTOSC", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback =
       TA_ULTOSC_Lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
@@ -730,6 +747,8 @@ DoubleArrayOUT bop(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
   if (inOpen.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
+  check_lengths("BOP", inOpen.shape(0),
+                {inHigh.shape(0), inLow.shape(0), inClose.shape(0)});
   size_t size = inOpen.shape(0);
   int lookback = TA_BOP_Lookback();
   auto [outData, owner] = alloc_output(size, lookback);

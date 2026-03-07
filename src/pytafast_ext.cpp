@@ -2,6 +2,7 @@
 // Function implementations are in separate files:
 //   overlap.cpp, momentum.cpp, volatility.cpp, price_transform.cpp, volume.cpp
 #include "common.h"
+#include <mutex>
 
 // Forward declarations from overlap.cpp
 DoubleArrayOUT sma(DoubleArrayIN, int);
@@ -195,9 +196,13 @@ CDL_FWD_PEN(cdlmorningstar);
 #undef CDL_FWD_PEN
 
 // Helper to initialize and shutdown TA-lib
+static std::once_flag ta_init_flag;
+
 void initialize() {
-  TA_RetCode retcode = TA_Initialize();
-  check_ta_retcode(retcode, "TA_Initialize");
+  std::call_once(ta_init_flag, []() {
+    TA_RetCode retcode = TA_Initialize();
+    check_ta_retcode(retcode, "TA_Initialize");
+  });
 }
 
 void shutdown() {

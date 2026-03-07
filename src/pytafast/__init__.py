@@ -1,5 +1,6 @@
 import asyncio as _asyncio
 import atexit
+import functools as _functools
 import sys as _sys
 import types as _types
 from typing import Any, cast
@@ -13,6 +14,45 @@ from .pytafast_ext import MAType
 
 __version__ = "0.4.0"
 
+# Public API — controls what `from pytafast import *` exposes
+__all__ = [
+    # Overlap
+    "SMA", "EMA", "DEMA", "KAMA", "MA", "T3", "MAMA", "TEMA", "TRIMA",
+    "WMA", "BBANDS", "SAR", "MIDPOINT", "MIDPRICE",
+    # Momentum
+    "RSI", "MACD", "MACDEXT", "MACDFIX", "MOM", "ROC", "ROCP", "ROCR",
+    "ROCR100", "CMO", "APO", "PPO", "TRIX", "ADX", "ADXR", "CCI", "DX",
+    "MINUS_DI", "MINUS_DM", "PLUS_DI", "PLUS_DM", "WILLR", "MFI", "STOCH",
+    "STOCHF", "STOCHRSI", "AROON", "AROONOSC", "ULTOSC", "BOP",
+    # Volatility
+    "ATR", "NATR", "TRANGE", "STDDEV",
+    # Volume
+    "OBV", "AD", "ADOSC",
+    # Price Transform
+    "AVGPRICE", "MEDPRICE", "TYPPRICE", "WCLPRICE",
+    # Statistics
+    "BETA", "CORREL", "LINEARREG", "LINEARREG_ANGLE", "LINEARREG_INTERCEPT",
+    "LINEARREG_SLOPE", "TSF", "VAR", "AVGDEV", "MAX", "MIN", "SUM",
+    "MINMAX", "MINMAXINDEX",
+    # Math Operators
+    "ADD", "SUB", "MULT", "DIV",
+    # Math Transforms
+    "ACOS", "ASIN", "ATAN", "CEIL", "COS", "COSH", "EXP", "FLOOR", "LN",
+    "LOG10", "SIN", "SINH", "SQRT", "TAN", "TANH",
+    # Cycle
+    "HT_DCPERIOD", "HT_DCPHASE", "HT_PHASOR", "HT_SINE", "HT_TRENDLINE",
+    "HT_TRENDMODE",
+    # Custom / R-consistent
+    "ZIGZAG", "ALMA", "EVWMA", "ZLEMA", "HMA", "KST", "DonchianChannel",
+    "GMMA", "keltnerChannels", "CMF", "DPO", "EMV", "VHF", "SNR", "SMI",
+    # Types
+    "MAType",
+    # Async namespace
+    "aio",
+    # Chart
+    "Chart",
+]
+
 # --- Module-level pandas detection (optimization #1) ---
 try:
     import pandas as pd
@@ -23,8 +63,13 @@ except ImportError:
     _HAS_PANDAS = False
 
 
-def _is_pandas_series(obj):
-    return _HAS_PANDAS and isinstance(obj, pd.Series)
+# Fix #9: Select implementation at import time — avoids per-call _HAS_PANDAS branch
+if _HAS_PANDAS:
+    def _is_pandas_series(obj):
+        return isinstance(obj, pd.Series)
+else:
+    def _is_pandas_series(obj):  # type: ignore[misc]
+        return False
 
 
 def _ensure_array(x):
@@ -200,9 +245,8 @@ def BBANDS(inReal, timeperiod=5, nbdevup=2.0, nbdevdn=2.0, matype=MAType.SMA):
     """Bollinger Bands. Returns: (upperband, middleband, lowerband)"""
     is_series = _is_pandas_series(inReal)
     arr = _ensure_array(inReal)
-    # Handle both enum member and raw int
-    if hasattr(matype, "value"):
-        ma_int = int(cast(Any, matype).value)
+    if isinstance(matype, MAType):
+        ma_int = int(matype.value)
     else:
         ma_int = int(matype)
     upper, middle, lower = pytafast_ext.BBANDS(
@@ -341,13 +385,13 @@ def STOCH(
     h = _ensure_array(inHigh)
     low_val = _ensure_array(inLow)
     c = _ensure_array(inClose)
-    if hasattr(slowk_matype, "value"):
-        sk_t = int(cast(Any, slowk_matype).value)
+    if isinstance(slowk_matype, MAType):
+        sk_t = int(slowk_matype.value)
     else:
         sk_t = int(slowk_matype)
 
-    if hasattr(slowd_matype, "value"):
-        sd_t = int(cast(Any, slowd_matype).value)
+    if isinstance(slowd_matype, MAType):
+        sd_t = int(slowd_matype.value)
     else:
         sd_t = int(slowd_matype)
 
@@ -950,109 +994,145 @@ def HMA(inReal, timeperiod=20):
     if _is_pandas_series(diff):
         return WMA(diff.dropna(), sqrt_n).reindex(inReal.index)
     else:
-        res = np.full_like(inReal, np.nan)
-        first_valid = timeperiod - 1
+        # first_valid for WMA(n) is n-1; WMA(half_n) lookback is half_n-1.
+        # diff has NaN for indices [0, timeperiod-2]; valid starts at timeperiod-1.
+        # WMA(sqrt_n) on valid region then adds sqrt_n-1 more NaN at its start.
+        first_valid = (timeperiod - 1) + (sqrt_n - 1)
+        res = np.full_like(inReal, np.nan, dtype=np.float64)
         if len(diff) <= first_valid:
             return res
-        w = WMA(diff[first_valid:], sqrt_n)
-        res[first_valid:] = w
+        valid_diff = diff[timeperiod - 1:]
+        w = WMA(valid_diff, sqrt_n)
+        res[first_valid:] = w[sqrt_n - 1:]
         return res
 
 
 def keltnerChannels(inHigh, inLow, inClose, timeperiod=20, atr_mult=2.0):
     """Keltner Channels. Returns: (upper, middle, lower)"""
-    tp = (inHigh + inLow + inClose) / 3.0
+    h = _ensure_array(inHigh)
+    low_val = _ensure_array(inLow)
+    c = _ensure_array(inClose)
+    is_series = _is_pandas_series(inClose)
+    tp = (h + low_val + c) / 3.0
     middle = EMA(tp, timeperiod)
-    atr = ATR(inHigh, inLow, inClose, timeperiod)
+    atr = ATR(h, low_val, c, timeperiod)
     upper = middle + atr_mult * atr
     lower = middle - atr_mult * atr
+    if is_series:
+        idx = inClose.index
+        return (
+            pd.Series(upper, index=idx, name="upper"),
+            pd.Series(middle, index=idx, name="middle"),
+            pd.Series(lower, index=idx, name="lower"),
+        )
     return upper, middle, lower
 
 
 def CMF(inHigh, inLow, inClose, inVolume, timeperiod=20):
     """Chaikin Money Flow."""
+    h = _ensure_array(inHigh)
+    low_val = _ensure_array(inLow)
+    c = _ensure_array(inClose)
+    v = _ensure_array(inVolume)
     # CLV = [(close - low) - (high - close)] / (high - low)
     # Simplified: (2*close - low - high) / (high - low)
-    num = 2 * inClose - inLow - inHigh
-    den = inHigh - inLow
+    num = 2 * c - low_val - h
+    den = h - low_val
     # Avoid div by zero
     clv = np.where(den != 0, num / den, 0.0)
-    vol_clv = clv * inVolume
-    return SUM(vol_clv, timeperiod) / SUM(inVolume, timeperiod)
+    vol_clv = clv * v
+    return SUM(vol_clv, timeperiod) / SUM(v, timeperiod)
 
 
 def DPO(inReal, timeperiod=10):
     """Detrended Price Oscillator."""
+    arr = _ensure_array(inReal)
     shift = timeperiod // 2 + 1
-    ma = SMA(inReal, timeperiod)
-    if _is_pandas_series(ma):
-        shifted_ma = ma.shift(-shift)
-        return inReal - shifted_ma
+    is_series = _is_pandas_series(inReal)
+    ma = SMA(arr, timeperiod)
+    if is_series:
+        ma_s = pd.Series(ma, index=inReal.index)
+        shifted_ma = ma_s.shift(-shift)
+        return pd.Series(arr - shifted_ma.to_numpy(), index=inReal.index, name="DPO")
     else:
-        res = np.full_like(inReal, np.nan)
+        res = np.full_like(arr, np.nan)
         if len(ma) <= shift:
             return res
-        res[:-shift] = inReal[:-shift] - ma[shift:]
+        res[:-shift] = arr[:-shift] - ma[shift:]
         return res
 
 
 def EMV(inHigh, inLow, inVolume, timeperiod=9, vol_divisor=10000.0):
     """Arms' Ease of Movement Value. Returns: (emv, smoothed_emv)"""
-    mid = (inHigh + inLow) / 2.0
+    h = _ensure_array(inHigh)
+    low_val = _ensure_array(inLow)
+    v = _ensure_array(inVolume)
+    mid = (h + low_val) / 2.0
     # mid_move = mid - mid_prev
-    is_s = _is_pandas_series(mid)
-    mid_move = mid.diff() if is_s else np.diff(mid, prepend=np.nan)
-
-    box_ratio = (inVolume / vol_divisor) / (inHigh - inLow)
-    # R TTR replaces box_ratio infinites with NA
-    box_ratio = np.where((inHigh - inLow) == 0, np.nan, box_ratio)
-
-    emv = np.where(np.isnan(box_ratio), np.nan, mid_move / box_ratio)
+    is_s = _is_pandas_series(inHigh)
     if is_s:
-        # TTR EMV ma uses SMA natively
+        mid_s = pd.Series(mid, index=inHigh.index)
+        mid_move = mid_s.diff().to_numpy()
+    else:
+        mid_move = np.diff(mid, prepend=np.nan)
+
+    hl_diff = h - low_val
+    box_ratio = np.where(hl_diff == 0, np.nan, (v / vol_divisor) / hl_diff)
+    emv = np.where(np.isnan(box_ratio), np.nan, mid_move / box_ratio)
+
+    if is_s:
         with np.errstate(invalid='ignore'):
-             ma_emv = SMA(emv, timeperiod)
-        return pd.Series(emv, index=inHigh.index, name="emv"), pd.Series(ma_emv, index=inHigh.index, name="maEMV")
+            ma_emv = SMA(emv, timeperiod)
+        return (
+            pd.Series(emv, index=inHigh.index, name="emv"),
+            pd.Series(ma_emv, index=inHigh.index, name="maEMV"),
+        )
     else:
         ma_emv = np.full_like(emv, np.nan)
         valid_mask = ~np.isnan(emv)
         if valid_mask.sum() >= timeperiod:
-             ma_emv[valid_mask] = SMA(emv[valid_mask], timeperiod)
-    return emv, ma_emv
+            ma_emv[valid_mask] = SMA(emv[valid_mask], timeperiod)
+        return emv, ma_emv
 
 
 def VHF(inReal, timeperiod=28):
     """Vertical Horizontal Filter."""
-    hmax = MAX(inReal, timeperiod)
-    lmin = MIN(inReal, timeperiod)
-    # Diff = abs(price - price_prev)
+    arr = _ensure_array(inReal)
     is_series = _is_pandas_series(inReal)
-    diff = inReal.diff().abs() if is_series else np.abs(np.diff(inReal, prepend=np.nan))
+    hmax = MAX(arr, timeperiod)
+    lmin = MIN(arr, timeperiod)
+    # Diff = abs(price - price_prev)
+    diff = np.abs(np.diff(arr, prepend=np.nan))
 
     if is_series:
-        vol = SUM(diff.dropna(), timeperiod).reindex(inReal.index)
+        diff_s = pd.Series(diff, index=inReal.index)
+        vol = SUM(diff_s.dropna(), timeperiod).reindex(inReal.index)
+        return pd.Series((hmax - lmin) / vol, index=inReal.index, name="VHF")
     else:
         vol = np.full_like(diff, np.nan)
         if len(diff) > 1:
             s = SUM(diff[1:], timeperiod)
             vol[1:] = s
-
-    return (hmax - lmin) / vol
+        return (hmax - lmin) / vol
 
 
 def SNR(inHigh, inLow, inClose, timeperiod=14):
     """Signal to Noise Ratio."""
+    h = _ensure_array(inHigh)
+    low_val = _ensure_array(inLow)
+    c = _ensure_array(inClose)
     is_series = _is_pandas_series(inClose)
     # Change = abs(C - C_prev_n)
-    change = (
-        inClose.diff(timeperiod).abs()
-        if is_series
-        else np.abs(inClose - np.roll(inClose, timeperiod))
-    )
-    if not is_series:
+    if is_series:
+        change = pd.Series(c, index=inClose.index).diff(timeperiod).abs().to_numpy()
+    else:
+        change = np.abs(c - np.roll(c, timeperiod))
         change[:timeperiod] = np.nan
-    atr = ATR(inHigh, inLow, inClose, timeperiod)
-    return change / atr
+    atr_out = ATR(h, low_val, c, timeperiod)
+    result = change / atr_out
+    if is_series:
+        return pd.Series(result, index=inClose.index, name="SNR")
+    return result
 
 
 def SMI(inHigh, inLow, inClose, n=13, nFast=2, nSlow=25, nSig=9):
@@ -1105,11 +1185,11 @@ def SMI(inHigh, inLow, inClose, n=13, nFast=2, nSlow=25, nSig=9):
 
 
 def _make_async(sync_fn):
+    @_functools.wraps(sync_fn)
     async def wrapper(*args, **kwargs):
         return await _asyncio.to_thread(sync_fn, *args, **kwargs)
 
-    wrapper.__name__ = sync_fn.__name__
-    wrapper.__doc__ = sync_fn.__doc__
+    wrapper.__module__ = "pytafast.aio"
     return wrapper
 
 
@@ -1227,6 +1307,22 @@ _ALL_FUNCTIONS = [
     "HT_SINE",
     "HT_TRENDLINE",
     "HT_TRENDMODE",
+    # Custom / R-consistent
+    "ZIGZAG",
+    "ALMA",
+    "EVWMA",
+    "ZLEMA",
+    "HMA",
+    "KST",
+    "DonchianChannel",
+    "GMMA",
+    "keltnerChannels",
+    "CMF",
+    "DPO",
+    "EMV",
+    "VHF",
+    "SNR",
+    "SMI",
 ]
 
 for _fn_name in _ALL_FUNCTIONS:
