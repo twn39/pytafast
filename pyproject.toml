@@ -26,7 +26,9 @@ classifiers = [
 ]
 dependencies = [
     "numpy",
-    "pandas"
+    "pandas",
+    "plotly>=6.5.2",
+    "kaleido>=1.2.0",
 ]
 authors = [
   {name = "curry tang", email = "twn39@163.com"}
@@ -75,10 +77,10 @@ dev = [
     "ta-lib>=0.6.8",
     "pytest-benchmark>=4.0.0",
     "akshare>=1.18.27",
-    "plotly>=6.5.2",
     "clang-tidy>=21.1.6",
     "pytest>=9.0.2",
     "pytest-cov>=6.0.0",
+    "kaleido>=1.2.0",
 ]
 
 [tool.pytest.ini_options]

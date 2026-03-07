@@ -939,6 +939,12 @@ def SMI(inHigh, inLow, inClose, n=13, nFast=2, nSlow=25, nSig=9):
 
 
 # ===================================================================
+# Visualization Engine (quantmod style via Plotly)
+# ===================================================================
+from .plotting import Chart
+
+
+# ===================================================================
 # Async wrappers — built as a virtual submodule `pytafast.aio`
 # ===================================================================
 
