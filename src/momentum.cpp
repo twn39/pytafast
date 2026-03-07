@@ -14,8 +14,9 @@ DoubleArrayOUT rsi(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_RSI(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_RSI(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_RSI");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -40,9 +41,9 @@ nb::tuple macd(DoubleArrayIN inReal, int optInFastPeriod = 12,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MACD(0, gsl::narrow<int>(size - 1), inReal.data(), optInFastPeriod,
-                      optInSlowPeriod, optInSignalPeriod, &outBegIdx,
-                      &outNBElement, outMACD.get() + lookback,
+    retCode = TA_MACD(0, gsl::narrow<int>(size - 1), inReal.data(),
+                      optInFastPeriod, optInSlowPeriod, optInSignalPeriod,
+                      &outBegIdx, &outNBElement, outMACD.get() + lookback,
                       outSignal.get() + lookback, outHist.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MACD");
@@ -74,12 +75,13 @@ nb::tuple macdext(DoubleArrayIN inReal, int optInFastPeriod = 12,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MACDEXT(
-        0, gsl::narrow<int>(size - 1), inReal.data(), optInFastPeriod,
-        static_cast<TA_MAType>(optInFastMAType), optInSlowPeriod,
-        static_cast<TA_MAType>(optInSlowMAType), optInSignalPeriod,
-        static_cast<TA_MAType>(optInSignalMAType), &outBegIdx, &outNBElement,
-        outMACD.get() + lookback, outSignal.get() + lookback, outHist.get() + lookback);
+    retCode =
+        TA_MACDEXT(0, gsl::narrow<int>(size - 1), inReal.data(),
+                   optInFastPeriod, static_cast<TA_MAType>(optInFastMAType),
+                   optInSlowPeriod, static_cast<TA_MAType>(optInSlowMAType),
+                   optInSignalPeriod, static_cast<TA_MAType>(optInSignalMAType),
+                   &outBegIdx, &outNBElement, outMACD.get() + lookback,
+                   outSignal.get() + lookback, outHist.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MACDEXT");
   return nb::make_tuple(DoubleArrayOUT(outMACD.get(), {size}, ownerM),
@@ -104,9 +106,10 @@ nb::tuple macdfix(DoubleArrayIN inReal, int optInSignalPeriod = 9) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MACDFIX(0, gsl::narrow<int>(size - 1), inReal.data(), optInSignalPeriod,
-                         &outBegIdx, &outNBElement, outMACD.get() + lookback,
-                         outSignal.get() + lookback, outHist.get() + lookback);
+    retCode = TA_MACDFIX(0, gsl::narrow<int>(size - 1), inReal.data(),
+                         optInSignalPeriod, &outBegIdx, &outNBElement,
+                         outMACD.get() + lookback, outSignal.get() + lookback,
+                         outHist.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MACDFIX");
   return nb::make_tuple(DoubleArrayOUT(outMACD.get(), {size}, ownerM),
@@ -117,31 +120,31 @@ nb::tuple macdfix(DoubleArrayIN inReal, int optInSignalPeriod = 9) {
 // ---------------------------------------------------------
 // STOCHASTIC (STOCH)
 // ---------------------------------------------------------
-nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow, DoubleArrayIN inClose,
-                int optInFastK_Period = 5, int optInSlowK_Period = 3,
-                int optInSlowK_MAType = 0, int optInSlowD_Period = 3,
-                int optInSlowD_MAType = 0) {
+nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
+                DoubleArrayIN inClose, int optInFastK_Period = 5,
+                int optInSlowK_Period = 3, int optInSlowK_MAType = 0,
+                int optInSlowD_Period = 3, int optInSlowD_MAType = 0) {
   if (inHigh.size() == 0) {
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
   size_t size = inHigh.shape(0);
-  int lookback = TA_STOCH_Lookback(
-      optInFastK_Period, optInSlowK_Period,
-      static_cast<TA_MAType>(optInSlowK_MAType), optInSlowD_Period,
-      static_cast<TA_MAType>(optInSlowD_MAType));
+  int lookback = TA_STOCH_Lookback(optInFastK_Period, optInSlowK_Period,
+                                   static_cast<TA_MAType>(optInSlowK_MAType),
+                                   optInSlowD_Period,
+                                   static_cast<TA_MAType>(optInSlowD_MAType));
   auto [outSlowK, ownerK] = alloc_output(size, lookback);
   auto [outSlowD, ownerD] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_STOCH(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                       inClose.data(), optInFastK_Period, optInSlowK_Period,
-                       static_cast<TA_MAType>(optInSlowK_MAType),
-                       optInSlowD_Period,
-                       static_cast<TA_MAType>(optInSlowD_MAType), &outBegIdx,
-                       &outNBElement, outSlowK.get() + lookback, outSlowD.get() + lookback);
+    retCode = TA_STOCH(
+        0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+        inClose.data(), optInFastK_Period, optInSlowK_Period,
+        static_cast<TA_MAType>(optInSlowK_MAType), optInSlowD_Period,
+        static_cast<TA_MAType>(optInSlowD_MAType), &outBegIdx, &outNBElement,
+        outSlowK.get() + lookback, outSlowD.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_STOCH");
   return nb::make_tuple(DoubleArrayOUT(outSlowK.get(), {size}, ownerK),
@@ -160,17 +163,18 @@ nb::tuple stochf(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   }
   size_t size = inHigh.shape(0);
   int lookback = TA_STOCHF_Lookback(optInFastK_Period, optInFastD_Period,
-                                   static_cast<TA_MAType>(optInFastD_MAType));
+                                    static_cast<TA_MAType>(optInFastD_MAType));
   auto [outFastK, ownerK] = alloc_output(size, lookback);
   auto [outFastD, ownerD] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_STOCHF(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                        inClose.data(), optInFastK_Period, optInFastD_Period,
-                        static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx,
-                        &outNBElement, outFastK.get() + lookback, outFastD.get() + lookback);
+    retCode = TA_STOCHF(
+        0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+        inClose.data(), optInFastK_Period, optInFastD_Period,
+        static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx, &outNBElement,
+        outFastK.get() + lookback, outFastD.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_STOCHF");
   return nb::make_tuple(DoubleArrayOUT(outFastK.get(), {size}, ownerK),
@@ -188,17 +192,17 @@ nb::tuple stochrsi(DoubleArrayIN inReal, int optInTimePeriod = 14,
     return nb::make_tuple(empty, empty);
   }
   size_t size = inReal.shape(0);
-  int lookback =
-      TA_STOCHRSI_Lookback(optInTimePeriod, optInFastK_Period, optInFastD_Period,
-                           static_cast<TA_MAType>(optInFastD_MAType));
+  int lookback = TA_STOCHRSI_Lookback(
+      optInTimePeriod, optInFastK_Period, optInFastD_Period,
+      static_cast<TA_MAType>(optInFastD_MAType));
   auto [outFastK, ownerK] = alloc_output(size, lookback);
   auto [outFastD, ownerD] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_STOCHRSI(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                          optInFastK_Period, optInFastD_Period,
+    retCode = TA_STOCHRSI(0, gsl::narrow<int>(size - 1), inReal.data(),
+                          optInTimePeriod, optInFastK_Period, optInFastD_Period,
                           static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx,
                           &outNBElement, outFastK.get() + lookback,
                           outFastD.get() + lookback);
@@ -222,8 +226,9 @@ DoubleArrayOUT roc(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ROC(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_ROC(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ROC");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -243,8 +248,9 @@ DoubleArrayOUT rocp(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ROCP(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                      &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_ROCP(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+                &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ROCP");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -264,8 +270,9 @@ DoubleArrayOUT rocr(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ROCR(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                      &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_ROCR(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+                &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ROCR");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -285,8 +292,9 @@ DoubleArrayOUT rocr100(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ROCR100(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                         &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_ROCR100(0, gsl::narrow<int>(size - 1), inReal.data(),
+                         optInTimePeriod, &outBegIdx, &outNBElement,
+                         outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ROCR100");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -306,8 +314,9 @@ DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MOM(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_MOM(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MOM");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -327,8 +336,9 @@ DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_CMO(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_CMO(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_CMO");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -343,17 +353,17 @@ DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   size_t size = inReal.shape(0);
-  int lookback =
-      TA_APO_Lookback(optInFastPeriod, optInSlowPeriod,
-                      static_cast<TA_MAType>(optInMAType));
+  int lookback = TA_APO_Lookback(optInFastPeriod, optInSlowPeriod,
+                                 static_cast<TA_MAType>(optInMAType));
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_APO(0, gsl::narrow<int>(size - 1), inReal.data(), optInFastPeriod,
-                     optInSlowPeriod, static_cast<TA_MAType>(optInMAType),
-                     &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_APO(0, gsl::narrow<int>(size - 1), inReal.data(), optInFastPeriod,
+               optInSlowPeriod, static_cast<TA_MAType>(optInMAType), &outBegIdx,
+               &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_APO");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -368,17 +378,17 @@ DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   size_t size = inReal.shape(0);
-  int lookback =
-      TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod,
-                      static_cast<TA_MAType>(optInMAType));
+  int lookback = TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod,
+                                 static_cast<TA_MAType>(optInMAType));
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_PPO(0, gsl::narrow<int>(size - 1), inReal.data(), optInFastPeriod,
-                     optInSlowPeriod, static_cast<TA_MAType>(optInMAType),
-                     &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_PPO(0, gsl::narrow<int>(size - 1), inReal.data(), optInFastPeriod,
+               optInSlowPeriod, static_cast<TA_MAType>(optInMAType), &outBegIdx,
+               &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_PPO");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -398,8 +408,9 @@ DoubleArrayOUT trix(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_TRIX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                      &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_TRIX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+                &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_TRIX");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -422,9 +433,9 @@ nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_AROON(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), optInTimePeriod,
-                       &outBegIdx, &outNBElement, outDown.get() + lookback,
-                       outUp.get() + lookback);
+    retCode = TA_AROON(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                       inLow.data(), optInTimePeriod, &outBegIdx, &outNBElement,
+                       outDown.get() + lookback, outUp.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_AROON");
   return nb::make_tuple(DoubleArrayOUT(outDown.get(), {size}, ownerD),
@@ -446,9 +457,9 @@ DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_AROONOSC(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), optInTimePeriod,
-                    &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_AROONOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), optInTimePeriod, &outBegIdx,
+                          &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_AROONOSC");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -469,8 +480,8 @@ DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ADX(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                     optInTimePeriod, &outBegIdx, &outNBElement,
+    retCode = TA_ADX(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                     inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
                      outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ADX");
@@ -492,9 +503,9 @@ DoubleArrayOUT adxr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ADXR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                      optInTimePeriod, &outBegIdx, &outNBElement,
-                      outData.get() + lookback);
+    retCode = TA_ADXR(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                      inLow.data(), inClose.data(), optInTimePeriod, &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ADXR");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -515,8 +526,8 @@ DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_DX(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                    optInTimePeriod, &outBegIdx, &outNBElement,
+    retCode = TA_DX(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                    inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
                     outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_DX");
@@ -538,9 +549,9 @@ DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MINUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                          inClose.data(), optInTimePeriod, &outBegIdx,
-                          &outNBElement, outData.get() + lookback);
+    retCode = TA_MINUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), inClose.data(), optInTimePeriod,
+                          &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MINUS_DI");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -561,9 +572,9 @@ DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MINUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                          optInTimePeriod, &outBegIdx, &outNBElement,
-                          outData.get() + lookback);
+    retCode = TA_MINUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), optInTimePeriod, &outBegIdx,
+                          &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MINUS_DM");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -584,9 +595,9 @@ DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_PLUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                         inClose.data(), optInTimePeriod, &outBegIdx,
-                         &outNBElement, outData.get() + lookback);
+    retCode = TA_PLUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                         inLow.data(), inClose.data(), optInTimePeriod,
+                         &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_PLUS_DI");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -607,9 +618,9 @@ DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_PLUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                         optInTimePeriod, &outBegIdx, &outNBElement,
-                         outData.get() + lookback);
+    retCode = TA_PLUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                         inLow.data(), optInTimePeriod, &outBegIdx,
+                         &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_PLUS_DM");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -630,9 +641,9 @@ DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_WILLR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                       optInTimePeriod, &outBegIdx, &outNBElement,
-                       outData.get() + lookback);
+    retCode = TA_WILLR(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                       inLow.data(), inClose.data(), optInTimePeriod,
+                       &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_WILLR");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -654,9 +665,9 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MFI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                     inVolume.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode = TA_MFI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                     inClose.data(), inVolume.data(), optInTimePeriod,
+                     &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MFI");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -677,8 +688,8 @@ DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_CCI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                     optInTimePeriod, &outBegIdx, &outNBElement,
+    retCode = TA_CCI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                     inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
                      outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_CCI");
@@ -702,10 +713,10 @@ DoubleArrayOUT ultosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_ULTOSC(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                  optInTimePeriod1, optInTimePeriod2, optInTimePeriod3,
-                  &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_ULTOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                        inLow.data(), inClose.data(), optInTimePeriod1,
+                        optInTimePeriod2, optInTimePeriod3, &outBegIdx,
+                        &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ULTOSC");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -726,9 +737,9 @@ DoubleArrayOUT bop(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_BOP(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(), inLow.data(),
-                     inClose.data(), &outBegIdx, &outNBElement,
-                     outData.get() + lookback);
+    retCode = TA_BOP(0, gsl::narrow<int>(size - 1), inOpen.data(),
+                     inHigh.data(), inLow.data(), inClose.data(), &outBegIdx,
+                     &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_BOP");
   return DoubleArrayOUT(outData.get(), {size}, owner);

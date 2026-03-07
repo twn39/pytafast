@@ -16,8 +16,9 @@ DoubleArrayOUT ht_dcperiod(DoubleArrayIN inReal) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_HT_DCPERIOD(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
-                             &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_HT_DCPERIOD(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
+                       &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_HT_DCPERIOD");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -37,8 +38,9 @@ DoubleArrayOUT ht_dcphase(DoubleArrayIN inReal) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_HT_DCPHASE(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
-                            &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_HT_DCPHASE(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_HT_DCPHASE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -60,9 +62,9 @@ nb::tuple ht_phasor(DoubleArrayIN inReal) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_HT_PHASOR(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx, &outNBElement,
-                     outInPhase.get() + lookback, outQuadrature.get() + lookback);
+    retCode = TA_HT_PHASOR(
+        0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx, &outNBElement,
+        outInPhase.get() + lookback, outQuadrature.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_HT_PHASOR");
   return nb::make_tuple(DoubleArrayOUT(outInPhase.get(), {size}, ownerIP),
@@ -85,8 +87,9 @@ nb::tuple ht_sine(DoubleArrayIN inReal) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_HT_SINE(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx, &outNBElement,
-                         outSine.get() + lookback, outLeadSine.get() + lookback);
+    retCode = TA_HT_SINE(0, gsl::narrow<int>(size - 1), inReal.data(),
+                         &outBegIdx, &outNBElement, outSine.get() + lookback,
+                         outLeadSine.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_HT_SINE");
   return nb::make_tuple(DoubleArrayOUT(outSine.get(), {size}, ownerS),
@@ -107,8 +110,9 @@ DoubleArrayOUT ht_trendline(DoubleArrayIN inReal) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_HT_TRENDLINE(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
-                              &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_HT_TRENDLINE(0, gsl::narrow<int>(size - 1), inReal.data(),
+                        &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_HT_TRENDLINE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -130,8 +134,9 @@ nb::ndarray<int, nb::numpy, nb::ndim<1>> ht_trendmode(DoubleArrayIN inReal) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_HT_TRENDMODE(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
-                              &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_HT_TRENDMODE(0, gsl::narrow<int>(size - 1), inReal.data(),
+                        &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_HT_TRENDMODE");
   return IntArrayOUT(outData.get(), {size}, owner);

@@ -38,7 +38,8 @@ inline AllocResult alloc_output(size_t size, int lookback) {
 
   // Only fill the lookback region which won't be touched by TA-Lib
   if (lookback > 0 && size > 0) {
-    gsl::span<double> data_span(data, std::min(static_cast<size_t>(lookback), size));
+    gsl::span<double> data_span(data,
+                                std::min(static_cast<size_t>(lookback), size));
     std::fill(data_span.begin(), data_span.end(), NaN);
   }
 
@@ -55,7 +56,8 @@ inline AllocIntResult alloc_int_output(size_t size, int lookback) {
   nb::capsule owner(data, [](void *p) noexcept { delete[] (int *)p; });
 
   if (lookback > 0 && size > 0) {
-    gsl::span<int> data_span(data, std::min(static_cast<size_t>(lookback), size));
+    gsl::span<int> data_span(data,
+                             std::min(static_cast<size_t>(lookback), size));
     std::fill(data_span.begin(), data_span.end(), 0);
   }
 

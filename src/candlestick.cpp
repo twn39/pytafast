@@ -20,12 +20,12 @@ using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
     TA_RetCode retCode;                                                        \
     {                                                                          \
       nb::gil_scoped_release release;                                          \
-      retCode = TA_FUNC(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(),             \
-                        inLow.data(), inClose.data(), &outBegIdx,              \
-                        &outNBElement, outData.get() + lookback);                    \
+      retCode = TA_FUNC(0, gsl::narrow<int>(size - 1), inOpen.data(),          \
+                        inHigh.data(), inLow.data(), inClose.data(),           \
+                        &outBegIdx, &outNBElement, outData.get() + lookback);  \
     }                                                                          \
     check_ta_retcode(retCode, #TA_FUNC);                                       \
-    return IntArrayOUT(outData.get(), {size}, owner);                                \
+    return IntArrayOUT(outData.get(), {size}, owner);                          \
   }
 
 // Macro for CDL functions with penetration parameter
@@ -45,12 +45,13 @@ using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
     TA_RetCode retCode;                                                        \
     {                                                                          \
       nb::gil_scoped_release release;                                          \
-      retCode = TA_FUNC(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(),             \
-                        inLow.data(), inClose.data(), optInPenetration,        \
-                        &outBegIdx, &outNBElement, outData.get() + lookback);        \
+      retCode =                                                                \
+          TA_FUNC(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(), \
+                  inLow.data(), inClose.data(), optInPenetration, &outBegIdx,  \
+                  &outNBElement, outData.get() + lookback);                    \
     }                                                                          \
     check_ta_retcode(retCode, #TA_FUNC);                                       \
-    return IntArrayOUT(outData.get(), {size}, owner);                                \
+    return IntArrayOUT(outData.get(), {size}, owner);                          \
   }
 
 // Standard CDL functions (no extra params)

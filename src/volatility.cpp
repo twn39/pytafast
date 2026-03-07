@@ -22,9 +22,9 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_ATR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-               optInTimePeriod, &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_ATR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                     inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
+                     outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ATR");
 
@@ -52,9 +52,9 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_NATR(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                optInTimePeriod, &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_NATR(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                      inLow.data(), inClose.data(), optInTimePeriod, &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_NATR");
 
@@ -78,9 +78,9 @@ DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_TRANGE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                  &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_TRANGE(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                        inLow.data(), inClose.data(), &outBegIdx, &outNBElement,
+                        outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_TRANGE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -105,8 +105,9 @@ DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_STDDEV(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, optInNbDev,
-                        &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_STDDEV(0, gsl::narrow<int>(size - 1), inReal.data(),
+                        optInTimePeriod, optInNbDev, &outBegIdx, &outNBElement,
+                        outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_STDDEV");
 

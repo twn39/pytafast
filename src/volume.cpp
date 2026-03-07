@@ -21,8 +21,9 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
   {
     nb::gil_scoped_release release;
     // outData is gsl::not_null<double*>, use .get() for arithmetic
-    retCode = TA_OBV(0, gsl::narrow<int>(size - 1), inReal.data(), inVolume.data(), &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_OBV(0, gsl::narrow<int>(size - 1), inReal.data(), inVolume.data(),
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_OBV");
 
@@ -45,9 +46,9 @@ DoubleArrayOUT ad(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_AD(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-              inVolume.data(), &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_AD(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                    inClose.data(), inVolume.data(), &outBegIdx, &outNBElement,
+                    outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_AD");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -70,9 +71,10 @@ DoubleArrayOUT adosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_ADOSC(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                       inVolume.data(), optInFastPeriod, optInSlowPeriod,
-                       &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_ADOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                       inLow.data(), inClose.data(), inVolume.data(),
+                       optInFastPeriod, optInSlowPeriod, &outBegIdx,
+                       &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_ADOSC");
   return DoubleArrayOUT(outData.get(), {size}, owner);

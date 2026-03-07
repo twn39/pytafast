@@ -17,9 +17,9 @@ DoubleArrayOUT beta(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_BETA(0, gsl::narrow<int>(size - 1), inReal0.data(), inReal1.data(), optInTimePeriod,
-                &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_BETA(0, gsl::narrow<int>(size - 1), inReal0.data(),
+                      inReal1.data(), optInTimePeriod, &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_BETA");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -40,9 +40,9 @@ DoubleArrayOUT correl(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_CORREL(0, gsl::narrow<int>(size - 1), inReal0.data(), inReal1.data(), optInTimePeriod,
-                  &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_CORREL(0, gsl::narrow<int>(size - 1), inReal0.data(),
+                        inReal1.data(), optInTimePeriod, &outBegIdx,
+                        &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_CORREL");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -62,8 +62,9 @@ DoubleArrayOUT linearreg(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_LINEARREG(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                           &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_LINEARREG(0, gsl::narrow<int>(size - 1), inReal.data(),
+                           optInTimePeriod, &outBegIdx, &outNBElement,
+                           outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_LINEARREG");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -83,8 +84,9 @@ DoubleArrayOUT linearreg_angle(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_LINEARREG_ANGLE(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                                 &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_LINEARREG_ANGLE(0, gsl::narrow<int>(size - 1), inReal.data(),
+                                 optInTimePeriod, &outBegIdx, &outNBElement,
+                                 outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_LINEARREG_ANGLE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -105,9 +107,9 @@ DoubleArrayOUT linearreg_intercept(DoubleArrayIN inReal,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_LINEARREG_INTERCEPT(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                               &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_LINEARREG_INTERCEPT(0, gsl::narrow<int>(size - 1),
+                                     inReal.data(), optInTimePeriod, &outBegIdx,
+                                     &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_LINEARREG_INTERCEPT");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -127,8 +129,9 @@ DoubleArrayOUT linearreg_slope(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_LINEARREG_SLOPE(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                                 &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_LINEARREG_SLOPE(0, gsl::narrow<int>(size - 1), inReal.data(),
+                                 optInTimePeriod, &outBegIdx, &outNBElement,
+                                 outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_LINEARREG_SLOPE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -148,8 +151,9 @@ DoubleArrayOUT tsf(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_TSF(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_TSF(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_TSF");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -170,8 +174,9 @@ DoubleArrayOUT var(DoubleArrayIN inReal, int optInTimePeriod = 5,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_VAR(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, optInNbDev,
-                     &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_VAR(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               optInNbDev, &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_VAR");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -191,8 +196,9 @@ DoubleArrayOUT avgdev(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_AVGDEV(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                        &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_AVGDEV(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+                  &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_AVGDEV");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -212,8 +218,9 @@ DoubleArrayOUT ta_max(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MAX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_MAX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MAX");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -233,8 +240,9 @@ DoubleArrayOUT ta_min(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MIN(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_MIN(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MIN");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -254,8 +262,9 @@ DoubleArrayOUT ta_sum(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_SUM(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_SUM(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+               &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_SUM");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -277,8 +286,9 @@ nb::tuple minmax(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MINMAX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod, &outBegIdx,
-                        &outNBElement, outMin.get() + lookback, outMax.get() + lookback);
+    retCode = TA_MINMAX(0, gsl::narrow<int>(size - 1), inReal.data(),
+                        optInTimePeriod, &outBegIdx, &outNBElement,
+                        outMin.get() + lookback, outMax.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MINMAX");
   return nb::make_tuple(DoubleArrayOUT(outMin.get(), {size}, ownerMin),
@@ -305,9 +315,10 @@ nb::tuple minmaxindex(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MINMAXINDEX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                             &outBegIdx, &outNBElement, outMinIdx.get() + lookback,
-                             outMaxIdx.get() + lookback);
+    retCode =
+        TA_MINMAXINDEX(0, gsl::narrow<int>(size - 1), inReal.data(),
+                       optInTimePeriod, &outBegIdx, &outNBElement,
+                       outMinIdx.get() + lookback, outMaxIdx.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MINMAXINDEX");
 

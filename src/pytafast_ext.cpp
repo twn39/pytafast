@@ -220,193 +220,148 @@ NB_MODULE(pytafast_ext, m) {
       .value("T3", TA_MAType_T3);
 
   // --- Overlap Studies ---
-  m.def("SMA", &sma, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("EMA", &ema, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("BBANDS", &bbands, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDevUp") = 2.0,
-        nb::arg("optInNbDevDn") = 2.0, nb::arg("optInMAType") = 0);
-  m.def("DEMA", &dema, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("KAMA", &kama, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("MA", &ma, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30, nb::arg("optInMAType") = 0);
-  m.def("T3", &t3, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 5, nb::arg("optInVFactor") = 0.7);
-  m.def("MAMA", &mama, nb::arg("inReal"),
-        nb::arg("optInFastLimit") = 0.5, nb::arg("optInSlowLimit") = 0.05);
-  m.def("TEMA", &tema, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("TRIMA", &trima, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("WMA", &wma, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("SAR", &sar, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("optInAcceleration") = 0.02,
-        nb::arg("optInMaximum") = 0.2);
+  m.def("SMA", &sma, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("EMA", &ema, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("BBANDS", &bbands, nb::arg("inReal"), nb::arg("optInTimePeriod") = 5,
+        nb::arg("optInNbDevUp") = 2.0, nb::arg("optInNbDevDn") = 2.0,
+        nb::arg("optInMAType") = 0);
+  m.def("DEMA", &dema, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("KAMA", &kama, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("MA", &ma, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30,
+        nb::arg("optInMAType") = 0);
+  m.def("T3", &t3, nb::arg("inReal"), nb::arg("optInTimePeriod") = 5,
+        nb::arg("optInVFactor") = 0.7);
+  m.def("MAMA", &mama, nb::arg("inReal"), nb::arg("optInFastLimit") = 0.5,
+        nb::arg("optInSlowLimit") = 0.05);
+  m.def("TEMA", &tema, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("TRIMA", &trima, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("WMA", &wma, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("SAR", &sar, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("optInAcceleration") = 0.02, nb::arg("optInMaximum") = 0.2);
   m.def("MIDPOINT", &midpoint, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("ZIGZAG", &zigzag, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("change") = 10.0,
-        nb::arg("percent") = true);
-  m.def("ALMA", &alma, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 9,
-        nb::arg("optInOffset") = 0.85,
-        nb::arg("optInSigma") = 6.0);
-  m.def("EVWMA", &evwma, nb::arg("inReal"),
-        nb::arg("inVolume"), nb::arg("optInTimePeriod") = 30);
-  m.def("ZLEMA", &zlema, nb::arg("inReal"),
+  m.def("ZIGZAG", &zigzag, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("change") = 10.0, nb::arg("percent") = true);
+  m.def("ALMA", &alma, nb::arg("inReal"), nb::arg("optInTimePeriod") = 9,
+        nb::arg("optInOffset") = 0.85, nb::arg("optInSigma") = 6.0);
+  m.def("EVWMA", &evwma, nb::arg("inReal"), nb::arg("inVolume"),
         nb::arg("optInTimePeriod") = 30);
+  m.def("ZLEMA", &zlema, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
 
   // --- Momentum ---
-  m.def("RSI", &rsi, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("MACD", &macd, nb::arg("inReal"),
-        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
-        nb::arg("optInSignalPeriod") = 9);
-  m.def("MACDEXT", &macdext, nb::arg("inReal"),
-        nb::arg("optInFastPeriod") = 12, nb::arg("optInFastMAType") = 0,
-        nb::arg("optInSlowPeriod") = 26, nb::arg("optInSlowMAType") = 0,
-        nb::arg("optInSignalPeriod") = 9, nb::arg("optInSignalMAType") = 0);
+  m.def("RSI", &rsi, nb::arg("inReal"), nb::arg("optInTimePeriod") = 14);
+  m.def("MACD", &macd, nb::arg("inReal"), nb::arg("optInFastPeriod") = 12,
+        nb::arg("optInSlowPeriod") = 26, nb::arg("optInSignalPeriod") = 9);
+  m.def("MACDEXT", &macdext, nb::arg("inReal"), nb::arg("optInFastPeriod") = 12,
+        nb::arg("optInFastMAType") = 0, nb::arg("optInSlowPeriod") = 26,
+        nb::arg("optInSlowMAType") = 0, nb::arg("optInSignalPeriod") = 9,
+        nb::arg("optInSignalMAType") = 0);
   m.def("MACDFIX", &macdfix, nb::arg("inReal"),
         nb::arg("optInSignalPeriod") = 9);
-  m.def("ROC", &roc, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 10);
-  m.def("ROCP", &rocp, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 10);
-  m.def("ROCR", &rocr, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 10);
+  m.def("ROC", &roc, nb::arg("inReal"), nb::arg("optInTimePeriod") = 10);
+  m.def("ROCP", &rocp, nb::arg("inReal"), nb::arg("optInTimePeriod") = 10);
+  m.def("ROCR", &rocr, nb::arg("inReal"), nb::arg("optInTimePeriod") = 10);
   m.def("ROCR100", &rocr100, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 10);
-  m.def("STOCH", &stoch, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
-        nb::arg("optInFastK_Period") = 5, nb::arg("optInSlowK_Period") = 3,
-        nb::arg("optInSlowK_MAType") = 0, nb::arg("optInSlowD_Period") = 3,
-        nb::arg("optInSlowD_MAType") = 0);
-  m.def("STOCHF", &stochf, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
-        nb::arg("optInFastK_Period") = 5, nb::arg("optInFastD_Period") = 3,
-        nb::arg("optInFastD_MAType") = 0);
+  m.def("STOCH", &stoch, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"), nb::arg("optInFastK_Period") = 5,
+        nb::arg("optInSlowK_Period") = 3, nb::arg("optInSlowK_MAType") = 0,
+        nb::arg("optInSlowD_Period") = 3, nb::arg("optInSlowD_MAType") = 0);
+  m.def("STOCHF", &stochf, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"), nb::arg("optInFastK_Period") = 5,
+        nb::arg("optInFastD_Period") = 3, nb::arg("optInFastD_MAType") = 0);
   m.def("STOCHRSI", &stochrsi, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 14, nb::arg("optInFastK_Period") = 5,
         nb::arg("optInFastD_Period") = 3, nb::arg("optInFastD_MAType") = 0);
-  m.def("MOM", &mom, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 10);
-  m.def("CMO", &cmo, nb::arg("inReal"),
+  m.def("MOM", &mom, nb::arg("inReal"), nb::arg("optInTimePeriod") = 10);
+  m.def("CMO", &cmo, nb::arg("inReal"), nb::arg("optInTimePeriod") = 14);
+  m.def("APO", &apo, nb::arg("inReal"), nb::arg("optInFastPeriod") = 12,
+        nb::arg("optInSlowPeriod") = 26, nb::arg("optInMAType") = 0);
+  m.def("PPO", &ppo, nb::arg("inReal"), nb::arg("optInFastPeriod") = 12,
+        nb::arg("optInSlowPeriod") = 26, nb::arg("optInMAType") = 0);
+  m.def("TRIX", &trix, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("AROON", &aroon, nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("APO", &apo, nb::arg("inReal"),
-        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
-        nb::arg("optInMAType") = 0);
-  m.def("PPO", &ppo, nb::arg("inReal"),
-        nb::arg("optInFastPeriod") = 12, nb::arg("optInSlowPeriod") = 26,
-        nb::arg("optInMAType") = 0);
-  m.def("TRIX", &trix, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("AROON", &aroon, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("optInTimePeriod") = 14);
-  m.def("AROONOSC", &aroonosc, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("optInTimePeriod") = 14);
-  m.def("ADX", &adx, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("AROONOSC", &aroonosc, nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("ADXR", &adxr, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("ADX", &adx, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("DX", &dx, nb::arg("inHigh"), nb::arg("inLow"),
+  m.def("ADXR", &adxr, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("DX", &dx, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
+        nb::arg("optInTimePeriod") = 14);
+  m.def("MINUS_DI", &minus_di, nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("inClose"), nb::arg("optInTimePeriod") = 14);
-  m.def("MINUS_DI", &minus_di, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("MINUS_DM", &minus_dm, nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("MINUS_DM", &minus_dm, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("optInTimePeriod") = 14);
-  m.def("PLUS_DI", &plus_di, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("PLUS_DI", &plus_di, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"), nb::arg("optInTimePeriod") = 14);
+  m.def("PLUS_DM", &plus_dm, nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("PLUS_DM", &plus_dm, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("optInTimePeriod") = 14);
-  m.def("WILLR", &willr, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("MFI", &mfi, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("WILLR", &willr, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"), nb::arg("optInTimePeriod") = 14);
+  m.def("MFI", &mfi, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
         nb::arg("inVolume"), nb::arg("optInTimePeriod") = 14);
-  m.def("CCI", &cci, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("CCI", &cci, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("ULTOSC", &ultosc, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
-        nb::arg("optInTimePeriod1") = 7, nb::arg("optInTimePeriod2") = 14,
-        nb::arg("optInTimePeriod3") = 28);
-  m.def("BOP", &bop, nb::arg("inOpen"),
-        nb::arg("inHigh"), nb::arg("inLow"),
+  m.def("ULTOSC", &ultosc, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"), nb::arg("optInTimePeriod1") = 7,
+        nb::arg("optInTimePeriod2") = 14, nb::arg("optInTimePeriod3") = 28);
+  m.def("BOP", &bop, nb::arg("inOpen"), nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("inClose"));
 
   // --- Volatility ---
-  m.def("ATR", &atr, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("ATR", &atr, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("NATR", &natr, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
+  m.def("NATR", &natr, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("TRANGE", &trange, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"));
-  m.def("STDDEV", &stddev, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDev") = 1.0);
+  m.def("TRANGE", &trange, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"));
+  m.def("STDDEV", &stddev, nb::arg("inReal"), nb::arg("optInTimePeriod") = 5,
+        nb::arg("optInNbDev") = 1.0);
 
   // --- Volume ---
-  m.def("OBV", &obv, nb::arg("inReal"),
+  m.def("OBV", &obv, nb::arg("inReal"), nb::arg("inVolume"));
+  m.def("AD", &ad, nb::arg("inHigh"), nb::arg("inLow"), nb::arg("inClose"),
         nb::arg("inVolume"));
-  m.def("AD", &ad, nb::arg("inHigh"), nb::arg("inLow"),
-        nb::arg("inClose"), nb::arg("inVolume"));
-  m.def("ADOSC", &adosc, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"),
-        nb::arg("inVolume"), nb::arg("optInFastPeriod") = 3,
+  m.def("ADOSC", &adosc, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"), nb::arg("inVolume"), nb::arg("optInFastPeriod") = 3,
         nb::arg("optInSlowPeriod") = 10);
 
   // --- Statistics ---
-  m.def("BETA", &beta, nb::arg("inReal0"),
-        nb::arg("inReal1"), nb::arg("optInTimePeriod") = 5);
-  m.def("CORREL", &correl, nb::arg("inReal0"),
-        nb::arg("inReal1"), nb::arg("optInTimePeriod") = 30);
+  m.def("BETA", &beta, nb::arg("inReal0"), nb::arg("inReal1"),
+        nb::arg("optInTimePeriod") = 5);
+  m.def("CORREL", &correl, nb::arg("inReal0"), nb::arg("inReal1"),
+        nb::arg("optInTimePeriod") = 30);
   m.def("LINEARREG", &linearreg, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 14);
   m.def("LINEARREG_ANGLE", &linearreg_angle, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("LINEARREG_INTERCEPT", &linearreg_intercept,
-        nb::arg("inReal"), nb::arg("optInTimePeriod") = 14);
+  m.def("LINEARREG_INTERCEPT", &linearreg_intercept, nb::arg("inReal"),
+        nb::arg("optInTimePeriod") = 14);
   m.def("LINEARREG_SLOPE", &linearreg_slope, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 14);
-  m.def("TSF", &tsf, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 14);
-  m.def("VAR", &var, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 5, nb::arg("optInNbDev") = 1.0);
-  m.def("AVGDEV", &avgdev, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 14);
+  m.def("TSF", &tsf, nb::arg("inReal"), nb::arg("optInTimePeriod") = 14);
+  m.def("VAR", &var, nb::arg("inReal"), nb::arg("optInTimePeriod") = 5,
+        nb::arg("optInNbDev") = 1.0);
+  m.def("AVGDEV", &avgdev, nb::arg("inReal"), nb::arg("optInTimePeriod") = 14);
 
   // --- Price Transform ---
-  m.def("AVGPRICE", &avgprice, nb::arg("inOpen"),
-        nb::arg("inHigh"), nb::arg("inLow"),
+  m.def("AVGPRICE", &avgprice, nb::arg("inOpen"), nb::arg("inHigh"),
+        nb::arg("inLow"), nb::arg("inClose"));
+  m.def("MEDPRICE", &medprice, nb::arg("inHigh"), nb::arg("inLow"));
+  m.def("TYPPRICE", &typprice, nb::arg("inHigh"), nb::arg("inLow"),
         nb::arg("inClose"));
-  m.def("MEDPRICE", &medprice, nb::arg("inHigh"),
-        nb::arg("inLow"));
-  m.def("TYPPRICE", &typprice, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"));
-  m.def("WCLPRICE", &wclprice, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("inClose"));
-  m.def("MIDPRICE", &midprice, nb::arg("inHigh"),
-        nb::arg("inLow"), nb::arg("optInTimePeriod") = 14);
+  m.def("WCLPRICE", &wclprice, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("inClose"));
+  m.def("MIDPRICE", &midprice, nb::arg("inHigh"), nb::arg("inLow"),
+        nb::arg("optInTimePeriod") = 14);
 
   // --- Math Operators ---
-  m.def("ADD", &add, nb::arg("inReal0"),
-        nb::arg("inReal1"));
-  m.def("SUB", &sub, nb::arg("inReal0"),
-        nb::arg("inReal1"));
-  m.def("MULT", &mult, nb::arg("inReal0"),
-        nb::arg("inReal1"));
-  m.def("DIV", &ta_div, nb::arg("inReal0"),
-        nb::arg("inReal1"));
+  m.def("ADD", &add, nb::arg("inReal0"), nb::arg("inReal1"));
+  m.def("SUB", &sub, nb::arg("inReal0"), nb::arg("inReal1"));
+  m.def("MULT", &mult, nb::arg("inReal0"), nb::arg("inReal1"));
+  m.def("DIV", &ta_div, nb::arg("inReal0"), nb::arg("inReal1"));
 
   // --- Math Transforms ---
   m.def("ACOS", &ta_acos, nb::arg("inReal"));
@@ -426,14 +381,10 @@ NB_MODULE(pytafast_ext, m) {
   m.def("TANH", &ta_tanh, nb::arg("inReal"));
 
   // --- Statistics (MIN/MAX/SUM/MINMAX/MINMAXINDEX) ---
-  m.def("MAX", &ta_max, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("MIN", &ta_min, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("SUM", &ta_sum, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
-  m.def("MINMAX", &minmax, nb::arg("inReal"),
-        nb::arg("optInTimePeriod") = 30);
+  m.def("MAX", &ta_max, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("MIN", &ta_min, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("SUM", &ta_sum, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
+  m.def("MINMAX", &minmax, nb::arg("inReal"), nb::arg("optInTimePeriod") = 30);
   m.def("MINMAXINDEX", &minmaxindex, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 30);
 
@@ -447,8 +398,7 @@ NB_MODULE(pytafast_ext, m) {
 
   // --- Candlestick Patterns (standard OHLC) ---
 #define CDL_BIND(NAME, FUNC)                                                   \
-  m.def(#NAME, &FUNC, nb::arg("inOpen"),                           \
-        nb::arg("inHigh"), nb::arg("inLow"),           \
+  m.def(#NAME, &FUNC, nb::arg("inOpen"), nb::arg("inHigh"), nb::arg("inLow"),  \
         nb::arg("inClose"))
   CDL_BIND(CDL2CROWS, cdl2crows);
   CDL_BIND(CDL3BLACKCROWS, cdl3blackcrows);
@@ -508,8 +458,7 @@ NB_MODULE(pytafast_ext, m) {
 
   // --- Candlestick Patterns (with penetration) ---
 #define CDL_BIND_PEN(NAME, FUNC, DEF)                                          \
-  m.def(#NAME, &FUNC, nb::arg("inOpen"),                           \
-        nb::arg("inHigh"), nb::arg("inLow"),           \
+  m.def(#NAME, &FUNC, nb::arg("inOpen"), nb::arg("inHigh"), nb::arg("inLow"),  \
         nb::arg("inClose"), nb::arg("penetration") = DEF)
   CDL_BIND_PEN(CDLABANDONEDBABY, cdlabandonedbaby, 0.3);
   CDL_BIND_PEN(CDLDARKCLOUDCOVER, cdldarkcloudcover, 0.5);

@@ -17,9 +17,9 @@ DoubleArrayOUT avgprice(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_AVGPRICE(0, gsl::narrow<int>(size - 1), inOpen.data(), inHigh.data(),
-                          inLow.data(), inClose.data(), &outBegIdx,
-                          &outNBElement, outData.get() + lookback);
+    retCode = TA_AVGPRICE(0, gsl::narrow<int>(size - 1), inOpen.data(),
+                          inHigh.data(), inLow.data(), inClose.data(),
+                          &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_AVGPRICE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -41,8 +41,9 @@ DoubleArrayOUT medprice(DoubleArrayIN inHigh, DoubleArrayIN inLow) {
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode = TA_MEDPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), &outBegIdx,
-                          &outNBElement, outData.get() + lookback);
+    retCode =
+        TA_MEDPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                    &outBegIdx, &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MEDPRICE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -65,9 +66,9 @@ DoubleArrayOUT typprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_TYPPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                    &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_TYPPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), inClose.data(), &outBegIdx,
+                          &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_TYPPRICE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -90,9 +91,9 @@ DoubleArrayOUT wclprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_WCLPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), inClose.data(),
-                    &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_WCLPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), inClose.data(), &outBegIdx,
+                          &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_WCLPRICE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
@@ -115,9 +116,9 @@ DoubleArrayOUT midprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   TA_RetCode retCode;
   {
     nb::gil_scoped_release release;
-    retCode =
-        TA_MIDPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(), optInTimePeriod,
-                    &outBegIdx, &outNBElement, outData.get() + lookback);
+    retCode = TA_MIDPRICE(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), optInTimePeriod, &outBegIdx,
+                          &outNBElement, outData.get() + lookback);
   }
   check_ta_retcode(retCode, "TA_MIDPRICE");
   return DoubleArrayOUT(outData.get(), {size}, owner);
