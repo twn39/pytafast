@@ -691,6 +691,253 @@ for _name, _pen in _CDL_PENETRATION.items():
     globals()[_name] = _make_cdl_penetration(_name, _pen)
 
 
+def ZIGZAG(inHigh, inLow, change=10.0, percent=True):
+    """ZigZag indicator."""
+    is_series = _is_pandas_series(inHigh)
+    h = _ensure_array(inHigh)
+    l = _ensure_array(inLow)
+    out = pytafast_ext.ZIGZAG(h, l, change, percent)
+    if is_series:
+        return pd.Series(out, index=inHigh.index, name="ZIGZAG")
+    return out
+
+
+def ALMA(inReal, timeperiod=9, offset=0.85, sigma=6.0):
+    """Arnaud Legoux Moving Average."""
+    is_series = _is_pandas_series(inReal)
+    arr = _ensure_array(inReal)
+    out = pytafast_ext.ALMA(arr, timeperiod, offset, sigma)
+    if is_series:
+        return pd.Series(out, index=inReal.index, name="ALMA")
+    return out
+
+
+def EVWMA(inReal, inVolume, timeperiod=30):
+    """Elastic Volume Weighted Moving Average."""
+    is_series = _is_pandas_series(inReal)
+    r = _ensure_array(inReal)
+    v = _ensure_array(inVolume)
+    out = pytafast_ext.EVWMA(r, v, timeperiod)
+    if is_series:
+        return pd.Series(out, index=inReal.index, name="EVWMA")
+    return out
+
+
+# ===================================================================
+# R-consistent Indicators (Migrated from TTR/quantmod)
+# ===================================================================
+
+def DonchianChannel(inHigh, inLow, timeperiod=10):
+    """Donchian Channel. Returns: (upper, middle, lower)"""
+    upper = MAX(inHigh, timeperiod)
+    lower = MIN(inLow, timeperiod)
+    middle = (upper + lower) / 2.0
+    return upper, middle, lower
+
+
+def GMMA(inReal):
+    """Guppy Multiple Moving Average. Returns a tuple of 12 EMA series."""
+    periods = [3, 5, 8, 10, 12, 15, 30, 35, 40, 45, 50, 60]
+    return tuple(EMA(inReal, timeperiod=p) for p in periods)
+
+
+def KST(inReal, nROC1=10, nROC2=15, nROC3=20, nROC4=30,
+        nAvg1=10, nAvg2=10, nAvg3=10, nAvg4=15, nSig=9):
+    """Know Sure Thing (KST). Returns: (kst, signal)"""
+    def _smooth_roc(n_roc, n_avg):
+        r = ROC(inReal, n_roc)
+        is_s = _is_pandas_series(r)
+        if is_s:
+            valid_r = r.dropna()
+            if len(valid_r) < n_avg: return r * np.nan
+            res = SMA(valid_r, n_avg).reindex(r.index)
+        else:
+            first_idx = n_roc
+            if first_idx >= len(r): return np.full_like(r, np.nan)
+            valid_r = r[first_idx:]
+            s = SMA(valid_r, n_avg)
+            res = np.full_like(r, np.nan)
+            res[first_idx:] = s
+        return res
+
+    sr1 = _smooth_roc(nROC1, nAvg1)
+    sr2 = _smooth_roc(nROC2, nAvg2)
+    sr3 = _smooth_roc(nROC3, nAvg3)
+    sr4 = _smooth_roc(nROC4, nAvg4)
+    kst = sr1 * 1 + sr2 * 2 + sr3 * 3 + sr4 * 4
+    
+    if _is_pandas_series(kst):
+        signal = SMA(kst.dropna(), nSig).reindex(kst.index)
+    else:
+        first_valid = max(nROC1+nAvg1, nROC2+nAvg2, nROC3+nAvg3, nROC4+nAvg4) - 1
+        if first_valid >= len(kst):
+            signal = np.full_like(kst, np.nan)
+        else:
+            s = SMA(kst[first_valid:], nSig)
+            signal = np.full_like(kst, np.nan)
+            signal[first_valid:] = s
+    return kst, signal
+
+
+def ZLEMA(inReal, timeperiod=30):
+    """Zero Lag Exponential Moving Average."""
+    is_series = _is_pandas_series(inReal)
+    arr = _ensure_array(inReal)
+    out = pytafast_ext.ZLEMA(arr, timeperiod)
+    if is_series:
+        return pd.Series(out, index=inReal.index, name="ZLEMA")
+    return out
+
+
+def HMA(inReal, timeperiod=20):
+    """Hull Moving Average."""
+    half_n = timeperiod // 2
+    sqrt_n = int(np.sqrt(timeperiod))
+    w1 = WMA(inReal, half_n)
+    w2 = WMA(inReal, timeperiod)
+    diff = 2 * w1 - w2
+    # Handle NaNs from WMAs
+    if _is_pandas_series(diff):
+        return WMA(diff.dropna(), sqrt_n).reindex(inReal.index)
+    else:
+        res = np.full_like(inReal, np.nan)
+        first_valid = timeperiod - 1
+        if len(diff) <= first_valid: return res
+        w = WMA(diff[first_valid:], sqrt_n)
+        res[first_valid:] = w
+        return res
+
+
+def keltnerChannels(inHigh, inLow, inClose, timeperiod=20, atr_mult=2.0):
+    """Keltner Channels. Returns: (upper, middle, lower)"""
+    tp = (inHigh + inLow + inClose) / 3.0
+    middle = EMA(tp, timeperiod)
+    atr = ATR(inHigh, inLow, inClose, timeperiod)
+    upper = middle + atr_mult * atr
+    lower = middle - atr_mult * atr
+    return upper, middle, lower
+
+
+def CMF(inHigh, inLow, inClose, inVolume, timeperiod=20):
+    """Chaikin Money Flow."""
+    # CLV = [(close - low) - (high - close)] / (high - low)
+    # Simplified: (2*close - low - high) / (high - low)
+    num = (2 * inClose - inLow - inHigh)
+    den = inHigh - inLow
+    # Avoid div by zero
+    clv = np.where(den != 0, num / den, 0.0)
+    vol_clv = clv * inVolume
+    return SUM(vol_clv, timeperiod) / SUM(inVolume, timeperiod)
+
+
+def DPO(inReal, timeperiod=10):
+    """Detrended Price Oscillator."""
+    shift = timeperiod // 2 + 1
+    ma = SMA(inReal, timeperiod)
+    if _is_pandas_series(ma):
+        shifted_ma = ma.shift(-shift)
+        return inReal - shifted_ma
+    else:
+        res = np.full_like(inReal, np.nan)
+        if len(ma) <= shift: return res
+        res[:-shift] = inReal[:-shift] - ma[shift:]
+        return res
+
+
+def EMV(inHigh, inLow, inVolume, timeperiod=9, vol_divisor=10000.0):
+    """Arms' Ease of Movement Value. Returns: (emv, smoothed_emv)"""
+    mid = (inHigh + inLow) / 2.0
+    # mid_move = mid - mid_prev
+    is_s = _is_pandas_series(mid)
+    mid_move = mid.diff() if is_s else np.diff(mid, prepend=np.nan)
+    
+    box_ratio = (inVolume / vol_divisor) / (inHigh - inLow)
+    # Avoid div by zero in box_ratio if high == low
+    box_ratio = np.where(inHigh != inLow, box_ratio, np.nan)
+    
+    emv = mid_move / box_ratio
+    if is_s:
+        ma_emv = SMA(emv.dropna(), timeperiod).reindex(emv.index)
+    else:
+        ma_emv = np.full_like(emv, np.nan)
+        valid_mask = ~np.isnan(emv)
+        if valid_mask.sum() >= timeperiod:
+            ma_emv[valid_mask] = SMA(emv[valid_mask], timeperiod)
+    return emv, ma_emv
+
+
+def VHF(inReal, timeperiod=28):
+    """Vertical Horizontal Filter."""
+    hmax = MAX(inReal, timeperiod)
+    lmin = MIN(inReal, timeperiod)
+    # Diff = abs(price - price_prev)
+    is_series = _is_pandas_series(inReal)
+    diff = inReal.diff().abs() if is_series else np.abs(np.diff(inReal, prepend=np.nan))
+    
+    if is_series:
+        vol = SUM(diff.dropna(), timeperiod).reindex(inReal.index)
+    else:
+        vol = np.full_like(diff, np.nan)
+        if len(diff) > 1:
+            s = SUM(diff[1:], timeperiod)
+            vol[1:] = s
+            
+    return (hmax - lmin) / vol
+
+
+def SNR(inHigh, inLow, inClose, timeperiod=14):
+    """Signal to Noise Ratio."""
+    is_series = _is_pandas_series(inClose)
+    # Change = abs(C - C_prev_n)
+    change = inClose.diff(timeperiod).abs() if is_series else np.abs(inClose - np.roll(inClose, timeperiod))
+    if not is_series:
+        change[:timeperiod] = np.nan
+    atr = ATR(inHigh, inLow, inClose, timeperiod)
+    return change / atr
+
+
+def SMI(inHigh, inLow, inClose, n=13, nFast=2, nSlow=25, nSig=9):
+    """Stochastic Momentum Index. Returns: (smi, signal)"""
+    hmax = MAX(inHigh, n)
+    lmin = MIN(inLow, n)
+    
+    hl_diff = hmax - lmin
+    c_diff = inClose - (hmax + lmin) / 2.0
+    
+    def _double_smooth(x):
+        is_s = _is_pandas_series(x)
+        if is_s:
+            s1 = EMA(x.dropna(), nSlow)
+            s2 = EMA(s1.dropna(), nFast).reindex(x.index)
+            return s2
+        else:
+            res = np.full_like(x, np.nan)
+            valid = x[~np.isnan(x)]
+            if len(valid) < nSlow: return res
+            s1 = EMA(valid, nSlow)
+            valid2 = s1[~np.isnan(s1)]
+            if len(valid2) < nFast: return res
+            s2 = EMA(valid2, nFast)
+            res[len(x)-len(s2):] = s2
+            return res
+
+    num = _double_smooth(c_diff)
+    den = _double_smooth(hl_diff)
+    
+    # Avoid div by zero
+    smi = 100.0 * np.where(den != 0, num / (den / 2.0), 0.0)
+    if _is_pandas_series(inClose):
+        smi = pd.Series(smi, index=inClose.index, name="SMI")
+        signal = EMA(smi.dropna(), nSig).reindex(smi.index)
+    else:
+        signal = np.full_like(smi, np.nan)
+        valid = smi[~np.isnan(smi)]
+        if len(valid) >= nSig:
+            s = EMA(valid, nSig)
+            signal[len(smi)-len(s):] = s
+    return smi, signal
+
+
 # ===================================================================
 # Async wrappers — built as a virtual submodule `pytafast.aio`
 # ===================================================================

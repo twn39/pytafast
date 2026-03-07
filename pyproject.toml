@@ -41,7 +41,7 @@ Issues = "https://github.com/twn39/pytafast/issues"
 minimum-version = "0.4"
 cmake.build-type = "Release"
 sdist.include = [
-    "tests/data/*.csv",
+    "data/*.csv",
     "third_party/ta-lib/src/**/*",
     "third_party/ta-lib/include/**/*",
     "third_party/ta-lib/CMakeLists.txt",

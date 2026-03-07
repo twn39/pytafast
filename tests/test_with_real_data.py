@@ -13,7 +13,7 @@ import os
     "berkshire_1y.csv"
 ])
 def stock_data(request):
-    data_path = os.path.join(os.path.dirname(__file__), "data", request.param)
+    data_path = os.path.join(os.path.dirname(__file__), "..", "data", request.param)
     df = pd.read_csv(data_path)
     
     # Standardize column names to lowercase for easier access

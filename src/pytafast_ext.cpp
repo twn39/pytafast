@@ -17,6 +17,10 @@ DoubleArrayOUT trima(DoubleArrayIN, int);
 DoubleArrayOUT wma(DoubleArrayIN, int);
 DoubleArrayOUT sar(DoubleArrayIN, DoubleArrayIN, double, double);
 DoubleArrayOUT midpoint(DoubleArrayIN, int);
+DoubleArrayOUT zigzag(DoubleArrayIN, DoubleArrayIN, double, bool);
+DoubleArrayOUT alma(DoubleArrayIN, int, double, double);
+DoubleArrayOUT evwma(DoubleArrayIN, DoubleArrayIN, int);
+DoubleArrayOUT zlema(DoubleArrayIN, int);
 
 // Forward declarations from momentum.cpp
 DoubleArrayOUT rsi(DoubleArrayIN, int);
@@ -244,6 +248,17 @@ NB_MODULE(pytafast_ext, m) {
         nb::arg("optInMaximum") = 0.2);
   m.def("MIDPOINT", &midpoint, nb::arg("inReal"),
         nb::arg("optInTimePeriod") = 14);
+  m.def("ZIGZAG", &zigzag, nb::arg("inHigh"),
+        nb::arg("inLow"), nb::arg("change") = 10.0,
+        nb::arg("percent") = true);
+  m.def("ALMA", &alma, nb::arg("inReal"),
+        nb::arg("optInTimePeriod") = 9,
+        nb::arg("optInOffset") = 0.85,
+        nb::arg("optInSigma") = 6.0);
+  m.def("EVWMA", &evwma, nb::arg("inReal"),
+        nb::arg("inVolume"), nb::arg("optInTimePeriod") = 30);
+  m.def("ZLEMA", &zlema, nb::arg("inReal"),
+        nb::arg("optInTimePeriod") = 30);
 
   // --- Momentum ---
   m.def("RSI", &rsi, nb::arg("inReal"),
