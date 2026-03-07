@@ -28,7 +28,6 @@ dependencies = [
     "numpy",
     "pandas",
     "plotly>=6.5.2",
-    "kaleido>=1.2.0",
 ]
 authors = [
   {name = "curry tang", email = "twn39@163.com"}

@@ -211,7 +211,19 @@ class Chart:
 
     def show(self): self.render().show()
     def save_html(self, filename="chart.html"): self.render().write_html(filename)
+    
     def save_image(self, filename="chart.png", w=1200, h=800):
+        """
+        Renders and saves the chart to a static image (PNG, JPG, PDF, SVG).
+        Requires 'kaleido' package (pip install kaleido).
+        """
+        try:
+            import kaleido
+        except ImportError:
+            raise ImportError("The 'kaleido' package is required for saving images. "
+                              "Install it with 'pip install kaleido'.")
+        
         f = self.render()
         f.update_layout(width=w, height=h)
         f.write_image(filename)
+        print(f"Chart image saved to {filename}")
