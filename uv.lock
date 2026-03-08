@@ -893,7 +893,7 @@ wheels = [
 
 [[package]]
 name = "pytafast"
-version = "0.4.0"
+version = "0.5.0"
 source = { editable = "." }
 dependencies = [
     { name = "numpy" },
@@ -924,7 +924,7 @@ requires-dist = [
 dev = [
     { name = "akshare", specifier = ">=1.18.27" },
     { name = "clang-tidy", specifier = ">=21.1.6" },
-    { name = "kaleido", specifier = ">=1.2.0" },
+    { name = "kaleido", specifier = ">=0.2.1" },
     { name = "pytest", specifier = ">=9.0.2" },
     { name = "pytest-benchmark", specifier = ">=4.0.0" },
     { name = "pytest-cov", specifier = ">=6.0.0" },

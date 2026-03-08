@@ -12,7 +12,7 @@ from . import pytafast_ext
 from .plotting import Chart as Chart
 from .pytafast_ext import MAType
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 # Public API — controls what `from pytafast import *` exposes
 __all__ = [
