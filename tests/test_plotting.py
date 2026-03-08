@@ -1,8 +1,10 @@
 import os
+import pytest
 import pandas as pd
 import pytafast
 
 def test_plotting():
+    pytest.importorskip("kaleido")
     # Load sample data
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv")
     df = pd.read_csv(data_path)
