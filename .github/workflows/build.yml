@@ -78,7 +78,7 @@ jobs:
           # Skip 32-bit Windows
           CIBW_SKIP: "*-win32 *-musllinux_*"
           # Test configuration using uv
-          CIBW_TEST_REQUIRES: "pytest pytest-cov pandas numpy kaleido"
+          CIBW_TEST_REQUIRES: "pytest pytest-cov pandas numpy kaleido==0.2.1"
           CIBW_TEST_COMMAND: "pytest {project}/tests --ignore={project}/tests/test_benchmark.py"
           # Support latest Python versions in 2026
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"
