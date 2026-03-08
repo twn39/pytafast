@@ -77,6 +77,8 @@ jobs:
           CIBW_BUILD_FRONTEND: "build[uv]"
           # Skip 32-bit Windows
           CIBW_SKIP: "*-win32 *-musllinux_*"
+          # Pass CI variable to container
+          CIBW_ENVIRONMENT: GITHUB_ACTIONS=true
           # Test configuration using uv
           CIBW_TEST_REQUIRES: "pytest pytest-cov pandas numpy kaleido"
           CIBW_TEST_COMMAND: "pytest {project}/tests --ignore={project}/tests/test_benchmark.py"

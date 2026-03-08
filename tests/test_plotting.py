@@ -4,8 +4,11 @@ import pandas as pd
 import pytafast
 
 # Force skip in CI environments to avoid ChromeNotFoundError
-if os.getenv("GITHUB_ACTIONS"):
-    pytest.skip("Skipping plotting tests in CI environment", allow_module_level=True)
+# Using pytestmark for more robust skipping during collection
+pytestmark = pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Skipping plotting tests in CI environment (requires Chrome)"
+)
 
 def test_plotting():
     pytest.importorskip("kaleido")
