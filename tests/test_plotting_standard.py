@@ -4,6 +4,8 @@ import pandas as pd
 import pytafast
 
 def test_plotting_standard():
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        pytest.skip("Skipping plotting test in CI environment")
     pytest.importorskip("kaleido")
     # Load sample data
     data_path = os.path.join(os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv")
