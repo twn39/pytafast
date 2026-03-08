@@ -19,8 +19,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
-    "Programming Language :: C++",
+    "Programming Language :: Python :: C++",
     "Topic :: Office/Business :: Financial :: Investment",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
@@ -79,7 +78,7 @@ dev = [
     "clang-tidy>=21.1.6",
     "pytest>=9.0.2",
     "pytest-cov>=6.0.0",
-    "kaleido>=1.2.1",
+    "kaleido>=0.2.1",
     "ty>=0.0.21",
 ]
 
