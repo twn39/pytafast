@@ -32,6 +32,7 @@ from pytafast import MAType
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def prices():
     """100 synthetic price bars."""
@@ -48,11 +49,11 @@ def prices():
 def prices_pd(prices):
     """Same as prices but as pandas Series with a date index."""
     idx = pd.date_range("2024-01-01", periods=100, freq="D")
-    o, h, l, c, v = prices
+    o, h, low_val, c, v = prices
     return (
         pd.Series(o, index=idx, name="Open"),
         pd.Series(h, index=idx, name="High"),
-        pd.Series(l, index=idx, name="Low"),
+        pd.Series(low_val, index=idx, name="Low"),
         pd.Series(c, index=idx, name="Close"),
         pd.Series(v, index=idx, name="Volume"),
     )
@@ -61,6 +62,7 @@ def prices_pd(prices):
 # ===========================================================================
 # A. Empty arrays
 # ===========================================================================
+
 
 class TestEmptyArrays:
     """All functions should return a zero-length array when given empty input."""
@@ -136,6 +138,7 @@ class TestEmptyArrays:
 # B. Input length mismatch → RuntimeError
 # ===========================================================================
 
+
 class TestLengthMismatch:
     """Multi-input functions must raise RuntimeError when lengths differ."""
 
@@ -172,11 +175,15 @@ class TestLengthMismatch:
 
     def test_mfi_mismatch_volume(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
-            pytafast.MFI(self._short(50), self._short(50), self._short(50), self._short(40))
+            pytafast.MFI(
+                self._short(50), self._short(50), self._short(50), self._short(40)
+            )
 
     def test_bop_mismatch(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
-            pytafast.BOP(self._short(100), self._short(100), self._short(100), self._short(99))
+            pytafast.BOP(
+                self._short(100), self._short(100), self._short(100), self._short(99)
+            )
 
     def test_obv_mismatch(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
@@ -184,11 +191,15 @@ class TestLengthMismatch:
 
     def test_ad_mismatch(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
-            pytafast.AD(self._short(100), self._short(100), self._short(100), self._short(50))
+            pytafast.AD(
+                self._short(100), self._short(100), self._short(100), self._short(50)
+            )
 
     def test_adosc_mismatch(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
-            pytafast.ADOSC(self._short(100), self._short(100), self._short(100), self._short(99))
+            pytafast.ADOSC(
+                self._short(100), self._short(100), self._short(100), self._short(99)
+            )
 
     def test_beta_mismatch(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
@@ -212,8 +223,9 @@ class TestLengthMismatch:
 
     def test_candlestick_mismatch(self):
         with pytest.raises(RuntimeError):
-            pytafast.CDL2CROWS(self._short(100), self._short(100),
-                               self._short(100), self._short(50))
+            pytafast.CDL2CROWS(
+                self._short(100), self._short(100), self._short(100), self._short(50)
+            )
 
     def test_ultosc_mismatch(self):
         with pytest.raises(RuntimeError, match="lengths must match"):
@@ -223,6 +235,7 @@ class TestLengthMismatch:
 # ===========================================================================
 # C. Minimal data (length exactly at lookback boundary)
 # ===========================================================================
+
 
 class TestMinimalData:
     """Tests with the smallest valid input sizes."""
@@ -242,7 +255,7 @@ class TestMinimalData:
         out = pytafast.SMA(data, timeperiod=period)
         assert len(out) == period
         # First period-1 are NaN
-        assert all(np.isnan(out[:period - 1]))
+        assert all(np.isnan(out[: period - 1]))
         # Last element is the mean
         assert out[-1] == pytest.approx(np.mean(data))
 
@@ -278,9 +291,11 @@ class TestMinimalData:
     def test_stoch_exactly_fastk_period(self):
         """STOCH with fastk=5: 5 elements → 4 NaN + 1 first K value."""
         h = np.array([10.0, 11.0, 12.0, 13.0, 14.0])
-        l = np.array([8.0, 9.0, 10.0, 11.0, 12.0])
+        low_val = np.array([8.0, 9.0, 10.0, 11.0, 12.0])
         c = np.array([9.0, 10.0, 11.0, 12.0, 13.0])
-        sk, _ = pytafast.STOCH(h, l, c, fastk_period=5, slowk_period=1, slowd_period=1)
+        sk, _ = pytafast.STOCH(
+            h, low_val, c, fastk_period=5, slowk_period=1, slowd_period=1
+        )
         assert len(sk) == 5
 
     def test_two_element_array_with_period_2(self):
@@ -292,8 +307,8 @@ class TestMinimalData:
 
     def test_zigzag_two_bars(self):
         h = np.array([10.0, 12.0])
-        l = np.array([8.0, 9.0])
-        out = pytafast.ZIGZAG(h, l, change=5.0, percent=True)
+        low_val = np.array([8.0, 9.0])
+        out = pytafast.ZIGZAG(h, low_val, change=5.0, percent=True)
         assert len(out) == 2
 
     def test_evwma_shorter_than_period(self):
@@ -307,6 +322,7 @@ class TestMinimalData:
 # ===========================================================================
 # D. NaN prefix correctness
 # ===========================================================================
+
 
 class TestNaNPrefix:
     """output[0..lookback-1] must be NaN; output[lookback:] must not be NaN
@@ -329,9 +345,9 @@ class TestNaNPrefix:
         rng = np.random.default_rng(0)
         c = 100.0 + np.cumsum(rng.normal(0, 0.5, 200))
         h = c + rng.uniform(0.1, 1.0, 200)
-        l = c - rng.uniform(0.1, 1.0, 200)
+        low_val = c - rng.uniform(0.1, 1.0, 200)
         v = rng.uniform(1e5, 1e6, 200)
-        return c, h, l, v
+        return c, h, low_val, v
 
     @pytest.mark.parametrize("period", [5, 10, 20])
     def test_sma_prefix(self, data100, period):
@@ -347,26 +363,26 @@ class TestNaNPrefix:
 
     @pytest.mark.parametrize("period", [5, 14])
     def test_atr_prefix(self, data100, period):
-        c, h, l, _ = data100
-        out = pytafast.ATR(h, l, c, timeperiod=period)
+        c, h, low_val, _ = data100
+        out = pytafast.ATR(h, low_val, c, timeperiod=period)
         self._check_prefix(out, period, f"ATR({period})")
 
     @pytest.mark.parametrize("period", [5, 14])
     def test_adx_prefix(self, data100, period):
-        c, h, l, _ = data100
-        out = pytafast.ADX(h, l, c, timeperiod=period)
+        c, h, low_val, _ = data100
+        out = pytafast.ADX(h, low_val, c, timeperiod=period)
         self._check_prefix(out, 2 * period - 1, f"ADX({period})")
 
     @pytest.mark.parametrize("period", [5, 14])
     def test_cci_prefix(self, data100, period):
-        c, h, l, _ = data100
-        out = pytafast.CCI(h, l, c, timeperiod=period)
+        c, h, low_val, _ = data100
+        out = pytafast.CCI(h, low_val, c, timeperiod=period)
         self._check_prefix(out, period - 1, f"CCI({period})")
 
     @pytest.mark.parametrize("period", [5, 14])
     def test_mfi_prefix(self, data100, period):
-        c, h, l, v = data100
-        out = pytafast.MFI(h, l, c, v, timeperiod=period)
+        c, h, low_val, v = data100
+        out = pytafast.MFI(h, low_val, c, v, timeperiod=period)
         self._check_prefix(out, period, f"MFI({period})")
 
     def test_macd_prefix(self, data100):
@@ -374,7 +390,9 @@ class TestNaNPrefix:
         macd, sig, hist = pytafast.MACD(c, fastperiod=12, slowperiod=26, signalperiod=9)
         # MACD line: lookback = 25, signal: +8 = 33
         for i in range(33):
-            assert np.isnan(macd[i]) or not np.isnan(sig[i]) or True  # just check first valid
+            assert (
+                np.isnan(macd[i]) or not np.isnan(sig[i]) or True
+            )  # just check first valid
         self._check_prefix(sig, 33, "MACD signal")
 
     def test_bbands_prefix(self, data100):
@@ -385,8 +403,10 @@ class TestNaNPrefix:
         self._check_prefix(lower, 19, "BBANDS lower")
 
     def test_stoch_prefix(self, data100):
-        c, h, l, _ = data100
-        sk, sd = pytafast.STOCH(h, l, c, fastk_period=5, slowk_period=3, slowd_period=3)
+        c, h, low_val, _ = data100
+        sk, sd = pytafast.STOCH(
+            h, low_val, c, fastk_period=5, slowk_period=3, slowd_period=3
+        )
         # STOCH lookback = (fastk-1) + (slowk-1) + (slowd-1) = 4+2+2=8
         # Check that at least the first 8 elements are NaN
         assert all(np.isnan(sk[:8])), "First 8 STOCH values should be NaN"
@@ -415,6 +435,7 @@ class TestNaNPrefix:
 # E. Output length == input length
 # ===========================================================================
 
+
 class TestOutputLength:
     """For every n-element input, output must have exactly n elements."""
 
@@ -429,9 +450,9 @@ class TestOutputLength:
     def test_atr_output_length(self, n):
         rng = np.random.default_rng(1)
         h = 100 + rng.random(n)
-        l = 100 - rng.random(n)
+        low_val = 100 - rng.random(n)
         c = 100 + rng.random(n) * 0.5
-        assert len(pytafast.ATR(h, l, c, timeperiod=min(5, n))) == n
+        assert len(pytafast.ATR(h, low_val, c, timeperiod=min(5, n))) == n
 
     @pytest.mark.parametrize("n", [2, 10, 100])
     def test_macd_output_length(self, n):
@@ -457,27 +478,28 @@ class TestOutputLength:
     @pytest.mark.parametrize("n", [5, 100])
     def test_aroon_output_length(self, n):
         h = np.ones(n) * 10
-        l = np.ones(n) * 9
+        low_val = np.ones(n) * 9
         # AROON requires timeperiod >= 2 and n > timeperiod
         period = min(5, n - 1)
         if period < 2:
             return  # skip degenerate case
-        d, u = pytafast.AROON(h, l, timeperiod=period)
+        d, u = pytafast.AROON(h, low_val, timeperiod=period)
         assert len(d) == n and len(u) == n
 
     @pytest.mark.parametrize("n", [1, 5, 50])
     def test_candlestick_output_length(self, n):
         o = np.ones(n) * 10.0
         h = np.ones(n) * 11.0
-        l = np.ones(n) * 9.0
+        low_val = np.ones(n) * 9.0
         c = np.ones(n) * 10.5
-        out = pytafast.CDLDOJI(o, h, l, c)
+        out = pytafast.CDLDOJI(o, h, low_val, c)
         assert len(out) == n
 
 
 # ===========================================================================
 # F. Non-contiguous & non-float64 input
 # ===========================================================================
+
 
 class TestInputCoercion:
     """_ensure_array must transparently handle float32, int, and non-C-contiguous."""
@@ -514,15 +536,16 @@ class TestInputCoercion:
     def test_float32_multi_input(self):
         rng = np.random.default_rng(7)
         h = (100 + rng.random(50)).astype(np.float32)
-        l = (99 + rng.random(50)).astype(np.float32)
+        low_val = (99 + rng.random(50)).astype(np.float32)
         c = (99.5 + rng.random(50)).astype(np.float32)
-        out = pytafast.ATR(h, l, c, timeperiod=5)
+        out = pytafast.ATR(h, low_val, c, timeperiod=5)
         assert len(out) == 50
 
 
 # ===========================================================================
 # G. Pandas Series — metadata preservation
 # ===========================================================================
+
 
 class TestPandasMetadata:
     """When a pandas Series is passed, output must preserve the index."""
@@ -579,8 +602,8 @@ class TestPandasMetadata:
         period = 14
         out = pytafast.SMA(close, timeperiod=period)
         # First period-1 values are NaN
-        assert out.iloc[:period - 1].isna().all()
-        assert not out.iloc[period - 1:].isna().any()
+        assert out.iloc[: period - 1].isna().all()
+        assert not out.iloc[period - 1 :].isna().any()
 
     def test_hma_pandas_index(self, prices_pd):
         _, _, _, close, _ = prices_pd
@@ -597,6 +620,7 @@ class TestPandasMetadata:
 # ===========================================================================
 # H. All-NaN input
 # ===========================================================================
+
 
 class TestAllNaNInput:
     """Functions should not crash on all-NaN input (TA-Lib behavior)."""
@@ -621,6 +645,7 @@ class TestAllNaNInput:
 # ===========================================================================
 # I. Constant-value arrays (degenerate)
 # ===========================================================================
+
 
 class TestConstantArrays:
     """Constant input — results should be mathematically predictable."""
@@ -652,8 +677,15 @@ class TestConstantArrays:
         valid = out[~np.isnan(out)]
         # TA-Lib returns 0 for constant input (no gains/losses)
         if len(valid) > 0:
-            assert all(v in (0.0, 100.0) or v == pytest.approx(50.0) or v == pytest.approx(0.0)
-                       for v in valid) or True  # just verify no crash, TA-Lib behavior differs
+            assert (
+                all(
+                    v in (0.0, 100.0)
+                    or v == pytest.approx(50.0)
+                    or v == pytest.approx(0.0)
+                    for v in valid
+                )
+                or True
+            )  # just verify no crash, TA-Lib behavior differs
 
     def test_mom_constant(self):
         """Momentum of constant series is 0."""
@@ -683,6 +715,7 @@ class TestConstantArrays:
 # ===========================================================================
 # J. Square (H=L=O=C) degenerate OHLC
 # ===========================================================================
+
 
 class TestDegenerateOHLC:
     """When H == L == O == C == constant, candlestick patterns and OHLC
@@ -720,6 +753,7 @@ class TestDegenerateOHLC:
 # ===========================================================================
 # K. Math transforms — numerical edge cases
 # ===========================================================================
+
 
 class TestMathTransforms:
     """Math transforms on boundary values (inf, very large, very small)."""
@@ -771,6 +805,7 @@ class TestMathTransforms:
 # L. Cycle indicators
 # ===========================================================================
 
+
 class TestCycleIndicators:
     """HT (Hilbert Transform) functions — basic smoke tests."""
 
@@ -810,6 +845,7 @@ class TestCycleIndicators:
 # M. aio (async wrappers) smoke test
 # ===========================================================================
 
+
 class TestAsyncWrappers:
     """pytafast.aio functions must be awaitable and return correct results."""
 
@@ -820,6 +856,7 @@ class TestAsyncWrappers:
             assert len(result) == 10
             assert np.isnan(result[0])
             assert result[2] == pytest.approx(2.0)
+
         asyncio.run(_run())
 
     def test_aio_macd_tuple(self):
@@ -827,13 +864,26 @@ class TestAsyncWrappers:
             data = np.random.default_rng(5).random(100) * 100
             macd, sig, hist = await pytafast.aio.MACD(data)
             assert len(macd) == 100
+
         asyncio.run(_run())
 
     def test_aio_has_all_functions(self):
         """All functions in _ALL_FUNCTIONS must appear in pytafast.aio."""
         # Spot-check a few that were previously missing
-        for name in ("ZIGZAG", "ALMA", "HMA", "KST", "CMF", "DPO", "EMV",
-                     "VHF", "SNR", "SMI", "DonchianChannel", "GMMA"):
+        for name in (
+            "ZIGZAG",
+            "ALMA",
+            "HMA",
+            "KST",
+            "CMF",
+            "DPO",
+            "EMV",
+            "VHF",
+            "SNR",
+            "SMI",
+            "DonchianChannel",
+            "GMMA",
+        ):
             assert hasattr(pytafast.aio, name), f"pytafast.aio.{name} missing"
 
     def test_aio_wrapper_qualname(self):
@@ -847,12 +897,14 @@ class TestAsyncWrappers:
             empty = np.array([], dtype=np.float64)
             result = await pytafast.aio.SMA(empty, timeperiod=5)
             assert len(result) == 0
+
         asyncio.run(_run())
 
 
 # ===========================================================================
 # N. Thread safety: parallel calls from multiple threads
 # ===========================================================================
+
 
 class TestThreadSafety:
     """GIL release in C++ functions must allow true parallelism without
@@ -926,6 +978,7 @@ class TestThreadSafety:
 # O. __all__ completeness
 # ===========================================================================
 
+
 class TestPublicAPI:
     """Every name in __all__ must actually exist in the module."""
 
@@ -950,12 +1003,19 @@ class TestPublicAPI:
 
     def test_aio_module_registered(self):
         import sys
+
         assert "pytafast.aio" in sys.modules
 
     def test_star_import_does_not_expose_internals(self):
         """Internal helpers should NOT be in __all__."""
-        internal = {"_make_single", "_make_async", "_ensure_array",
-                    "_is_pandas_series", "_HAS_PANDAS", "_ALL_FUNCTIONS"}
+        internal = {
+            "_make_single",
+            "_make_async",
+            "_ensure_array",
+            "_is_pandas_series",
+            "_HAS_PANDAS",
+            "_ALL_FUNCTIONS",
+        }
         exposed = set(pytafast.__all__)
         leaking = internal & exposed
         assert not leaking, f"Internal names leaked into __all__: {leaking}"

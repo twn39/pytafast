@@ -7,14 +7,17 @@ import pytafast
 # Using pytestmark for more robust skipping during collection
 pytestmark = pytest.mark.skipif(
     os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Skipping plotting tests in CI environment (requires Chrome)"
+    reason="Skipping plotting tests in CI environment (requires Chrome)",
 )
+
 
 def test_plotting():
     pytest.importorskip("kaleido")
-    
+
     # Load sample data
-    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv")
+    data_path = os.path.join(
+        os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv"
+    )
     df = pd.read_csv(data_path)
 
     # Create a complex, quantmod-style chart with one chained command

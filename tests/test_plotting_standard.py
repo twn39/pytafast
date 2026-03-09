@@ -6,14 +6,17 @@ import pytafast
 # Force skip in CI environments to avoid ChromeNotFoundError
 pytestmark = pytest.mark.skipif(
     os.getenv("GITHUB_ACTIONS") == "true",
-    reason="Skipping plotting tests in CI environment (requires Chrome)"
+    reason="Skipping plotting tests in CI environment (requires Chrome)",
 )
+
 
 def test_plotting_standard():
     pytest.importorskip("kaleido")
 
     # Load sample data
-    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv")
+    data_path = os.path.join(
+        os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv"
+    )
     df = pd.read_csv(data_path)
 
     # Create a clean, standard analysis chart

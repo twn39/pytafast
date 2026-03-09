@@ -3,7 +3,6 @@ import atexit
 import functools as _functools
 import sys as _sys
 import types as _types
-from typing import Any, cast
 
 import numpy as np
 
@@ -17,34 +16,124 @@ __version__ = "0.5.0"
 # Public API — controls what `from pytafast import *` exposes
 __all__ = [
     # Overlap
-    "SMA", "EMA", "DEMA", "KAMA", "MA", "T3", "MAMA", "TEMA", "TRIMA",
-    "WMA", "BBANDS", "SAR", "MIDPOINT", "MIDPRICE",
+    "SMA",
+    "EMA",
+    "DEMA",
+    "KAMA",
+    "MA",
+    "T3",
+    "MAMA",
+    "TEMA",
+    "TRIMA",
+    "WMA",
+    "BBANDS",
+    "SAR",
+    "MIDPOINT",
+    "MIDPRICE",
     # Momentum
-    "RSI", "MACD", "MACDEXT", "MACDFIX", "MOM", "ROC", "ROCP", "ROCR",
-    "ROCR100", "CMO", "APO", "PPO", "TRIX", "ADX", "ADXR", "CCI", "DX",
-    "MINUS_DI", "MINUS_DM", "PLUS_DI", "PLUS_DM", "WILLR", "MFI", "STOCH",
-    "STOCHF", "STOCHRSI", "AROON", "AROONOSC", "ULTOSC", "BOP",
+    "RSI",
+    "MACD",
+    "MACDEXT",
+    "MACDFIX",
+    "MOM",
+    "ROC",
+    "ROCP",
+    "ROCR",
+    "ROCR100",
+    "CMO",
+    "APO",
+    "PPO",
+    "TRIX",
+    "ADX",
+    "ADXR",
+    "CCI",
+    "DX",
+    "MINUS_DI",
+    "MINUS_DM",
+    "PLUS_DI",
+    "PLUS_DM",
+    "WILLR",
+    "MFI",
+    "STOCH",
+    "STOCHF",
+    "STOCHRSI",
+    "AROON",
+    "AROONOSC",
+    "ULTOSC",
+    "BOP",
     # Volatility
-    "ATR", "NATR", "TRANGE", "STDDEV",
+    "ATR",
+    "NATR",
+    "TRANGE",
+    "STDDEV",
     # Volume
-    "OBV", "AD", "ADOSC",
+    "OBV",
+    "AD",
+    "ADOSC",
     # Price Transform
-    "AVGPRICE", "MEDPRICE", "TYPPRICE", "WCLPRICE",
+    "AVGPRICE",
+    "MEDPRICE",
+    "TYPPRICE",
+    "WCLPRICE",
     # Statistics
-    "BETA", "CORREL", "LINEARREG", "LINEARREG_ANGLE", "LINEARREG_INTERCEPT",
-    "LINEARREG_SLOPE", "TSF", "VAR", "AVGDEV", "MAX", "MIN", "SUM",
-    "MINMAX", "MINMAXINDEX",
+    "BETA",
+    "CORREL",
+    "LINEARREG",
+    "LINEARREG_ANGLE",
+    "LINEARREG_INTERCEPT",
+    "LINEARREG_SLOPE",
+    "TSF",
+    "VAR",
+    "AVGDEV",
+    "MAX",
+    "MIN",
+    "SUM",
+    "MINMAX",
+    "MINMAXINDEX",
     # Math Operators
-    "ADD", "SUB", "MULT", "DIV",
+    "ADD",
+    "SUB",
+    "MULT",
+    "DIV",
     # Math Transforms
-    "ACOS", "ASIN", "ATAN", "CEIL", "COS", "COSH", "EXP", "FLOOR", "LN",
-    "LOG10", "SIN", "SINH", "SQRT", "TAN", "TANH",
+    "ACOS",
+    "ASIN",
+    "ATAN",
+    "CEIL",
+    "COS",
+    "COSH",
+    "EXP",
+    "FLOOR",
+    "LN",
+    "LOG10",
+    "SIN",
+    "SINH",
+    "SQRT",
+    "TAN",
+    "TANH",
     # Cycle
-    "HT_DCPERIOD", "HT_DCPHASE", "HT_PHASOR", "HT_SINE", "HT_TRENDLINE",
+    "HT_DCPERIOD",
+    "HT_DCPHASE",
+    "HT_PHASOR",
+    "HT_SINE",
+    "HT_TRENDLINE",
     "HT_TRENDMODE",
     # Custom / R-consistent
-    "ZIGZAG", "ALMA", "EVWMA", "ZLEMA", "HMA", "KST", "DonchianChannel",
-    "GMMA", "keltnerChannels", "CMF", "DPO", "EMV", "VHF", "SNR", "SMI",
+    "ZIGZAG",
+    "ALMA",
+    "EVWMA",
+    "ZLEMA",
+    "HMA",
+    "KST",
+    "DonchianChannel",
+    "GMMA",
+    "keltnerChannels",
+    "CMF",
+    "DPO",
+    "EMV",
+    "VHF",
+    "SNR",
+    "SMI",
     # Types
     "MAType",
     # Async namespace
@@ -65,9 +154,11 @@ except ImportError:
 
 # Fix #9: Select implementation at import time — avoids per-call _HAS_PANDAS branch
 if _HAS_PANDAS:
+
     def _is_pandas_series(obj):
         return isinstance(obj, pd.Series)
 else:
+
     def _is_pandas_series(obj):  # type: ignore[misc]
         return False
 
@@ -1001,9 +1092,9 @@ def HMA(inReal, timeperiod=20):
         res = np.full_like(inReal, np.nan, dtype=np.float64)
         if len(diff) <= first_valid:
             return res
-        valid_diff = diff[timeperiod - 1:]
+        valid_diff = diff[timeperiod - 1 :]
         w = WMA(valid_diff, sqrt_n)
-        res[first_valid:] = w[sqrt_n - 1:]
+        res[first_valid:] = w[sqrt_n - 1 :]
         return res
 
 
@@ -1081,7 +1172,7 @@ def EMV(inHigh, inLow, inVolume, timeperiod=9, vol_divisor=10000.0):
     emv = np.where(np.isnan(box_ratio), np.nan, mid_move / box_ratio)
 
     if is_s:
-        with np.errstate(invalid='ignore'):
+        with np.errstate(invalid="ignore"):
             ma_emv = SMA(emv, timeperiod)
         return (
             pd.Series(emv, index=inHigh.index, name="emv"),

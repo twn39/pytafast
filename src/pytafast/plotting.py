@@ -222,14 +222,28 @@ class Chart:
     def add_hline(self, y, color="gray", dash="dash"):
         """Add a horizontal line to the main chart."""
         self.shapes.append(
-            {"type": "line", "y0": y, "y1": y, "color": color, "dash": dash, "axis": "y"}
+            {
+                "type": "line",
+                "y0": y,
+                "y1": y,
+                "color": color,
+                "dash": dash,
+                "axis": "y",
+            }
         )
         return self
 
     def add_vline(self, x, color="gray", dash="dash"):
         """Add a vertical line to the main chart."""
         self.shapes.append(
-            {"type": "line", "x0": x, "x1": x, "color": color, "dash": dash, "axis": "x"}
+            {
+                "type": "line",
+                "x0": x,
+                "x1": x,
+                "color": color,
+                "dash": dash,
+                "axis": "x",
+            }
         )
         return self
 
@@ -398,7 +412,9 @@ class Chart:
         # CLV = ((C-L)-(H-C))/(H-L)
         denom = self.H - self.L
         v = np.where(denom != 0, ((self.C - self.L) - (self.H - self.C)) / denom, 0.0)
-        return self._add_subplot([go.Scatter(x=self.dt, y=v, name="CLV")], "CLV", height)
+        return self._add_subplot(
+            [go.Scatter(x=self.dt, y=v, name="CLV")], "CLV", height
+        )
 
     def add_kst(self, height=0.2):
         k, s = pytafast.KST(self.C)
@@ -565,16 +581,18 @@ class Chart:
             self.add_candlestick()
         n_subplots = len(self.subplots)
         sub_heights = [sp["height"] for sp in self.subplots]
-        
+
         # Calculate total subplot weight
         total_sub_weight = sum(sub_heights)
-        # Ensure main chart is at least 40% of the total height if possible, 
+        # Ensure main chart is at least 40% of the total height if possible,
         # otherwise scale everything down
         main_weight = max(0.4, 1.0 - total_sub_weight - (0.02 * n_subplots))
-        
+
         # Normalize weights to sum to ~1.0
         total_weight = main_weight + total_sub_weight
-        row_heights = [main_weight / total_weight] + [h / total_weight for h in sub_heights]
+        row_heights = [main_weight / total_weight] + [
+            h / total_weight for h in sub_heights
+        ]
 
         fig = make_subplots(
             rows=1 + n_subplots,
