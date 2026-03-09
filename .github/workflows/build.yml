@@ -80,7 +80,7 @@ jobs:
           # Pass CI variable to container
           CIBW_ENVIRONMENT: GITHUB_ACTIONS=true
           # Test configuration using uv
-          CIBW_TEST_REQUIRES: "pytest pytest-cov pandas numpy kaleido"
+          CIBW_TEST_REQUIRES: "pytest pytest-cov pandas numpy kaleido psutil"
           CIBW_TEST_COMMAND: "pytest {project}/tests --ignore={project}/tests/test_benchmark.py"
           # Support latest Python versions in 2026
           CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"

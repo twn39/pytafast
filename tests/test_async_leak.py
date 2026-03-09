@@ -4,8 +4,9 @@ import numpy as np
 import pytafast
 import gc
 import os
-import psutil
 import pytest
+
+psutil = pytest.importorskip("psutil")
 
 def get_process_memory():
     """Returns the current process RSS memory in bytes."""
