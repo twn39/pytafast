@@ -13,13 +13,36 @@ def get_process_memory():
     return process.memory_info().rss
 
 async def run_workload(n_iterations, data):
-    """Executes a mix of technical indicators multiple times."""
+    """Executes a comprehensive mix of indicators to stress memory management."""
+    h, l, c, v = data, data, data, data
     for _ in range(n_iterations):
-        # We use various return types (single array, tuples)
-        await pytafast.aio.SMA(data, timeperiod=14)
-        await pytafast.aio.MACD(data, fastperiod=12, slowperiod=26, signalperiod=9)
-        await pytafast.aio.BBANDS(data, timeperiod=5)
-        await pytafast.aio.STOCH(data, data, data)
+        # 1. Overlap (Single & Tuple)
+        await pytafast.aio.SMA(c, 14)
+        await pytafast.aio.BBANDS(c, 20)
+        await pytafast.aio.SAR(h, l)
+        await pytafast.aio.ALMA(c, 9)
+        
+        # 2. Momentum (Single, Multi-input, complex types)
+        await pytafast.aio.RSI(c, 14)
+        await pytafast.aio.MACD(c, 12, 26, 9)
+        await pytafast.aio.STOCH(h, l, c)
+        await pytafast.aio.ADX(h, l, c, 14)
+        await pytafast.aio.KST(c)
+        await pytafast.aio.SMI(h, l, c)
+        
+        # 3. Volatility & Volume
+        await pytafast.aio.ATR(h, l, c, 14)
+        await pytafast.aio.OBV(c, v)
+        await pytafast.aio.ADOSC(h, l, c, v)
+        
+        # 4. Candlesticks (Standard & Penetration)
+        await pytafast.aio.CDLDOJI(c, h, l, c)
+        await pytafast.aio.CDLENGULFING(c, h, l, c)
+        await pytafast.aio.CDLMORNINGSTAR(c, h, l, c, penetration=0.3)
+        
+        # 5. Math & Others
+        await pytafast.aio.LN(c)
+        await pytafast.aio.ZIGZAG(h, l)
 
 def test_async_memory_leak_final():
     """
