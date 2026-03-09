@@ -44,6 +44,7 @@ class Chart:
 
         self.main_traces = []
         self.subplots = []
+        self.shapes = []  # For shading, lines, etc.
         self.title = "pytafast Analysis"
         self.theme = "plotly_white"
         self._has_main_price = False
@@ -200,6 +201,38 @@ class Chart:
         zz = pytafast.ZIGZAG(self.H, self.L, change, percent)
         return self._add_overlay(zz, "ZigZag", "blue", 2, "dashdot")
 
+    def add_envelope(self, n=20, p=2.5, color="rgba(0, 0, 255, 0.1)"):
+        """Add Moving Average Envelope around SMA."""
+        ma = pytafast.SMA(self.C, n)
+        u = ma * (1 + p / 100)
+        low_val = ma * (1 - p / 100)
+        self._add_overlay(u, "Env Upper", "rgba(0, 0, 255, 0.3)", 1, "dot")
+        self._add_overlay(low_val, "Env Lower", "rgba(0, 0, 255, 0.3)", 1, "dot")
+        self.main_traces[-1].fill = "tonexty"
+        self.main_traces[-1].fillcolor = color
+        return self
+
+    def add_shading(self, start, end, color="rgba(128, 128, 128, 0.2)"):
+        """Highlight a vertical time region (start/end can be dates or indices)."""
+        self.shapes.append(
+            {"type": "rect", "x0": start, "x1": end, "color": color, "axis": "x"}
+        )
+        return self
+
+    def add_hline(self, y, color="gray", dash="dash"):
+        """Add a horizontal line to the main chart."""
+        self.shapes.append(
+            {"type": "line", "y0": y, "y1": y, "color": color, "dash": dash, "axis": "y"}
+        )
+        return self
+
+    def add_vline(self, x, color="gray", dash="dash"):
+        """Add a vertical line to the main chart."""
+        self.shapes.append(
+            {"type": "line", "x0": x, "x1": x, "color": color, "dash": dash, "axis": "x"}
+        )
+        return self
+
     # --- Momentum (Subplots) ---
     def add_rsi(self, n=14, height=0.2):
         v = pytafast.RSI(self.C, n)
@@ -310,6 +343,107 @@ class Chart:
             height,
         )
 
+    def add_obv(self, height=0.15):
+        v = pytafast.OBV(self.C, self.V)
+        return self._add_subplot(
+            [go.Scatter(x=self.dt, y=v, name="OBV", fill="tozeroy")], "OBV", height
+        )
+
+    def add_aroon(self, n=14, height=0.2):
+        dn, up = pytafast.AROON(self.H, self.L, n)
+        return self._add_subplot(
+            [
+                go.Scatter(x=self.dt, y=up, name="Aroon Up", line=dict(color="green")),
+                go.Scatter(x=self.dt, y=dn, name="Aroon Down", line=dict(color="red")),
+            ],
+            "Aroon",
+            height,
+            [0, 100],
+        )
+
+    def add_smi(self, n=13, nFast=2, nSlow=25, nSig=9, height=0.2):
+        smi, signal = pytafast.SMI(self.H, self.L, self.C, n, nFast, nSlow, nSig)
+        return self._add_subplot(
+            [
+                go.Scatter(x=self.dt, y=smi, name="SMI"),
+                go.Scatter(x=self.dt, y=signal, name="Signal", line=dict(dash="dash")),
+            ],
+            "SMI",
+            height,
+            [-100, 100],
+        )
+
+    def add_roc(self, n=10, height=0.2):
+        v = pytafast.ROC(self.C, n)
+        return self._add_subplot(
+            [
+                go.Scatter(x=self.dt, y=v, name=f"ROC({n})"),
+                go.Scatter(
+                    x=self.dt,
+                    y=[0] * len(self.dt),
+                    showlegend=False,
+                    line=dict(color="gray", dash="dot"),
+                ),
+            ],
+            "ROC",
+            height,
+        )
+
+    def add_cmo(self, n=14, height=0.2):
+        v = pytafast.CMO(self.C, n)
+        return self._add_subplot(
+            [
+                go.Scatter(x=self.dt, y=v, name=f"CMO({n})"),
+                go.Scatter(
+                    x=self.dt,
+                    y=[50] * len(self.dt),
+                    showlegend=False,
+                    line=dict(color="red", dash="dash"),
+                ),
+                go.Scatter(
+                    x=self.dt,
+                    y=[-50] * len(self.dt),
+                    showlegend=False,
+                    line=dict(color="green", dash="dash"),
+                ),
+            ],
+            "CMO",
+            height,
+            [-100, 100],
+        )
+
+    def add_emv(self, n=9, height=0.2):
+        v, sv = pytafast.EMV(self.H, self.L, self.V, n)
+        return self._add_subplot(
+            [
+                go.Scatter(x=self.dt, y=v, name="EMV", line=dict(width=1), opacity=0.5),
+                go.Scatter(x=self.dt, y=sv, name=f"Signal({n})", line=dict(width=2)),
+            ],
+            "EMV",
+            height,
+        )
+
+    def add_trix(self, n=30, height=0.2):
+        v = pytafast.TRIX(self.C, n)
+        return self._add_subplot(
+            [go.Scatter(x=self.dt, y=v, name=f"TRIX({n})")], "TRIX", height
+        )
+
+    def add_dpo(self, n=10, height=0.2):
+        v = pytafast.DPO(self.C, n)
+        return self._add_subplot(
+            [
+                go.Bar(
+                    x=self.dt,
+                    y=v,
+                    name=f"DPO({n})",
+                    marker_color=["green" if x >= 0 else "red" for x in v],
+                )
+            ],
+            "DPO",
+            height,
+        )
+
     # --- Volatility (Subplots) ---
     def add_atr(self, n=14, height=0.15):
         return self._add_subplot(
@@ -371,6 +505,35 @@ class Chart:
             fig.update_yaxes(title_text=sp["name"], row=row_num, col=1)
             if sp.get("yrange"):
                 fig.update_yaxes(range=sp["yrange"], row=row_num, col=1)
+
+        # Apply Shapes
+        for s in self.shapes:
+            if s["axis"] == "x":
+                if s["type"] == "rect":
+                    fig.add_vrect(
+                        x0=s["x0"],
+                        x1=s["x1"],
+                        fillcolor=s["color"],
+                        opacity=1.0,
+                        layer="below",
+                        line_width=0,
+                        row=1,
+                        col=1,
+                    )
+                else:  # line
+                    fig.add_vline(
+                        x=s["x0"],
+                        line=dict(color=s["color"], dash=s["dash"]),
+                        row=1,
+                        col=1,
+                    )
+            elif s["axis"] == "y":
+                fig.add_hline(
+                    y=s["y0"],
+                    line=dict(color=s["color"], dash=s["dash"]),
+                    row=1,
+                    col=1,
+                )
 
         fig.update_layout(
             title=self.title,
