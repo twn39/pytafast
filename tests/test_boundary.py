@@ -932,7 +932,7 @@ class TestThreadSafety:
 
         assert not errors, f"Thread errors: {errors}"
         for r in results:
-            np.testing.assert_allclose(r, expected, equal_nan=True)
+            np.testing.assert_allclose(np.array(r), expected, equal_nan=True)
 
     def test_parallel_mixed_functions(self):
         """Different functions can run concurrently without interfering."""
@@ -989,11 +989,12 @@ class TestPublicAPI:
                 missing.append(name)
         assert not missing, f"Names in __all__ missing from module: {missing}"
 
-    def test_matype_enum_values(self):
+    def test_matype_enum_completeness(self):
         """MAType enum should have at least SMA, EMA, WMA, DEMA, TEMA, TRIMA, KAMA, T3."""
-        expected = {"SMA", "EMA", "WMA", "DEMA", "TEMA", "TRIMA", "KAMA", "T3"}
-        actual = {m.name for m in MAType}
-        assert expected.issubset(actual), f"Missing MAType members: {expected - actual}"
+        expected = ["SMA", "EMA", "WMA", "DEMA", "TEMA", "TRIMA", "KAMA", "T3"]
+        for m in expected:
+            assert hasattr(MAType, m), f"Missing MAType member: {m}"
+
 
     def test_version_string(self):
         assert hasattr(pytafast, "__version__")
