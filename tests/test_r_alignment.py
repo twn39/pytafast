@@ -6,8 +6,14 @@ import subprocess
 import os
 import io
 
+# Force skip in CI environments because R/TTR is not installed
+pytestmark = pytest.mark.skipif(
+    os.getenv("GITHUB_ACTIONS") == "true",
+    reason="Skipping R alignment tests in CI environment (R/TTR not available)"
+)
 
 def run_r_ttr(data_path, r_code):
+
     """Run R code and return the resulting CSV as a pandas DataFrame."""
     # Ensure data_path is absolute for R
     abs_data_path = os.path.abspath(data_path)
