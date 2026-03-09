@@ -4,7 +4,9 @@ import pytafast
 
 
 def test_new_indicators():
-    data_path = os.path.join(os.path.dirname(__file__), "..", "data", "berkshire_1y.csv")
+    data_path = os.path.join(
+        os.path.dirname(__file__), "..", "data", "berkshire_1y.csv"
+    )
     df = pd.read_csv(data_path)
     df = df.sort_values("Date")
 
