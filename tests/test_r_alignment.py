@@ -90,8 +90,8 @@ def test_emv_alignment(data_file):
     # Python
     p_emv, p_sig = pytafast.EMV(df["High"].values, df["Low"].values, df["Volume"].values, 9)
     
-    np.testing.assert_allclose(p_emv, r_res["emv"].values, equal_nan=True, atol=1e-5)
-    np.testing.assert_allclose(p_sig, r_res["maEMV"].values, equal_nan=True, atol=1e-5)
+    assert_aligned(p_emv, r_res["emv"].values)
+    assert_aligned(p_sig, r_res["maEMV"].values)
 
 @pytest.mark.parametrize("data_file", ["nasdaq100_2025_now.csv"])
 def test_dpo_alignment(data_file):
@@ -104,7 +104,7 @@ def test_dpo_alignment(data_file):
     # Python
     p_dpo = pytafast.DPO(df["Close"].values, 10)
     
-    np.testing.assert_allclose(p_dpo, r_res["dpo"].values, equal_nan=True, atol=1e-5)
+    assert_aligned(p_dpo, r_res["dpo"].values)
 
 @pytest.mark.parametrize("data_file", ["nasdaq100_2025_now.csv"])
 def test_obv_alignment(data_file):
@@ -117,4 +117,31 @@ def test_obv_alignment(data_file):
     # Python
     p_obv = pytafast.OBV(df["Close"].values, df["Volume"].values)
     
-    np.testing.assert_allclose(p_obv, r_res["obv"].values, equal_nan=True, atol=1e-5)
+    assert_aligned(p_obv, r_res["obv"].values)
+
+@pytest.mark.xfail(reason="CMO in pytafast uses TA-Lib logic (similar to RSI), TTR uses a slightly different scale/smoothing.")
+@pytest.mark.parametrize("data_file", ["nasdaq100_2025_now.csv"])
+def test_cmo_alignment(data_file):
+    data_path = os.path.join("data", data_file)
+    df = pd.read_csv(data_path)
+    
+    # R: TTR::CMO(x, n=14)
+    r_res = run_r_ttr(data_path, "res <- data.frame(cmo=CMO(close, n=14))")
+    
+    # Python
+    p_cmo = pytafast.CMO(df["Close"].values, 14)
+    
+    assert_aligned(p_cmo, r_res["cmo"].values)
+
+@pytest.mark.parametrize("data_file", ["nasdaq100_2025_now.csv"])
+def test_roc_alignment(data_file):
+    data_path = os.path.join("data", data_file)
+    df = pd.read_csv(data_path)
+    
+    # R: TTR::ROC(x, n=10, type="discrete")
+    r_res = run_r_ttr(data_path, 'res <- data.frame(roc=ROC(close, n=10, type="discrete") * 100)')
+    
+    # Python
+    p_roc = pytafast.ROC(df["Close"].values, 10)
+    
+    assert_aligned(p_roc, r_res["roc"].values)
