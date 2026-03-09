@@ -483,14 +483,22 @@ class Chart:
             self.add_candlestick()
         n_subplots = len(self.subplots)
         sub_heights = [sp["height"] for sp in self.subplots]
-        main_height = 1.0 - sum(sub_heights) - (0.03 * n_subplots)
-        row_heights = [max(0.1, main_height)] + sub_heights
+        
+        # Calculate total subplot weight
+        total_sub_weight = sum(sub_heights)
+        # Ensure main chart is at least 40% of the total height if possible, 
+        # otherwise scale everything down
+        main_weight = max(0.4, 1.0 - total_sub_weight - (0.02 * n_subplots))
+        
+        # Normalize weights to sum to ~1.0
+        total_weight = main_weight + total_sub_weight
+        row_heights = [main_weight / total_weight] + [h / total_weight for h in sub_heights]
 
         fig = make_subplots(
             rows=1 + n_subplots,
             cols=1,
             shared_xaxes=True,
-            vertical_spacing=0.03,
+            vertical_spacing=0.02,  # Tighter spacing
             row_heights=row_heights,
         )
 
@@ -510,6 +518,7 @@ class Chart:
         for s in self.shapes:
             if s["axis"] == "x":
                 if s["type"] == "rect":
+                    # Shading typically only on main price chart
                     fig.add_vrect(
                         x0=s["x0"],
                         x1=s["x1"],
@@ -520,14 +529,16 @@ class Chart:
                         row=1,
                         col=1,
                     )
-                else:  # line
-                    fig.add_vline(
-                        x=s["x0"],
-                        line=dict(color=s["color"], dash=s["dash"]),
-                        row=1,
-                        col=1,
-                    )
+                else:  # vline - apply to all rows
+                    for r in range(1, 2 + n_subplots):
+                        fig.add_vline(
+                            x=s["x0"],
+                            line=dict(color=s["color"], dash=s["dash"]),
+                            row=r,
+                            col=1,
+                        )
             elif s["axis"] == "y":
+                # Horizontal line only on main chart
                 fig.add_hline(
                     y=s["y0"],
                     line=dict(color=s["color"], dash=s["dash"]),
