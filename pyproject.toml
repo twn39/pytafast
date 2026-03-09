@@ -76,6 +76,7 @@ dev = [
     "clang-tidy>=21.1.6",
     "pytest>=9.0.2",
     "pytest-cov>=6.0.0",
+    "psutil>=7.0.0",
     "kaleido>=0.2.1",
     "ty>=0.0.21",
 ]

@@ -3,56 +3,83 @@ import tracemalloc
 import numpy as np
 import pytafast
 import gc
+import os
+import psutil
+import pytest
 
+def get_process_memory():
+    """Returns the current process RSS memory in bytes."""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss
 
-def test_high_concurrency_no_leak():
-    asyncio.run(_test_high_concurrency_no_leak())
+async def run_workload(n_iterations, data):
+    """Executes a mix of technical indicators multiple times."""
+    for _ in range(n_iterations):
+        # We use various return types (single array, tuples)
+        await pytafast.aio.SMA(data, timeperiod=14)
+        await pytafast.aio.MACD(data, fastperiod=12, slowperiod=26, signalperiod=9)
+        await pytafast.aio.BBANDS(data, timeperiod=5)
+        await pytafast.aio.STOCH(data, data, data)
 
+def test_async_memory_leak_final():
+    """
+    Final robust memory leak test that:
+    1. Ignores initial memory pool spikes.
+    2. Analyzes steady-state RSS growth (System/C++ level).
+    3. Analyzes Python-level allocation diffs (Python objects).
+    """
+    asyncio.run(_test_async_memory_leak_impl())
 
-async def _test_high_concurrency_no_leak():
+async def _test_async_memory_leak_impl():
+    # Setup data
     np.random.seed(42)
-    in_real = np.random.random(5000) * 100 + 10
-
-    # Pre-warm function to resolve lazy loads (e.g., pandas imports inside wrappers)
-    await pytafast.aio.SMA(in_real, timeperiod=14)
-    await pytafast.aio.MACD(in_real, fastperiod=12, slowperiod=26, signalperiod=9)
-    await pytafast.aio.BBANDS(in_real, timeperiod=5)
-
-    # Setup tracemalloc to watch memory AFTER lazy loading
+    data = np.random.random(20000).astype(np.float64)
+    
+    # 1. Warm up
+    await run_workload(50, data)
+    gc.collect()
+    
+    # 2. Baseline for Python-level tracking
     tracemalloc.start()
-
-    # We will simulate high concurrency by running 1000 tasks concurrently
-    num_tasks = 1000
-
-    # Define an async worker
-    async def worker():
-        # Mix of single output and tuple output indications
-        await pytafast.aio.SMA(in_real, timeperiod=14)
-        await pytafast.aio.MACD(in_real, fastperiod=12, slowperiod=26, signalperiod=9)
-        await pytafast.aio.BBANDS(in_real, timeperiod=5)
-
-    # Take a memory snapshot before
-    gc.collect()
-    snap_before = tracemalloc.take_snapshot()
-
-    # Execute batch concurrency
-    tasks = [worker() for _ in range(num_tasks)]
-    await asyncio.gather(*tasks)
-
-    # Take memory snapshot after
-    gc.collect()
-    snap_after = tracemalloc.take_snapshot()
-
-    # Get top stats (differences)
-    stats = snap_after.compare_to(snap_before, "lineno")
+    snap_start = tracemalloc.take_snapshot()
+    
+    # 3. Iterative Sampling
+    samples = []
+    num_checkpoints = 10
+    batch_size = 100
+    
+    print(f"\n[Memory Steady-State Analysis]")
+    
+    for c in range(num_checkpoints):
+        # Run a batch of iterations
+        tasks = [run_workload(1, data) for _ in range(batch_size)]
+        await asyncio.gather(*tasks)
+        
+        gc.collect()
+        mem = get_process_memory()
+        samples.append(mem)
+        print(f"Checkpoint {c+1}: RSS = {mem / 1024 / 1024:.2f} MB")
+        
+    # 4. Python-level post-measurement
+    snap_end = tracemalloc.take_snapshot()
     tracemalloc.stop()
-
-    # Ignore negligible small allocations (like Python internal runtime diffs).
-    # We specifically want to check if the massive NumPy arrays or capsules are leaking.
-    # We sum the difference in bytes.
-    total_diff_bytes = sum(stat.size_diff for stat in stats)
-
-    # 5MB threshold for safety, usually a real leak of 1000 tasks doing TA-lib arrays would be hundreds of MBs
-    assert total_diff_bytes < 5_000_000, (
-        f"Memory leak detected! Total difference: {total_diff_bytes / 1024 / 1024:.2f} MB"
-    )
+    
+    # 5. Analysis
+    # We ignore the first 5 samples as warming/pool expansion for RSS
+    steady_samples = samples[5:]
+    steady_diffs = [steady_samples[i] - steady_samples[i-1] for i in range(1, len(steady_samples))]
+    avg_steady_growth = np.mean(steady_diffs)
+    
+    # Python diff analysis
+    stats = snap_end.compare_to(snap_start, "lineno")
+    py_diff = sum(stat.size_diff for stat in stats)
+    
+    print(f"Average RSS growth in steady state: {avg_steady_growth / 1024 / 1024:.3f} MB per {batch_size} iterations")
+    print(f"Python-level allocation diff: {py_diff / 1024 / 1024:.3f} MB")
+    
+    # Thresholds
+    # RSS: A real leak of 1000 items would be ~400MB. 5MB per batch is very safe.
+    assert avg_steady_growth < 5 * 1024 * 1024, f"Linear RSS leak detected! Avg growth: {avg_steady_growth / 1024 / 1024:.2f} MB per batch"
+    
+    # Python: Python level growth should be minimal
+    assert py_diff < 2 * 1024 * 1024, f"Python objects leaked: {py_diff / 1024 / 1024:.2f} MB"
