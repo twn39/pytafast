@@ -233,6 +233,60 @@ class Chart:
         )
         return self
 
+    def add_last(self, color="red"):
+        """Add a horizontal line at the last closing price."""
+        last_price = self.C[-1]
+        self.add_hline(last_price, color=color, dash="dash")
+        # Add annotation for the price
+        self.shapes.append(
+            {
+                "type": "text",
+                "x": self.dt.iloc[-1],
+                "y": last_price,
+                "text": f"{last_price:.2f}",
+                "color": color,
+            }
+        )
+        return self
+
+    def add_points(self, x, y, name="Points", color="black", symbol="circle", size=8):
+        """Add custom scatter points to the main chart."""
+        if not isinstance(x, (list, np.ndarray, pd.Series)):
+            x = [x]
+        if not isinstance(y, (list, np.ndarray, pd.Series)):
+            y = [y]
+        self.main_traces.append(
+            go.Scatter(
+                x=x,
+                y=y,
+                mode="markers",
+                name=name,
+                marker=dict(color=color, symbol=symbol, size=size),
+            )
+        )
+        return self
+
+    def add_text(self, x, y, text, color="black", position="top center"):
+        """Add custom text annotations to the main chart."""
+        if not isinstance(x, (list, np.ndarray, pd.Series)):
+            x = [x]
+        if not isinstance(y, (list, np.ndarray, pd.Series)):
+            y = [y]
+        if not isinstance(text, (list, np.ndarray, pd.Series)):
+            text = [text]
+        self.main_traces.append(
+            go.Scatter(
+                x=x,
+                y=y,
+                mode="text",
+                text=text,
+                textposition=position,
+                showlegend=False,
+                textfont=dict(color=color),
+            )
+        )
+        return self
+
     # --- Momentum (Subplots) ---
     def add_rsi(self, n=14, height=0.2):
         v = pytafast.RSI(self.C, n)
@@ -331,6 +385,20 @@ class Chart:
             "CMF",
             height,
         )
+
+    def add_chaikin_osc(self, fast=3, slow=10, height=0.2):
+        v = pytafast.ADOSC(self.H, self.L, self.C, self.V, fast, slow)
+        return self._add_subplot(
+            [go.Scatter(x=self.dt, y=v, name=f"ChaikinOsc({fast},{slow})")],
+            "Chaikin Osc",
+            height,
+        )
+
+    def add_clv(self, height=0.15):
+        # CLV = ((C-L)-(H-C))/(H-L)
+        denom = self.H - self.L
+        v = np.where(denom != 0, ((self.C - self.L) - (self.H - self.C)) / denom, 0.0)
+        return self._add_subplot([go.Scatter(x=self.dt, y=v, name="CLV")], "CLV", height)
 
     def add_kst(self, height=0.2):
         k, s = pytafast.KST(self.C)
@@ -456,6 +524,20 @@ class Chart:
             height,
         )
 
+    def add_volatility(self, n=10, height=0.2):
+        """Chaikin Volatility: percent change in EMA of (High-Low) range."""
+        hl = self.H - self.L
+        ema_hl = pytafast.EMA(hl, n)
+        # (EMA_HL / EMA_HL_prev_n) - 1
+        v = np.full_like(ema_hl, np.nan)
+        if len(ema_hl) > n:
+            v[n:] = (ema_hl[n:] / ema_hl[:-n]) - 1.0
+        return self._add_subplot(
+            [go.Scatter(x=self.dt, y=v * 100, name=f"ChaikinVol({n})")],
+            "Chaikin Vol %",
+            height,
+        )
+
     def add_patterns(self):
         """Automatically find and label all recognized candlestick patterns."""
         patterns = [m for m in dir(pytafast) if m.startswith("CDL")]
@@ -516,6 +598,23 @@ class Chart:
 
         # Apply Shapes
         for s in self.shapes:
+            if s.get("type") == "text":
+                fig.add_annotation(
+                    x=s["x"],
+                    y=s["y"],
+                    text=s["text"],
+                    showarrow=True,
+                    arrowhead=1,
+                    ax=40,
+                    ay=0,
+                    font=dict(color=s["color"], size=12),
+                    bgcolor="white",
+                    bordercolor=s["color"],
+                    row=1,
+                    col=1,
+                )
+                continue
+
             if s["axis"] == "x":
                 if s["type"] == "rect":
                     # Shading typically only on main price chart

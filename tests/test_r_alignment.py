@@ -145,3 +145,34 @@ def test_roc_alignment(data_file):
     p_roc = pytafast.ROC(df["Close"].values, 10)
     
     assert_aligned(p_roc, r_res["roc"].values)
+
+@pytest.mark.parametrize("data_file", ["nasdaq100_2025_now.csv"])
+def test_clv_alignment(data_file):
+    data_path = os.path.join("data", data_file)
+    df = pd.read_csv(data_path)
+    
+    # R: TTR::CLV(HLC)
+    r_res = run_r_ttr(data_path, "res <- data.frame(clv=CLV(cbind(high, low, close)))")
+    
+    # Python (manually calculated in plotting.py, let's test that logic)
+    denom = df["High"].values - df["Low"].values
+    p_clv = np.where(denom != 0, ((df["Close"].values - df["Low"].values) - (df["High"].values - df["Close"].values)) / denom, 0.0)
+    
+    assert_aligned(p_clv, r_res["clv"].values)
+
+@pytest.mark.parametrize("data_file", ["nasdaq100_2025_now.csv"])
+def test_chaikin_vol_alignment(data_file):
+    data_path = os.path.join("data", data_file)
+    df = pd.read_csv(data_path)
+    
+    # R: TTR::chaikinVolatility(HL, n=10)
+    r_res = run_r_ttr(data_path, "res <- data.frame(chv=chaikinVolatility(cbind(high, low), n=10) * 100)")
+    
+    # Python (plotting.py logic)
+    hl = df["High"].values - df["Low"].values
+    ema_hl = pytafast.EMA(hl, 10)
+    p_chv = np.full_like(ema_hl, np.nan)
+    if len(ema_hl) > 10:
+        p_chv[10:] = ((ema_hl[10:] / ema_hl[:-10]) - 1.0) * 100
+    
+    assert_aligned(p_chv, r_res["chv"].values)
