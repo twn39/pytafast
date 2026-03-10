@@ -118,5 +118,31 @@ kst_r <- KST(C)
 results$KST_kst <- as.numeric(kst_r[, "kst"])
 results$KST_signal <- as.numeric(kst_r[, "signal"])
 
+# --- New Indicators ---
+# ADX and DI
+adx_res <- ADX(cbind(H, L, C), n = 14)
+results$ADX <- as.numeric(adx_res[, "ADX"])
+results$PLUS_DI <- as.numeric(adx_res[, "DIp"])
+results$MINUS_DI <- as.numeric(adx_res[, "DIn"])
+
+# Ichimoku
+n1 <- 9; n2 <- 26; n3 <- 52
+results$Tenkan <- (runMax(H, n1) + runMin(L, n1)) / 2
+results$Kijun <- (runMax(H, n2) + runMin(L, n2)) / 2
+# Spans are shifted forward in plotting, so we just check the base values here
+results$SenkouA <- (results$Tenkan + results$Kijun) / 2
+results$SenkouB <- (runMax(H, n3) + runMin(L, n3)) / 2
+
+# TDI (Traders Dynamic Index)
+# RSI(13), Price Line = SMA(RSI, 2), Signal Line = SMA(RSI, 7)
+# BB(RSI, 34, 1.6185), Market Base Line = SMA(RSI, 34)
+tdi_rsi <- as.numeric(RSI(C, n = 13, maType = "EMA", wilder = TRUE))
+results$TDI_price <- as.numeric(SMA(tdi_rsi, 2))
+results$TDI_signal <- as.numeric(SMA(tdi_rsi, 7))
+tdi_bb <- BBands(tdi_rsi, n = 34, sd = 1.6185, maType = "SMA")
+results$TDI_mbl <- as.numeric(tdi_bb[, "mavg"])
+results$TDI_ub <- as.numeric(tdi_bb[, "up"])
+results$TDI_lb <- as.numeric(tdi_bb[, "dn"])
+
 write.csv(results, "r_all_results.csv", row.names = FALSE)
 print("R results exported.")

@@ -197,6 +197,66 @@ class Chart:
         self.main_traces[-1].fillcolor = "rgba(200,200,200,0.05)"
         return self
 
+    def add_ichimoku(self, n1=9, n2=26, n3=52):
+        """Add Ichimoku Kinko Hyo (Cloud) to the main chart."""
+        # Tenkan-sen (9-period high + 9-period low) / 2
+        t_high = pytafast.MAX(self.H, n1)
+        t_low = pytafast.MIN(self.L, n1)
+        tenkan = (t_high + t_low) / 2
+
+        # Kijun-sen (26-period high + 26-period low) / 2
+        k_high = pytafast.MAX(self.H, n2)
+        k_low = pytafast.MIN(self.L, n2)
+        kijun = (k_high + k_low) / 2
+
+        # Senkou Span A (Leading Span A): (Tenkan + Kijun) / 2, shifted forward n2 periods
+        ssa = (tenkan + kijun) / 2
+        # Senkou Span B (Leading Span B): (52-period high + 52-period low) / 2, shifted forward n2 periods
+        b_high = pytafast.MAX(self.H, n3)
+        b_low = pytafast.MIN(self.L, n3)
+        ssb = (b_high + b_low) / 2
+
+        # Shift forward
+        dt_shifted = pd.to_datetime(self.dt)
+        # Calculate time delta
+        delta = dt_shifted.diff().median()
+        # Create future index
+        future_dt = [dt_shifted.iloc[-1] + (i * delta) for i in range(1, n2 + 1)]
+        all_dt = pd.concat([self.dt, pd.Series(future_dt)])
+
+        # Create padded series for spans
+        ssa_padded = np.full(len(all_dt), np.nan)
+        ssb_padded = np.full(len(all_dt), np.nan)
+        ssa_padded[n2 : n2 + len(ssa)] = ssa
+        ssb_padded[n2 : n2 + len(ssb)] = ssb
+
+        # Plots
+        self._add_overlay(tenkan, "Tenkan", "blue", 1)
+        self._add_overlay(kijun, "Kijun", "red", 1)
+
+        # Plot Spans (only on the extended timeframe if needed, or truncated)
+        # Note: plotly handles X-axis expansion if we provide new X values
+        self.main_traces.append(
+            go.Scatter(
+                x=all_dt,
+                y=ssa_padded,
+                name="Senkou Span A",
+                line=dict(color="rgba(0, 255, 0, 0.3)", width=1),
+            )
+        )
+        self.main_traces.append(
+            go.Scatter(
+                x=all_dt,
+                y=ssb_padded,
+                name="Senkou Span B",
+                line=dict(color="rgba(255, 0, 0, 0.3)", width=1),
+                fill="tonexty",
+                fillcolor="rgba(144, 238, 144, 0.1)",
+            )
+        )
+
+        return self
+
     def add_zigzag(self, change=5.0, percent=True):
         zz = pytafast.ZIGZAG(self.H, self.L, change, percent)
         return self._add_overlay(zz, "ZigZag", "blue", 2, "dashdot")
@@ -373,6 +433,27 @@ class Chart:
             height,
         )
 
+    def add_adx(self, n=14, height=0.2):
+        adx = pytafast.ADX(self.H, self.L, self.C, n)
+        pdi = pytafast.PLUS_DI(self.H, self.L, self.C, n)
+        mdi = pytafast.MINUS_DI(self.H, self.L, self.C, n)
+        traces = [
+            go.Scatter(x=self.dt, y=adx, name=f"ADX({n})", line=dict(color="black")),
+            go.Scatter(
+                x=self.dt, y=pdi, name=f"+DI({n})", line=dict(color="green", dash="dot")
+            ),
+            go.Scatter(
+                x=self.dt, y=mdi, name=f"-DI({n})", line=dict(color="red", dash="dot")
+            ),
+        ]
+        return self._add_subplot(traces, "ADX", height)
+
+    def add_momentum(self, n=10, height=0.2):
+        v = pytafast.MOM(self.C, n)
+        return self._add_subplot(
+            [go.Scatter(x=self.dt, y=v, name=f"Mom({n})")], "Momentum", height
+        )
+
     def add_mfi(self, n=14, height=0.2):
         return self._add_subplot(
             [
@@ -415,6 +496,51 @@ class Chart:
         return self._add_subplot(
             [go.Scatter(x=self.dt, y=v, name="CLV")], "CLV", height
         )
+
+    def add_tdi(self, n=13, rsi_ma1=2, rsi_ma2=7, bb_n=34, bb_sd=1.6185, height=0.25):
+        """Traders Dynamic Index (TDI)."""
+        rsi = pytafast.RSI(self.C, n)
+        rsi_price_line = pytafast.SMA(rsi, rsi_ma1)
+        trade_signal_line = pytafast.SMA(rsi, rsi_ma2)
+
+        # Volatility Band around RSI
+        u, m, low_val = pytafast.BBANDS(rsi, bb_n, bb_sd, bb_sd)
+
+        traces = [
+            go.Scatter(
+                x=self.dt,
+                y=rsi_price_line,
+                name="RSI Price Line",
+                line=dict(color="green", width=1.5),
+            ),
+            go.Scatter(
+                x=self.dt,
+                y=trade_signal_line,
+                name="Trade Signal",
+                line=dict(color="red", width=1.5),
+            ),
+            go.Scatter(
+                x=self.dt,
+                y=m,
+                name="Market Base Line",
+                line=dict(color="orange", width=2),
+            ),
+            go.Scatter(
+                x=self.dt,
+                y=u,
+                name="VB Upper",
+                line=dict(color="rgba(0,0,255,0.2)", width=1),
+            ),
+            go.Scatter(
+                x=self.dt,
+                y=low_val,
+                name="VB Lower",
+                line=dict(color="rgba(0,0,255,0.2)", width=1),
+                fill="tonexty",
+                fillcolor="rgba(0,0,255,0.05)",
+            ),
+        ]
+        return self._add_subplot(traces, "TDI", height)
 
     def add_kst(self, height=0.2):
         k, s = pytafast.KST(self.C)

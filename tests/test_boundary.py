@@ -28,37 +28,6 @@ import pytafast
 from pytafast import MAType
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
-@pytest.fixture
-def prices():
-    """100 synthetic price bars."""
-    rng = np.random.default_rng(42)
-    close = 100.0 + np.cumsum(rng.normal(0, 1, 100))
-    high = close + rng.uniform(0.1, 2.0, 100)
-    low = close - rng.uniform(0.1, 2.0, 100)
-    open_ = close - rng.uniform(-1, 1, 100)
-    volume = rng.uniform(1e5, 1e7, 100)
-    return open_, high, low, close, volume
-
-
-@pytest.fixture
-def prices_pd(prices):
-    """Same as prices but as pandas Series with a date index."""
-    idx = pd.date_range("2024-01-01", periods=100, freq="D")
-    o, h, low_val, c, v = prices
-    return (
-        pd.Series(o, index=idx, name="Open"),
-        pd.Series(h, index=idx, name="High"),
-        pd.Series(low_val, index=idx, name="Low"),
-        pd.Series(c, index=idx, name="Close"),
-        pd.Series(v, index=idx, name="Volume"),
-    )
-
-
 # ===========================================================================
 # A. Empty arrays
 # ===========================================================================

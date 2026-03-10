@@ -5,42 +5,6 @@ import pytafast
 import os
 
 
-# Data loading fixture
-@pytest.fixture(
-    params=[
-        "samsung_3m.csv",
-        "icbc_2025.csv",
-        "nasdaq100_2025_now.csv",
-        "sk_hynix_1y.csv",
-        "berkshire_1y.csv",
-    ]
-)
-def stock_data(request):
-    data_path = os.path.join(os.path.dirname(__file__), "..", "data", request.param)
-    df = pd.read_csv(data_path)
-
-    # Standardize column names to lowercase for easier access
-    df.columns = [c.lower() for c in df.columns]
-
-    # Map common column names if they differ
-    mapping = {
-        "日期": "date",
-        "开盘": "open",
-        "最高": "high",
-        "最低": "low",
-        "收盘": "close",
-        "成交量": "volume",
-    }
-    df = df.rename(columns=mapping)
-
-    # Ensure numeric types
-    for col in ["open", "high", "low", "close", "volume"]:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors="coerce")
-
-    return df
-
-
 def get_talib():
     return pytest.importorskip("talib")
 
@@ -299,7 +263,3 @@ def test_all_functions_real_data(stock_data, func_name):
         compare_helper(stock_data, func_name, **kwargs)
     except AttributeError:
         pytest.skip(f"Function {func_name} not implemented in pytafast yet")
-    except Exception as e:
-        # Some functions might fail due to data length or other specific reasons
-        # but we want to know if there's a real mismatch
-        raise e

@@ -1,186 +1,152 @@
+import pytest
 import numpy as np
-import talib
 import pytafast
 import pandas as pd
 from concurrent.futures import ThreadPoolExecutor
 
-# ======================== Setup Data ========================================
+try:
+    import talib
+except ImportError:
+    pytest.skip("talib not available", allow_module_level=True)
 
-# Use a realistic data size (e.g., 5000 points)
-N = 5000
-np.random.seed(42)
-_close = np.random.random(N)
-_high = _close + np.random.random(N) * 0.05
-_low = _close - np.random.random(N) * 0.05
-_open = _low + np.random.random(N) * (_high - _low)
-_volume = np.random.random(N) * 1000000
+# ======================== Benchmarks ===================================
 
-# Pandas variants
-_close_pd = pd.Series(_close)
-_high_pd = pd.Series(_high)
-_low_pd = pd.Series(_low)
-_open_pd = pd.Series(_open)
-_volume_pd = pd.Series(_volume)
+OVERLAP_FUNCS = ["SMA", "EMA", "WMA", "DEMA", "TEMA", "TRIMA", "KAMA", "MIDPOINT"]
 
-# ======================== Factory Helpers ===================================
+@pytest.mark.parametrize("name", OVERLAP_FUNCS)
+def test_benchmark_overlap_pytafast(benchmark, name, benchmark_data):
+    func = getattr(pytafast, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"], timeperiod=30)
 
-
-def _make_single_benchmarks(name, **kwargs):
-    """Generates numpy vs talib benchmarks for a single-input indicator."""
-    p_func = getattr(pytafast, name)
-    t_func = getattr(talib, name)
-
-    def p_np(benchmark):
-        benchmark.group = name
-        benchmark(p_func, _close, **kwargs)
-
-    def t_numpy(benchmark):
-        benchmark.group = name
-        benchmark(t_func, _close, **kwargs)
-
-    return p_np, t_numpy
+@pytest.mark.parametrize("name", OVERLAP_FUNCS)
+def test_benchmark_overlap_talib(benchmark, name, benchmark_data):
+    func = getattr(talib, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"], timeperiod=30)
 
 
-def _make_ohlc_benchmarks(name, **kwargs):
-    """Generates benchmarks for OHLC indicators."""
-    p_func = getattr(pytafast, name)
-    t_func = getattr(talib, name)
+MOMENTUM_FUNCS = ["RSI", "MOM", "ROC", "ROCP", "ROCR", "ROCR100", "TRIX"]
 
-    def p_np(benchmark):
-        benchmark.group = name
-        benchmark(p_func, _open, _high, _low, _close, **kwargs)
+@pytest.mark.parametrize("name", MOMENTUM_FUNCS)
+def test_benchmark_momentum_pytafast(benchmark, name, benchmark_data):
+    func = getattr(pytafast, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"], timeperiod=14)
 
-    def t_numpy(benchmark):
-        benchmark.group = name
-        benchmark(t_func, _open, _high, _low, _close, **kwargs)
-
-    return p_np, t_numpy
-
-
-# ======================== Overlap Studies ===================================
-
-for name in ["SMA", "EMA", "WMA", "DEMA", "TEMA", "TRIMA", "KAMA", "MIDPOINT"]:
-    p_np, t_numpy = _make_single_benchmarks(name, timeperiod=30)
-    globals()[f"test_benchmark_pytafast_{name.lower()}_numpy"] = p_np
-    globals()[f"test_benchmark_talib_{name.lower()}_numpy"] = t_numpy
-
-# ======================== Momentum Indicators ===============================
-
-for name in ["RSI", "MOM", "ROC", "ROCP", "ROCR", "ROCR100", "TRIX"]:
-    p_np, t_numpy = _make_single_benchmarks(name, timeperiod=14)
-    globals()[f"test_benchmark_pytafast_{name.lower()}_numpy"] = p_np
-    globals()[f"test_benchmark_talib_{name.lower()}_numpy"] = t_numpy
+@pytest.mark.parametrize("name", MOMENTUM_FUNCS)
+def test_benchmark_momentum_talib(benchmark, name, benchmark_data):
+    func = getattr(talib, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"], timeperiod=14)
 
 
-def test_benchmark_pytafast_macd_numpy(benchmark):
+def test_benchmark_pytafast_macd_numpy(benchmark, benchmark_data):
     benchmark.group = "MACD"
-    benchmark(pytafast.MACD, _close)
+    benchmark(pytafast.MACD, benchmark_data["close"])
 
-
-def test_benchmark_talib_macd_numpy(benchmark):
+def test_benchmark_talib_macd_numpy(benchmark, benchmark_data):
     benchmark.group = "MACD"
-    benchmark(talib.MACD, _close)
+    benchmark(talib.MACD, benchmark_data["close"])
 
-
-# ======================== Volatility ========================================
-
-
-def test_benchmark_pytafast_atr_numpy(benchmark):
+def test_benchmark_pytafast_atr_numpy(benchmark, benchmark_data):
     benchmark.group = "ATR"
-    benchmark(pytafast.ATR, _high, _low, _close, timeperiod=14)
+    benchmark(pytafast.ATR, benchmark_data["high"], benchmark_data["low"], benchmark_data["close"], timeperiod=14)
 
-
-def test_benchmark_talib_atr_numpy(benchmark):
+def test_benchmark_talib_atr_numpy(benchmark, benchmark_data):
     benchmark.group = "ATR"
-    benchmark(talib.ATR, _high, _low, _close, timeperiod=14)
+    benchmark(talib.ATR, benchmark_data["high"], benchmark_data["low"], benchmark_data["close"], timeperiod=14)
 
-
-# ======================== Volume ============================================
-
-
-def test_benchmark_pytafast_obv_numpy(benchmark):
+def test_benchmark_pytafast_obv_numpy(benchmark, benchmark_data):
     benchmark.group = "OBV"
-    benchmark(pytafast.OBV, _close, _volume)
+    benchmark(pytafast.OBV, benchmark_data["close"], benchmark_data["volume"])
 
-
-def test_benchmark_talib_obv_numpy(benchmark):
+def test_benchmark_talib_obv_numpy(benchmark, benchmark_data):
     benchmark.group = "OBV"
-    benchmark(talib.OBV, _close, _volume)
+    benchmark(talib.OBV, benchmark_data["close"], benchmark_data["volume"])
+
+STAT_FUNCS = ["LINEARREG", "LINEARREG_SLOPE", "TSF"]
+
+@pytest.mark.parametrize("name", STAT_FUNCS)
+def test_benchmark_stat_pytafast(benchmark, name, benchmark_data):
+    func = getattr(pytafast, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"], timeperiod=14)
+
+@pytest.mark.parametrize("name", STAT_FUNCS)
+def test_benchmark_stat_talib(benchmark, name, benchmark_data):
+    func = getattr(talib, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"], timeperiod=14)
 
 
-# ======================== Statistics ========================================
+MATH_FUNCS = ["SIN", "COS", "TAN", "SQRT", "LN", "LOG10"]
 
-for name in ["LINEARREG", "LINEARREG_SLOPE", "TSF"]:
-    p_np, t_numpy = _make_single_benchmarks(name, timeperiod=14)
-    globals()[f"test_benchmark_pytafast_{name.lower()}_numpy"] = p_np
-    globals()[f"test_benchmark_talib_{name.lower()}_numpy"] = t_numpy
+@pytest.mark.parametrize("name", MATH_FUNCS)
+def test_benchmark_math_pytafast(benchmark, name, benchmark_data):
+    func = getattr(pytafast, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"])
 
-# ======================== Math Transforms ===================================
+@pytest.mark.parametrize("name", MATH_FUNCS)
+def test_benchmark_math_talib(benchmark, name, benchmark_data):
+    func = getattr(talib, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["close"])
 
-for name in ["SIN", "COS", "TAN", "SQRT", "LN", "LOG10"]:
-    p_np, t_numpy = _make_single_benchmarks(name)
-    globals()[f"test_benchmark_pytafast_{name.lower()}_numpy"] = p_np
-    globals()[f"test_benchmark_talib_{name.lower()}_numpy"] = t_numpy
-
-
-def test_benchmark_pytafast_ht_phasor_numpy(benchmark):
+def test_benchmark_pytafast_ht_phasor_numpy(benchmark, benchmark_data):
     benchmark.group = "HT_PHASOR"
-    benchmark(pytafast.HT_PHASOR, _close)
+    benchmark(pytafast.HT_PHASOR, benchmark_data["close"])
 
-
-def test_benchmark_talib_ht_phasor_numpy(benchmark):
+def test_benchmark_talib_ht_phasor_numpy(benchmark, benchmark_data):
     benchmark.group = "HT_PHASOR"
-    benchmark(talib.HT_PHASOR, _close)
+    benchmark(talib.HT_PHASOR, benchmark_data["close"])
 
+CDL_FUNCS = ["CDLENGULFING", "CDLDOJI", "CDLHAMMER", "CDLHARAMI", "CDLMARUBOZU"]
 
-# ======================== Candlestick Patterns =============================
+@pytest.mark.parametrize("name", CDL_FUNCS)
+def test_benchmark_cdl_pytafast(benchmark, name, benchmark_data):
+    func = getattr(pytafast, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["open"], benchmark_data["high"], benchmark_data["low"], benchmark_data["close"])
 
-for name in ["CDLENGULFING", "CDLDOJI", "CDLHAMMER", "CDLHARAMI", "CDLMARUBOZU"]:
-    p_np, t_numpy = _make_ohlc_benchmarks(name)
-    globals()[f"test_benchmark_pytafast_{name.lower()}_numpy"] = p_np
-    globals()[f"test_benchmark_talib_{name.lower()}_numpy"] = t_numpy
+@pytest.mark.parametrize("name", CDL_FUNCS)
+def test_benchmark_cdl_talib(benchmark, name, benchmark_data):
+    func = getattr(talib, name)
+    benchmark.group = name
+    benchmark(func, benchmark_data["open"], benchmark_data["high"], benchmark_data["low"], benchmark_data["close"])
 
 # ======================== Concurrency Benchmarks ===========================
-# Benchmarking multi-threaded performance (GIL release effectiveness)
 
 CONCURRENT_TASKS = 100
 MAX_WORKERS = 4
 
-
 def _run_concurrent(func, *args, **kwargs):
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-        futures = [
-            executor.submit(func, *args, **kwargs) for _ in range(CONCURRENT_TASKS)
-        ]
+        futures = [executor.submit(func, *args, **kwargs) for _ in range(CONCURRENT_TASKS)]
         for f in futures:
             f.result()
 
-
-def test_benchmark_pytafast_concurrency_sma(benchmark):
+def test_benchmark_pytafast_concurrency_sma(benchmark, benchmark_data):
     benchmark.group = "Concurrency_SMA"
-    benchmark(_run_concurrent, pytafast.SMA, _close, timeperiod=30)
+    benchmark(_run_concurrent, pytafast.SMA, benchmark_data["close"], timeperiod=30)
 
-
-def test_benchmark_talib_concurrency_sma(benchmark):
+def test_benchmark_talib_concurrency_sma(benchmark, benchmark_data):
     benchmark.group = "Concurrency_SMA"
-    benchmark(_run_concurrent, talib.SMA, _close, timeperiod=30)
+    benchmark(_run_concurrent, talib.SMA, benchmark_data["close"], timeperiod=30)
 
-
-def test_benchmark_pytafast_concurrency_rsi(benchmark):
+def test_benchmark_pytafast_concurrency_rsi(benchmark, benchmark_data):
     benchmark.group = "Concurrency_RSI"
-    benchmark(_run_concurrent, pytafast.RSI, _close, timeperiod=14)
+    benchmark(_run_concurrent, pytafast.RSI, benchmark_data["close"], timeperiod=14)
 
-
-def test_benchmark_talib_concurrency_rsi(benchmark):
+def test_benchmark_talib_concurrency_rsi(benchmark, benchmark_data):
     benchmark.group = "Concurrency_RSI"
-    benchmark(_run_concurrent, talib.RSI, _close, timeperiod=14)
+    benchmark(_run_concurrent, talib.RSI, benchmark_data["close"], timeperiod=14)
 
-
-def test_benchmark_pytafast_concurrency_macd(benchmark):
+def test_benchmark_pytafast_concurrency_macd(benchmark, benchmark_data):
     benchmark.group = "Concurrency_MACD"
-    benchmark(_run_concurrent, pytafast.MACD, _close)
+    benchmark(_run_concurrent, pytafast.MACD, benchmark_data["close"])
 
-
-def test_benchmark_talib_concurrency_macd(benchmark):
+def test_benchmark_talib_concurrency_macd(benchmark, benchmark_data):
     benchmark.group = "Concurrency_MACD"
-    benchmark(_run_concurrent, talib.MACD, _close)
+    benchmark(_run_concurrent, talib.MACD, benchmark_data["close"])
