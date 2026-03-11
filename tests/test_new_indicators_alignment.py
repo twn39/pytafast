@@ -4,31 +4,33 @@ import pytest
 import pandas as pd
 import numpy as np
 import pytafast
+import shutil
+
+# Check if Rscript is available
+HAS_RSCRIPT = shutil.which("Rscript") is not None
 
 # List all CSV files in data directory
 DATA_FILES = [
     os.path.join("data", f) for f in os.listdir("data") 
-    if f.endswith(".csv")
+    if f.endswith(".csv") and "r_all_results" not in f
 ]
 
 @pytest.fixture(scope="function")
 def reference_data(request):
     """Run R script for a specific data file to generate reference values."""
+    if not HAS_RSCRIPT:
+        pytest.skip("Rscript not found in PATH, skipping R alignment tests.")
+        
     data_file = request.param
     if not os.path.exists(data_file):
         pytest.skip(f"Data file not found: {data_file}")
     
     # Set environment variable for R script
     os.environ["DATA_FILE"] = data_file
-    # Output to a file unique to the dataset to avoid race conditions if needed, 
-    # but here we'll just use a standard name per run.
-    output_csv = "r_results_tmp.csv"
-    subprocess.run(["Rscript", "scripts/compute_all_r.R"], check=True, env={**os.environ, "OUTPUT_FILE": output_csv})
+    subprocess.run(["Rscript", "scripts/compute_all_r.R"], check=True)
     
-    # We need to make sure R script respects OUTPUT_FILE. 
-    # For now, let's assume it writes to r_all_results.csv as per current script.
-    # I'll update the R script next to be more flexible.
-    r_results = pd.read_csv("r_all_results.csv")
+    # The R script now saves to data/r_all_results.csv
+    r_results = pd.read_csv("data/r_all_results.csv")
     input_data = pd.read_csv(data_file)
     return input_data, r_results
 
