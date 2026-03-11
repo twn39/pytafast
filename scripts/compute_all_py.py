@@ -188,6 +188,23 @@ results['SMI_signal'] = smi_sig
 results['VHF'] = pytafast.VHF(C)
 results['SNR'] = pytafast.SNR(H, L, C)
 
+# --- New Plotting Indicators (Validation) ---
+# Ichimoku
+n1, n2, n3 = 9, 26, 52
+results['Tenkan'] = (pytafast.MAX(H, n1) + pytafast.MIN(L, n1)) / 2
+results['Kijun'] = (pytafast.MAX(H, n2) + pytafast.MIN(L, n2)) / 2
+results['SenkouA'] = (results['Tenkan'] + results['Kijun']) / 2
+results['SenkouB'] = (pytafast.MAX(H, n3) + pytafast.MIN(L, n3)) / 2
+
+# TDI
+tdi_rsi = pytafast.RSI(C, 13)
+results['TDI_price'] = pytafast.SMA(tdi_rsi, 2)
+results['TDI_signal'] = pytafast.SMA(tdi_rsi, 7)
+u, m, l = pytafast.BBANDS(tdi_rsi, 34, 1.6185, 1.6185)
+results['TDI_mbl'] = m
+results['TDI_ub'] = u
+results['TDI_lb'] = l
+
 # Legacy ones already there: Donchian, ZigZag, GMMA, KST
 # DonchianChannel
 u, m, l = pytafast.DonchianChannel(H, L, timeperiod=10)

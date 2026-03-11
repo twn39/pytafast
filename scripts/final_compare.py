@@ -3,7 +3,7 @@ import numpy as np
 
 # Load
 py_res = pd.read_csv("py_all_results.csv")
-r_res = pd.read_csv("r_all_results.csv")
+r_res = pd.read_csv("data/r_all_results.csv")
 
 py_res['Date'] = pd.to_datetime(py_res['Date'])
 r_res['Date'] = pd.to_datetime(r_res['Date'])

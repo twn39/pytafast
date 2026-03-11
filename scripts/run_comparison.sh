@@ -21,4 +21,4 @@ echo -e "\n--- 3. Final Comparison Report ---"
 uv run python scripts/final_compare.py
 
 echo -e "\n--- 4. Cleaning up temporary data ---"
-rm py_all_results.csv r_all_results.csv
+rm py_all_results.csv data/r_all_results.csv
