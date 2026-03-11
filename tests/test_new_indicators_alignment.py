@@ -9,11 +9,18 @@ import shutil
 # Check if Rscript is available
 HAS_RSCRIPT = shutil.which("Rscript") is not None
 
-# List all CSV files in data directory
-DATA_FILES = [
-    os.path.join("data", f) for f in os.listdir("data") 
-    if f.endswith(".csv") and "r_all_results" not in f
-]
+# Use absolute paths relative to this test file to avoid FileNotFoundError in CI
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+if os.path.exists(DATA_DIR):
+    # List all CSV files in data directory
+    DATA_FILES = [
+        os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) 
+        if f.endswith(".csv") and "r_all_results" not in f
+    ]
+else:
+    DATA_FILES = []
 
 @pytest.fixture(scope="function")
 def reference_data(request):
@@ -27,10 +34,13 @@ def reference_data(request):
     
     # Set environment variable for R script
     os.environ["DATA_FILE"] = data_file
-    subprocess.run(["Rscript", "scripts/compute_all_r.R"], check=True)
+    # Run R script from project root
+    subprocess.run(["Rscript", os.path.join(BASE_DIR, "scripts/compute_all_r.R")], 
+                   check=True, cwd=BASE_DIR)
     
     # The R script now saves to data/r_all_results.csv
-    r_results = pd.read_csv("data/r_all_results.csv")
+    r_results_path = os.path.join(DATA_DIR, "r_all_results.csv")
+    r_results = pd.read_csv(r_results_path)
     input_data = pd.read_csv(data_file)
     return input_data, r_results
 
