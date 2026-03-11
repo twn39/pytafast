@@ -1,9 +1,12 @@
 import pandas as pd
 import numpy as np
 
+import os
+
 # Load
 py_res = pd.read_csv("py_all_results.csv")
-r_res = pd.read_csv("data/r_all_results.csv")
+r_file = os.getenv("R_FILE", "temp_r_results.csv")
+r_res = pd.read_csv(r_file)
 
 py_res['Date'] = pd.to_datetime(py_res['Date'])
 r_res['Date'] = pd.to_datetime(r_res['Date'])

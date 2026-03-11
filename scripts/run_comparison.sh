@@ -13,12 +13,12 @@ echo "--- 1. Computing Python results ---"
 uv run python scripts/compute_all_py.py
 
 echo -e "\n--- 2. Computing R results ---"
-Rscript scripts/compute_all_r.R
+OUTPUT_FILE="temp_r_results.csv" Rscript scripts/compute_all_r.R
 
 echo -e "\n--- 3. Final Comparison Report ---"
 # Move results to current dir temporarily for final_compare.py if it expects them locally
 # Or just run final_compare.py which reads them from current dir
-uv run python scripts/final_compare.py
+R_FILE="temp_r_results.csv" uv run python scripts/final_compare.py
 
 echo -e "\n--- 4. Cleaning up temporary data ---"
-rm py_all_results.csv data/r_all_results.csv
+rm py_all_results.csv temp_r_results.csv

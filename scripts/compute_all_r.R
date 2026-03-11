@@ -144,5 +144,8 @@ results$TDI_mbl <- as.numeric(tdi_bb[, "mavg"])
 results$TDI_ub <- as.numeric(tdi_bb[, "up"])
 results$TDI_lb <- as.numeric(tdi_bb[, "dn"])
 
-write.csv(results, "data/r_all_results.csv", row.names = FALSE)
-print("R results exported to data/r_all_results.csv")
+# Output configuration
+output_file <- Sys.getenv("OUTPUT_FILE", unset = "data/r_all_results.csv")
+
+write.csv(results, output_file, row.names = FALSE)
+print(paste("R results exported to", output_file))
