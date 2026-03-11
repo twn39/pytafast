@@ -24,7 +24,11 @@ A high-performance Python wrapper for [TA-Lib](https://ta-lib.org/) and [R TTR](
 - 🐼 **Pandas Native** — Seamless support for both `numpy.ndarray` and `pandas.Series` (preserves index).
 - ⚡ **Async Support** — All functions available as async via `pytafast.aio`.
 - 🔒 **GSL Powered Safety** — Uses Microsoft GSL (`gsl::span`) to prevent buffer overflows in C++.
-- 📦 **Drop-in Replacement** — Same API as [ta-lib-python](https://github.com/TA-Lib/ta-lib-python).
+- 📦 **Drop-in Replacement** — Same API as [ta-lib-python](https://github.com/TA-Lib-python).
+
+### Plotting Preview
+
+![pytafast Preview](docs/readme_chart.png)
 
 ## Installation
 

@@ -26,6 +26,10 @@
 - 🔒 **GSL 安全保障** — 引入 Microsoft GSL (`gsl::span`) 确保 C++ 层的内存访问安全，杜绝缓冲区溢出。
 - 📦 **零成本迁移** — 保持与 [ta-lib-python](https://github.com/TA-Lib/ta-lib-python) 相同的 API 设计。
 
+### 绘图预览
+
+![pytafast Preview](docs/readme_chart.png)
+
 ## 安装
 
 ```bash
