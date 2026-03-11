@@ -6,8 +6,22 @@ import numpy as np
 import pytafast
 import shutil
 
-# Check if Rscript is available
-HAS_RSCRIPT = shutil.which("Rscript") is not None
+# Check if Rscript is available and has required packages
+def check_r_env():
+    if shutil.which("Rscript") is None:
+        return False
+    try:
+        # Try to load required libraries
+        result = subprocess.run(
+            ["Rscript", "-e", "library(TTR); library(quantmod)"],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+HAS_R_ENV = check_r_env()
 
 # Use absolute paths relative to this test file to avoid FileNotFoundError in CI
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -25,8 +39,8 @@ else:
 @pytest.fixture(scope="function")
 def reference_data(request):
     """Run R script for a specific data file to generate reference values."""
-    if not HAS_RSCRIPT:
-        pytest.skip("Rscript not found in PATH, skipping R alignment tests.")
+    if not HAS_R_ENV:
+        pytest.skip("R environment or required packages (TTR, quantmod) not found.")
         
     data_file = request.param
     if not os.path.exists(data_file):
