@@ -1,62 +1,15 @@
-import os
-import subprocess
 import pytest
-import pandas as pd
 import numpy as np
+import pandas as pd
 import pytafast
-import shutil
+import os
 
-# Check if Rscript is available and has required packages
-def check_r_env():
-    if shutil.which("Rscript") is None:
-        return False
-    try:
-        # Try to load required libraries
-        result = subprocess.run(
-            ["Rscript", "-e", "library(TTR); library(quantmod)"],
-            capture_output=True,
-            text=True
-        )
-        return result.returncode == 0
-    except Exception:
-        return False
-
-HAS_R_ENV = check_r_env()
-
-# Use absolute paths relative to this test file to avoid FileNotFoundError in CI
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DATA_DIR = os.path.join(BASE_DIR, "data")
-
-if os.path.exists(DATA_DIR):
-    # List all CSV files in data directory
-    DATA_FILES = [
-        os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) 
-        if f.endswith(".csv") and "r_all_results" not in f
-    ]
-else:
-    DATA_FILES = []
-
-@pytest.fixture(scope="function")
-def reference_data(request):
-    """Run R script for a specific data file to generate reference values."""
-    if not HAS_R_ENV:
-        pytest.skip("R environment or required packages (TTR, quantmod) not found.")
-        
-    data_file = request.param
-    if not os.path.exists(data_file):
-        pytest.skip(f"Data file not found: {data_file}")
-    
-    # Set environment variable for R script
-    os.environ["DATA_FILE"] = data_file
-    # Run R script from project root
-    subprocess.run(["Rscript", os.path.join(BASE_DIR, "scripts/compute_all_r.R")], 
-                   check=True, cwd=BASE_DIR)
-    
-    # The R script now saves to data/r_all_results.csv
-    r_results_path = os.path.join(DATA_DIR, "r_all_results.csv")
-    r_results = pd.read_csv(r_results_path)
-    input_data = pd.read_csv(data_file)
-    return input_data, r_results
+DATA_FILES = [
+    os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) 
+    if f.endswith(".csv") and "r_all_results" not in f and "expected" not in f and "benchmark" not in f
+] if os.path.exists(DATA_DIR) else []
 
 @pytest.mark.parametrize("reference_data", DATA_FILES, indirect=True)
 def test_adx_alignment(reference_data):

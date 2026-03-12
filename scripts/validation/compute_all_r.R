@@ -93,12 +93,17 @@ results$Keltner_dn <- as.numeric(kc[, "dn"])
 # Oscillators
 results$CMF <- as.numeric(CMF(cbind(H, L, C), V))
 results$DPO <- as.numeric(DPO(C))
+results$CMO <- as.numeric(CMO(C, n=14))
 emv_r <- EMV(cbind(H, L), V)
 results$EMV_emv <- as.numeric(emv_r[, "emv"])
 results$EMV_ma <- as.numeric(emv_r[, "maEMV"])
 smi_r <- SMI(cbind(H, L, C))
 results$SMI_smi <- as.numeric(smi_r[, "SMI"])
 results$SMI_signal <- as.numeric(smi_r[, "signal"])
+
+# CLV and CHV
+results$CLV <- as.numeric(CLV(cbind(H, L, C)))
+results$CHV <- as.numeric(chaikinVolatility(cbind(H, L), n=10) * 100)
 
 # Special
 results$VHF <- as.numeric(VHF(C))

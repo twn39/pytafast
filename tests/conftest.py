@@ -2,6 +2,38 @@ import os
 import pytest
 import numpy as np
 import pandas as pd
+import subprocess
+import shutil
+
+# Check if Rscript is available and has required packages
+def check_r_env():
+    if shutil.which("Rscript") is None:
+        return False
+    try:
+        # Try to load required libraries
+        result = subprocess.run(
+            ["Rscript", "-e", "library(TTR); library(quantmod)"],
+            capture_output=True,
+            text=True
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+HAS_R_ENV = check_r_env()
+
+# Use absolute paths relative to this test file to avoid FileNotFoundError in CI
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+if os.path.exists(DATA_DIR):
+    # List all CSV files in data directory
+    DATA_FILES = [
+        os.path.join(DATA_DIR, f) for f in os.listdir(DATA_DIR) 
+        if f.endswith(".csv") and "r_all_results" not in f
+    ]
+else:
+    DATA_FILES = []
 
 @pytest.fixture
 def prices():
@@ -105,15 +137,27 @@ def stock_data(stock_data_context):
     return stock_data_context[1]
 
 
-@pytest.fixture(
-    params=[
-        "nasdaq100_2025_now.csv",
-    ]
-)
-def r_stock_data_context(request):
-    data_path = os.path.join(os.path.dirname(__file__), "..", "data", request.param)
-    df = pd.read_csv(data_path)
-
+@pytest.fixture(scope="function")
+def reference_data(request):
+    """Run R script for a specific data file to generate reference values."""
+    if not HAS_R_ENV:
+        pytest.skip("R environment or required packages (TTR, quantmod) not found.")
+        
+    data_file = request.param
+    if not os.path.exists(data_file):
+        pytest.skip(f"Data file not found: {data_file}")
+    
+    # Set environment variable for R script
+    os.environ["DATA_FILE"] = data_file
+    # Run R script from project root
+    subprocess.run(["Rscript", os.path.join(BASE_DIR, "scripts", "validation", "compute_all_r.R")], 
+                   check=True, cwd=BASE_DIR)
+    
+    # The R script now saves to data/r_all_results.csv
+    r_results_path = os.path.join(DATA_DIR, "r_all_results.csv")
+    r_results = pd.read_csv(r_results_path)
+    
+    df = pd.read_csv(data_file)
     df.columns = [c.lower() for c in df.columns]
 
     mapping = {
@@ -130,4 +174,7 @@ def r_stock_data_context(request):
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
-    return data_path, df
+    # Change column names back to Title case for downstream test compatibility
+    df = df.rename(columns={"open": "Open", "high": "High", "low": "Low", "close": "Close", "volume": "Volume", "date": "Date"})
+
+    return df, r_results
