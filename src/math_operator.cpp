@@ -10,6 +10,9 @@ DoubleArrayOUT add(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   }
   size_t size = inReal0.shape(0);
   int lookback = TA_ADD_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ADD: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -32,6 +35,9 @@ DoubleArrayOUT sub(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   }
   size_t size = inReal0.shape(0);
   int lookback = TA_SUB_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_SUB: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -54,6 +60,9 @@ DoubleArrayOUT mult(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   }
   size_t size = inReal0.shape(0);
   int lookback = TA_MULT_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_MULT: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -76,6 +85,9 @@ DoubleArrayOUT ta_div(DoubleArrayIN inReal0, DoubleArrayIN inReal1) {
   }
   size_t size = inReal0.shape(0);
   int lookback = TA_DIV_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_DIV: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;

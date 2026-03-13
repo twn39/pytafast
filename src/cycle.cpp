@@ -11,6 +11,10 @@ DoubleArrayOUT ht_dcperiod(DoubleArrayIN inReal) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_DCPERIOD_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_HT_DCPERIOD: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -33,6 +37,10 @@ DoubleArrayOUT ht_dcphase(DoubleArrayIN inReal) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_DCPHASE_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_HT_DCPHASE: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -56,17 +64,24 @@ nb::tuple ht_phasor(DoubleArrayIN inReal) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_PHASOR_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_HT_PHASOR: Invalid parameter (lookback < 0)");
+  }
   auto [outInPhase, ownerIP] = alloc_output(size, lookback);
   auto [outQuadrature, ownerQ] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_HT_PHASOR(
-        0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx, &outNBElement,
-        outInPhase.get() + lookback, outQuadrature.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode =
+          TA_HT_PHASOR(0, gsl::narrow<int>(size - 1), inReal.data(), &outBegIdx,
+                       &outNBElement, outInPhase.get() + lookback,
+                       outQuadrature.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_HT_PHASOR");
   }
-  check_ta_retcode(retCode, "TA_HT_PHASOR");
   return nb::make_tuple(DoubleArrayOUT(outInPhase.get(), {size}, ownerIP),
                         DoubleArrayOUT(outQuadrature.get(), {size}, ownerQ));
 }
@@ -81,17 +96,22 @@ nb::tuple ht_sine(DoubleArrayIN inReal) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_SINE_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_HT_SINE: Invalid parameter (lookback < 0)");
+  }
   auto [outSine, ownerS] = alloc_output(size, lookback);
   auto [outLeadSine, ownerL] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_HT_SINE(0, gsl::narrow<int>(size - 1), inReal.data(),
-                         &outBegIdx, &outNBElement, outSine.get() + lookback,
-                         outLeadSine.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_HT_SINE(0, gsl::narrow<int>(size - 1), inReal.data(),
+                           &outBegIdx, &outNBElement, outSine.get() + lookback,
+                           outLeadSine.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_HT_SINE");
   }
-  check_ta_retcode(retCode, "TA_HT_SINE");
   return nb::make_tuple(DoubleArrayOUT(outSine.get(), {size}, ownerS),
                         DoubleArrayOUT(outLeadSine.get(), {size}, ownerL));
 }
@@ -105,6 +125,10 @@ DoubleArrayOUT ht_trendline(DoubleArrayIN inReal) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_HT_TRENDLINE_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_HT_TRENDLINE: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -127,7 +151,10 @@ nb::ndarray<int, nb::numpy, nb::ndim<1>> ht_trendmode(DoubleArrayIN inReal) {
   if (inReal.size() == 0) return IntArrayOUT(nullptr, {0}, nb::handle());
   size_t size = inReal.shape(0);
   int lookback = TA_HT_TRENDMODE_Lookback();
-
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_HT_TRENDMODE: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_int_output(size, lookback);
 
   int outBegIdx = 0, outNBElement = 0;

@@ -9,6 +9,9 @@ DoubleArrayOUT rsi(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_RSI_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_RSI: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -37,16 +40,18 @@ nb::tuple macd(DoubleArrayIN inReal, int optInFastPeriod = 12,
   auto [outMACD, ownerM] = alloc_output(size, lookback);
   auto [outSignal, ownerS] = alloc_output(size, lookback);
   auto [outHist, ownerH] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MACD(0, gsl::narrow<int>(size - 1), inReal.data(),
-                      optInFastPeriod, optInSlowPeriod, optInSignalPeriod,
-                      &outBegIdx, &outNBElement, outMACD.get() + lookback,
-                      outSignal.get() + lookback, outHist.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_MACD(0, gsl::narrow<int>(size - 1), inReal.data(),
+                        optInFastPeriod, optInSlowPeriod, optInSignalPeriod,
+                        &outBegIdx, &outNBElement, outMACD.get() + lookback,
+                        outSignal.get() + lookback, outHist.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_MACD");
   }
-  check_ta_retcode(retCode, "TA_MACD");
   return nb::make_tuple(DoubleArrayOUT(outMACD.get(), {size}, ownerM),
                         DoubleArrayOUT(outSignal.get(), {size}, ownerS),
                         DoubleArrayOUT(outHist.get(), {size}, ownerH));
@@ -68,6 +73,9 @@ nb::tuple macdext(DoubleArrayIN inReal, int optInFastPeriod = 12,
       optInFastPeriod, static_cast<TA_MAType>(optInFastMAType), optInSlowPeriod,
       static_cast<TA_MAType>(optInSlowMAType), optInSignalPeriod,
       static_cast<TA_MAType>(optInSignalMAType));
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_MACDEXT: Invalid parameter (lookback < 0)");
+  }
   auto [outMACD, ownerM] = alloc_output(size, lookback);
   auto [outSignal, ownerS] = alloc_output(size, lookback);
   auto [outHist, ownerH] = alloc_output(size, lookback);
@@ -99,19 +107,24 @@ nb::tuple macdfix(DoubleArrayIN inReal, int optInSignalPeriod = 9) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_MACDFIX_Lookback(optInSignalPeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_MACDFIX: Invalid parameter (lookback < 0)");
+  }
   auto [outMACD, ownerM] = alloc_output(size, lookback);
   auto [outSignal, ownerS] = alloc_output(size, lookback);
   auto [outHist, ownerH] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MACDFIX(0, gsl::narrow<int>(size - 1), inReal.data(),
-                         optInSignalPeriod, &outBegIdx, &outNBElement,
-                         outMACD.get() + lookback, outSignal.get() + lookback,
-                         outHist.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_MACDFIX(0, gsl::narrow<int>(size - 1), inReal.data(),
+                           optInSignalPeriod, &outBegIdx, &outNBElement,
+                           outMACD.get() + lookback, outSignal.get() + lookback,
+                           outHist.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_MACDFIX");
   }
-  check_ta_retcode(retCode, "TA_MACDFIX");
   return nb::make_tuple(DoubleArrayOUT(outMACD.get(), {size}, ownerM),
                         DoubleArrayOUT(outSignal.get(), {size}, ownerS),
                         DoubleArrayOUT(outHist.get(), {size}, ownerH));
@@ -134,20 +147,25 @@ nb::tuple stoch(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                                    static_cast<TA_MAType>(optInSlowK_MAType),
                                    optInSlowD_Period,
                                    static_cast<TA_MAType>(optInSlowD_MAType));
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_STOCH: Invalid parameter (lookback < 0)");
+  }
   auto [outSlowK, ownerK] = alloc_output(size, lookback);
   auto [outSlowD, ownerD] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_STOCH(
-        0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-        inClose.data(), optInFastK_Period, optInSlowK_Period,
-        static_cast<TA_MAType>(optInSlowK_MAType), optInSlowD_Period,
-        static_cast<TA_MAType>(optInSlowD_MAType), &outBegIdx, &outNBElement,
-        outSlowK.get() + lookback, outSlowD.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_STOCH(
+          0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+          inClose.data(), optInFastK_Period, optInSlowK_Period,
+          static_cast<TA_MAType>(optInSlowK_MAType), optInSlowD_Period,
+          static_cast<TA_MAType>(optInSlowD_MAType), &outBegIdx, &outNBElement,
+          outSlowK.get() + lookback, outSlowD.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_STOCH");
   }
-  check_ta_retcode(retCode, "TA_STOCH");
   return nb::make_tuple(DoubleArrayOUT(outSlowK.get(), {size}, ownerK),
                         DoubleArrayOUT(outSlowD.get(), {size}, ownerD));
 }
@@ -166,19 +184,24 @@ nb::tuple stochf(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   size_t size = inHigh.shape(0);
   int lookback = TA_STOCHF_Lookback(optInFastK_Period, optInFastD_Period,
                                     static_cast<TA_MAType>(optInFastD_MAType));
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_STOCHF: Invalid parameter (lookback < 0)");
+  }
   auto [outFastK, ownerK] = alloc_output(size, lookback);
   auto [outFastD, ownerD] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_STOCHF(
-        0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-        inClose.data(), optInFastK_Period, optInFastD_Period,
-        static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx, &outNBElement,
-        outFastK.get() + lookback, outFastD.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_STOCHF(
+          0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+          inClose.data(), optInFastK_Period, optInFastD_Period,
+          static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx, &outNBElement,
+          outFastK.get() + lookback, outFastD.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_STOCHF");
   }
-  check_ta_retcode(retCode, "TA_STOCHF");
   return nb::make_tuple(DoubleArrayOUT(outFastK.get(), {size}, ownerK),
                         DoubleArrayOUT(outFastD.get(), {size}, ownerD));
 }
@@ -197,19 +220,25 @@ nb::tuple stochrsi(DoubleArrayIN inReal, int optInTimePeriod = 14,
   int lookback = TA_STOCHRSI_Lookback(
       optInTimePeriod, optInFastK_Period, optInFastD_Period,
       static_cast<TA_MAType>(optInFastD_MAType));
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_STOCHRSI: Invalid parameter (lookback < 0)");
+  }
   auto [outFastK, ownerK] = alloc_output(size, lookback);
   auto [outFastD, ownerD] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_STOCHRSI(0, gsl::narrow<int>(size - 1), inReal.data(),
-                          optInTimePeriod, optInFastK_Period, optInFastD_Period,
-                          static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx,
-                          &outNBElement, outFastK.get() + lookback,
-                          outFastD.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_STOCHRSI(
+          0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
+          optInFastK_Period, optInFastD_Period,
+          static_cast<TA_MAType>(optInFastD_MAType), &outBegIdx, &outNBElement,
+          outFastK.get() + lookback, outFastD.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_STOCHRSI");
   }
-  check_ta_retcode(retCode, "TA_STOCHRSI");
   return nb::make_tuple(DoubleArrayOUT(outFastK.get(), {size}, ownerK),
                         DoubleArrayOUT(outFastD.get(), {size}, ownerD));
 }
@@ -223,6 +252,9 @@ DoubleArrayOUT roc(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_ROC_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ROC: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -245,6 +277,9 @@ DoubleArrayOUT rocp(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_ROCP_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ROCP: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -267,6 +302,9 @@ DoubleArrayOUT rocr(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_ROCR_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ROCR: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -289,16 +327,21 @@ DoubleArrayOUT rocr100(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_ROCR100_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_ROCR100(0, gsl::narrow<int>(size - 1), inReal.data(),
-                         optInTimePeriod, &outBegIdx, &outNBElement,
-                         outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ROCR100: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_ROCR100");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_ROCR100(0, gsl::narrow<int>(size - 1), inReal.data(),
+                           optInTimePeriod, &outBegIdx, &outNBElement,
+                           outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_ROCR100");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -311,6 +354,9 @@ DoubleArrayOUT mom(DoubleArrayIN inReal, int optInTimePeriod = 10) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_MOM_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_MOM: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -333,6 +379,9 @@ DoubleArrayOUT cmo(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_CMO_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_CMO: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -357,6 +406,9 @@ DoubleArrayOUT apo(DoubleArrayIN inReal, int optInFastPeriod = 12,
   size_t size = inReal.shape(0);
   int lookback = TA_APO_Lookback(optInFastPeriod, optInSlowPeriod,
                                  static_cast<TA_MAType>(optInMAType));
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_APO: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -382,6 +434,9 @@ DoubleArrayOUT ppo(DoubleArrayIN inReal, int optInFastPeriod = 12,
   size_t size = inReal.shape(0);
   int lookback = TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod,
                                  static_cast<TA_MAType>(optInMAType));
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_PPO: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -405,6 +460,9 @@ DoubleArrayOUT trix(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   }
   size_t size = inReal.shape(0);
   int lookback = TA_TRIX_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_TRIX: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
   int outBegIdx = 0, outNBElement = 0;
   TA_RetCode retCode;
@@ -430,17 +488,23 @@ nb::tuple aroon(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("AROON", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_AROON_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_AROON: Invalid parameter (lookback < 0)");
+  }
   auto [outDown, ownerD] = alloc_output(size, lookback);
   auto [outUp, ownerU] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_AROON(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                       inLow.data(), optInTimePeriod, &outBegIdx, &outNBElement,
-                       outDown.get() + lookback, outUp.get() + lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode =
+          TA_AROON(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                   optInTimePeriod, &outBegIdx, &outNBElement,
+                   outDown.get() + lookback, outUp.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_AROON");
   }
-  check_ta_retcode(retCode, "TA_AROON");
   return nb::make_tuple(DoubleArrayOUT(outDown.get(), {size}, ownerD),
                         DoubleArrayOUT(outUp.get(), {size}, ownerU));
 }
@@ -456,16 +520,22 @@ DoubleArrayOUT aroonosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("AROONOSC", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_AROONOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                          inLow.data(), optInTimePeriod, &outBegIdx,
-                          &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_AROONOSC: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_AROONOSC");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_AROONOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                            inLow.data(), optInTimePeriod, &outBegIdx,
+                            &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_AROONOSC");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -480,16 +550,21 @@ DoubleArrayOUT adx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("ADX", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_ADX_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_ADX(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                     inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
-                     outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ADX: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_ADX");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_ADX(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                       inLow.data(), inClose.data(), optInTimePeriod,
+                       &outBegIdx, &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_ADX");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -504,16 +579,21 @@ DoubleArrayOUT adxr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("ADXR", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_ADXR_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_ADXR(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                      inLow.data(), inClose.data(), optInTimePeriod, &outBegIdx,
-                      &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ADXR: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_ADXR");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_ADXR(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                        inLow.data(), inClose.data(), optInTimePeriod,
+                        &outBegIdx, &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_ADXR");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -528,16 +608,21 @@ DoubleArrayOUT dx(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("DX", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_DX_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_DX(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                    inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
-                    outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_DX: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_DX");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_DX(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                      inLow.data(), inClose.data(), optInTimePeriod, &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_DX");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -553,16 +638,23 @@ DoubleArrayOUT minus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                 {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MINUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                          inLow.data(), inClose.data(), optInTimePeriod,
-                          &outBegIdx, &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_MINUS_DI: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_MINUS_DI");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode =
+          TA_MINUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                      inLow.data(), inClose.data(), optInTimePeriod, &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_MINUS_DI");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -577,16 +669,22 @@ DoubleArrayOUT minus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("MINUS_DM", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MINUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                          inLow.data(), optInTimePeriod, &outBegIdx,
-                          &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument(
+        "TA_MINUS_DM: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_MINUS_DM");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_MINUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                            inLow.data(), optInTimePeriod, &outBegIdx,
+                            &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_MINUS_DM");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -601,16 +699,21 @@ DoubleArrayOUT plus_di(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("PLUS_DI", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_PLUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                         inLow.data(), inClose.data(), optInTimePeriod,
-                         &outBegIdx, &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_PLUS_DI: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_PLUS_DI");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_PLUS_DI(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                           inLow.data(), inClose.data(), optInTimePeriod,
+                           &outBegIdx, &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_PLUS_DI");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -625,16 +728,21 @@ DoubleArrayOUT plus_dm(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("PLUS_DM", inHigh.shape(0), {inLow.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_PLUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                         inLow.data(), optInTimePeriod, &outBegIdx,
-                         &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_PLUS_DM: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_PLUS_DM");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_PLUS_DM(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                           inLow.data(), optInTimePeriod, &outBegIdx,
+                           &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_PLUS_DM");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -649,16 +757,21 @@ DoubleArrayOUT willr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("WILLR", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_WILLR_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_WILLR(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                       inLow.data(), inClose.data(), optInTimePeriod,
-                       &outBegIdx, &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_WILLR: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_WILLR");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_WILLR(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                         inLow.data(), inClose.data(), optInTimePeriod,
+                         &outBegIdx, &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_WILLR");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -675,16 +788,22 @@ DoubleArrayOUT mfi(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                 {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_MFI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MFI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                     inClose.data(), inVolume.data(), optInTimePeriod,
-                     &outBegIdx, &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_MFI: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_MFI");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode =
+          TA_MFI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
+                 inClose.data(), inVolume.data(), optInTimePeriod, &outBegIdx,
+                 &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_MFI");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -699,16 +818,21 @@ DoubleArrayOUT cci(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("CCI", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_CCI_Lookback(optInTimePeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_CCI(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                     inClose.data(), optInTimePeriod, &outBegIdx, &outNBElement,
-                     outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_CCI: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_CCI");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_CCI(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                       inLow.data(), inClose.data(), optInTimePeriod,
+                       &outBegIdx, &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_CCI");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -751,15 +875,20 @@ DoubleArrayOUT bop(DoubleArrayIN inOpen, DoubleArrayIN inHigh,
                 {inHigh.shape(0), inLow.shape(0), inClose.shape(0)});
   size_t size = inOpen.shape(0);
   int lookback = TA_BOP_Lookback();
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_BOP(0, gsl::narrow<int>(size - 1), inOpen.data(),
-                     inHigh.data(), inLow.data(), inClose.data(), &outBegIdx,
-                     &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_BOP: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_BOP");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_BOP(0, gsl::narrow<int>(size - 1), inOpen.data(),
+                       inHigh.data(), inLow.data(), inClose.data(), &outBegIdx,
+                       &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_BOP");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }

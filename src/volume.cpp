@@ -12,6 +12,9 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
 
   size_t size = inReal.shape(0);
   int lookback = TA_OBV_Lookback();
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_OBV: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
@@ -43,16 +46,21 @@ DoubleArrayOUT ad(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                 {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_AD_Lookback();
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_AD(0, gsl::narrow<int>(size - 1), inHigh.data(), inLow.data(),
-                    inClose.data(), inVolume.data(), &outBegIdx, &outNBElement,
-                    outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_AD: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_AD");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_AD(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                      inLow.data(), inClose.data(), inVolume.data(), &outBegIdx,
+                      &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_AD");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -70,16 +78,21 @@ DoubleArrayOUT adosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                 {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   size_t size = inHigh.shape(0);
   int lookback = TA_ADOSC_Lookback(optInFastPeriod, optInSlowPeriod);
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_ADOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                       inLow.data(), inClose.data(), inVolume.data(),
-                       optInFastPeriod, optInSlowPeriod, &outBegIdx,
-                       &outNBElement, outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ADOSC: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_ADOSC");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_ADOSC(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                         inLow.data(), inClose.data(), inVolume.data(),
+                         optInFastPeriod, optInSlowPeriod, &outBegIdx,
+                         &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_ADOSC");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }

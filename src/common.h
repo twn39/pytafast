@@ -2,6 +2,7 @@
 
 #include <gsl/gsl>
 #include <limits>
+#include <memory>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <stdexcept>
@@ -34,16 +35,17 @@ struct AllocResult {
 };
 
 inline AllocResult alloc_output(size_t size, int lookback) {
-  auto *data = new double[size];
-  nb::capsule owner(data, [](void *p) noexcept { delete[] (double *)p; });
+  std::unique_ptr<double[]> data(new double[size]);
+  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] (double *)p; });
 
   // Only fill the lookback prefix with NaN; TA-Lib writes all remaining
   // elements.
   if (lookback > 0 && size > 0) {
-    std::fill(data, data + std::min(static_cast<size_t>(lookback), size), NaN);
+    std::fill(data.get(),
+              data.get() + std::min(static_cast<size_t>(lookback), size), NaN);
   }
 
-  return {gsl::make_not_null(data), std::move(owner)};
+  return {gsl::make_not_null(data.release()), std::move(owner)};
 }
 
 struct AllocIntResult {
@@ -55,9 +57,9 @@ inline AllocIntResult alloc_int_output(size_t size, int /*lookback*/) {
   // Value-initialize (zero-fill) the entire array via new int[size]().
   // This is correct for both the NaN-prefix region and the TA-Lib output
   // region.
-  auto *data = new int[size]();
-  nb::capsule owner(data, [](void *p) noexcept { delete[] (int *)p; });
-  return {gsl::make_not_null(data), std::move(owner)};
+  std::unique_ptr<int[]> data(new int[size]());
+  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] (int *)p; });
+  return {gsl::make_not_null(data.release()), std::move(owner)};
 }
 
 // Helper: validate that all array sizes in the list equal `expected`.

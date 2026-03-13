@@ -14,6 +14,9 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 
   size_t size = inHigh.shape(0);
   int lookback = TA_ATR_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_ATR: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
@@ -44,6 +47,9 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 
   size_t size = inHigh.shape(0);
   int lookback = TA_NATR_Lookback(optInTimePeriod);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_NATR: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
@@ -73,16 +79,21 @@ DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     throw std::runtime_error("Input lengths must match");
   size_t size = inHigh.shape(0);
   int lookback = TA_TRANGE_Lookback();
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_TRANGE(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                        inLow.data(), inClose.data(), &outBegIdx, &outNBElement,
-                        outData.get() + lookback);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_TRANGE: Invalid parameter (lookback < 0)");
   }
-  check_ta_retcode(retCode, "TA_TRANGE");
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = TA_TRANGE(0, gsl::narrow<int>(size - 1), inHigh.data(),
+                          inLow.data(), inClose.data(), &outBegIdx,
+                          &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, "TA_TRANGE");
+  }
   return DoubleArrayOUT(outData.get(), {size}, owner);
 }
 
@@ -97,6 +108,9 @@ DoubleArrayOUT stddev(DoubleArrayIN inReal, int optInTimePeriod = 5,
 
   size_t size = inReal.shape(0);
   int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);
+  if (lookback < 0) {
+    throw std::invalid_argument("TA_STDDEV: Invalid parameter (lookback < 0)");
+  }
   auto [outData, owner] = alloc_output(size, lookback);
 
   int outBegIdx = 0;
