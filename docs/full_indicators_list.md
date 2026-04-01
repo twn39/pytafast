@@ -1,4 +1,4 @@
-## Detailed Indicators Reference
+# Detailed Indicators Reference
 
 > **Note:** All indicators support both `numpy.ndarray` and `pandas.Series` as input. When a Series is provided, metadata (index and name) is preserved.
 

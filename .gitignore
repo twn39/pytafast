@@ -18,3 +18,5 @@ compile_commands.json
 .ruff_cache
 .cache
 .cache/
+docs/_build/
+docs/_build/
