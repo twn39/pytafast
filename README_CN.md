@@ -8,6 +8,7 @@
 [![License](https://img.shields.io/pypi/l/pytafast)](https://github.com/twn39/pytafast/blob/main/LICENSE)
 [![Downloads](https://img.shields.io/pypi/dm/pytafast)](https://pypi.org/project/pytafast/)
 [![CI](https://img.shields.io/github/actions/workflow/status/twn39/pytafast/build.yml?label=CI)](https://github.com/twn39/pytafast/actions)
+[![Docs](https://img.shields.io/github/actions/workflow/status/twn39/pytafast/docs.yml?label=Docs)](https://twn39.github.io/pytafast/)
 [![GitHub Stars](https://img.shields.io/github/stars/twn39/pytafast?style=flat)](https://github.com/twn39/pytafast)
 
 [English](README.md) | 中文
