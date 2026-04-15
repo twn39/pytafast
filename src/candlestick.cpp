@@ -12,7 +12,7 @@ using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
     if (inOpen.shape(0) != inHigh.shape(0) ||                                  \
         inOpen.shape(0) != inLow.shape(0) ||                                   \
         inOpen.shape(0) != inClose.shape(0))                                   \
-      throw std::runtime_error("Input lengths must match");                    \
+      throw std::invalid_argument("Input lengths must match");                    \
     size_t size = inOpen.shape(0);                                             \
     int lookback = TA_FUNC##_Lookback();                                       \
     auto [outData, owner] = alloc_int_output(size, lookback);                  \
@@ -37,7 +37,7 @@ using IntArrayOUT = nb::ndarray<int, nb::numpy, nb::ndim<1>>;
     if (inOpen.shape(0) != inHigh.shape(0) ||                                  \
         inOpen.shape(0) != inLow.shape(0) ||                                   \
         inOpen.shape(0) != inClose.shape(0))                                   \
-      throw std::runtime_error("Input lengths must match");                    \
+      throw std::invalid_argument("Input lengths must match");                    \
     size_t size = inOpen.shape(0);                                             \
     int lookback = TA_FUNC##_Lookback(optInPenetration);                       \
     auto [outData, owner] = alloc_int_output(size, lookback);                  \

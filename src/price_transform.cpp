@@ -25,7 +25,7 @@ DoubleArrayOUT medprice(DoubleArrayIN inHigh, DoubleArrayIN inLow) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
   return apply_ta_func(inHigh.shape(0), TA_MEDPRICE_Lookback(), "TA_MEDPRICE",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
       return TA_MEDPRICE(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(), inLow.data(),
@@ -42,7 +42,7 @@ DoubleArrayOUT typprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
   return apply_ta_func(inHigh.shape(0), TA_TYPPRICE_Lookback(), "TA_TYPPRICE",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
       return TA_TYPPRICE(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),
@@ -59,7 +59,7 @@ DoubleArrayOUT wclprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
   return apply_ta_func(inHigh.shape(0), TA_WCLPRICE_Lookback(), "TA_WCLPRICE",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
       return TA_WCLPRICE(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),
@@ -76,7 +76,7 @@ DoubleArrayOUT midprice(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
   return apply_ta_func(inHigh.shape(0), TA_MIDPRICE_Lookback(optInTimePeriod), "TA_MIDPRICE",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
       return TA_MIDPRICE(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),

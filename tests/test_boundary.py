@@ -3,7 +3,7 @@ test_boundary.py — Comprehensive boundary and edge-case tests for pytafast.
 
 Coverage areas:
   A. Empty arrays (all single- and multi-input functions)
-  B. Input array length mismatch (should raise RuntimeError)
+  B. Input array length mismatch (should raise ValueError)
   C. Minimal data (length == 1, length == lookback, length == lookback-1)
   D. NaN prefix correctness (output[0..lookback-1] are all NaN)
   E. Output length always equals input length
@@ -104,100 +104,100 @@ class TestEmptyArrays:
 
 
 # ===========================================================================
-# B. Input length mismatch → RuntimeError
+# B. Input length mismatch → ValueError
 # ===========================================================================
 
 
 class TestLengthMismatch:
-    """Multi-input functions must raise RuntimeError when lengths differ."""
+    """Multi-input functions must raise ValueError when lengths differ."""
 
     def _short(self, n=50):
         return np.ones(n, dtype=np.float64) * 10.0
 
     def test_sar_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.SAR(self._short(50), self._short(51))
 
     def test_atr_mismatch_close(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.ATR(self._short(100), self._short(100), self._short(99))
 
     def test_adx_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.ADX(self._short(100), self._short(99), self._short(100))
 
     def test_stoch_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.STOCH(self._short(100), self._short(100), self._short(98))
 
     def test_aroon_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.AROON(self._short(100), self._short(50))
 
     def test_cci_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.CCI(self._short(100), self._short(100), self._short(80))
 
     def test_willr_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.WILLR(self._short(100), self._short(100), self._short(90))
 
     def test_mfi_mismatch_volume(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.MFI(
                 self._short(50), self._short(50), self._short(50), self._short(40)
             )
 
     def test_bop_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.BOP(
                 self._short(100), self._short(100), self._short(100), self._short(99)
             )
 
     def test_obv_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.OBV(self._short(100), self._short(99))
 
     def test_ad_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.AD(
                 self._short(100), self._short(100), self._short(100), self._short(50)
             )
 
     def test_adosc_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.ADOSC(
                 self._short(100), self._short(100), self._short(100), self._short(99)
             )
 
     def test_beta_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.BETA(self._short(100), self._short(50))
 
     def test_correl_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.CORREL(self._short(50), self._short(70))
 
     def test_minus_di_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.MINUS_DI(self._short(100), self._short(100), self._short(50))
 
     def test_minus_dm_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.MINUS_DM(self._short(100), self._short(99))
 
     def test_plus_dm_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.PLUS_DM(self._short(100), self._short(80))
 
     def test_candlestick_mismatch(self):
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ValueError):
             pytafast.CDL2CROWS(
                 self._short(100), self._short(100), self._short(100), self._short(50)
             )
 
     def test_ultosc_mismatch(self):
-        with pytest.raises(RuntimeError, match="lengths must match"):
+        with pytest.raises(ValueError, match="lengths must match"):
             pytafast.ULTOSC(self._short(100), self._short(100), self._short(99))
 
 

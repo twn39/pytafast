@@ -10,7 +10,7 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
 
   return apply_ta_func(inHigh.shape(0), TA_ATR_Lookback(optInTimePeriod), "TA_ATR",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
@@ -28,7 +28,7 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
 
   return apply_ta_func(inHigh.shape(0), TA_NATR_Lookback(optInTimePeriod), "TA_NATR",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
@@ -46,7 +46,7 @@ DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
   return apply_ta_func(inHigh.shape(0), TA_TRANGE_Lookback(), "TA_TRANGE",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
       return TA_TRANGE(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),

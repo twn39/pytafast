@@ -8,7 +8,7 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   if (inReal.shape(0) != inVolume.shape(0))
-    throw std::runtime_error("Input lengths must match");
+    throw std::invalid_argument("Input lengths must match");
 
   return apply_ta_func(inReal.shape(0), TA_OBV_Lookback(), "TA_OBV",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
