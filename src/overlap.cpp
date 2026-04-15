@@ -7,50 +7,22 @@
 // SIMPLE MOVING AVERAGE (SMA)
 // ---------------------------------------------------------
 DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_SMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_SMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_SMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_SMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_SMA_Lookback(optInTimePeriod), "TA_SMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_SMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
 // EXPONENTIAL MOVING AVERAGE (EMA)
 // ---------------------------------------------------------
 DoubleArrayOUT ema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_EMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_EMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_EMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_EMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_EMA_Lookback(optInTimePeriod), "TA_EMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_EMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -63,81 +35,32 @@ nb::tuple bbands(DoubleArrayIN inReal, int optInTimePeriod = 5,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty, empty);
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn,
-                                    static_cast<TA_MAType>(optInMAType));
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_BBANDS: Invalid parameter (lookback < 0)");
-  }
-  auto [outUpper, ownerU] = alloc_output(size, lookback);
-  auto [outMiddle, ownerM] = alloc_output(size, lookback);
-  auto [outLower, ownerL] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_BBANDS(
-          0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-          optInNbDevUp, optInNbDevDn, static_cast<TA_MAType>(optInMAType),
-          &outBegIdx, &outNBElement, outUpper.get() + lookback,
-          outMiddle.get() + lookback, outLower.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_BBANDS");
-  }
-  return nb::make_tuple(DoubleArrayOUT(outUpper.get(), {size}, ownerU),
-                        DoubleArrayOUT(outMiddle.get(), {size}, ownerM),
-                        DoubleArrayOUT(outLower.get(), {size}, ownerL));
+  return apply_ta_func_3out(inReal.shape(0), TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, static_cast<TA_MAType>(optInMAType)), "TA_BBANDS",
+    [&](int* outBegIdx, int* outNBElement, double* outUpper, double* outMiddle, double* outLower) {
+      return TA_BBANDS(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, optInNbDevUp, optInNbDevDn, static_cast<TA_MAType>(optInMAType), outBegIdx, outNBElement, outUpper, outMiddle, outLower);
+    });
 }
 
 // ---------------------------------------------------------
 // DOUBLE EXPONENTIAL MOVING AVERAGE (DEMA)
 // ---------------------------------------------------------
 DoubleArrayOUT dema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_DEMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_DEMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_DEMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_DEMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_DEMA_Lookback(optInTimePeriod), "TA_DEMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_DEMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
 // KAUFMAN ADAPTIVE MOVING AVERAGE (KAMA)
 // ---------------------------------------------------------
 DoubleArrayOUT kama(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_KAMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_KAMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_KAMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_KAMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_KAMA_Lookback(optInTimePeriod), "TA_KAMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_KAMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -149,27 +72,10 @@ nb::tuple mama(DoubleArrayIN inReal, double optInFastLimit = 0.5,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_MAMA_Lookback(optInFastLimit, optInSlowLimit);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_MAMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outMAMA, ownerM] = alloc_output(size, lookback);
-  auto [outFAMA, ownerF] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode =
-          TA_MAMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInFastLimit,
-                  optInSlowLimit, &outBegIdx, &outNBElement,
-                  outMAMA.get() + lookback, outFAMA.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_MAMA");
-  }
-  return nb::make_tuple(DoubleArrayOUT(outMAMA.get(), {size}, ownerM),
-                        DoubleArrayOUT(outFAMA.get(), {size}, ownerF));
+  return apply_ta_func_2out(inReal.shape(0), TA_MAMA_Lookback(optInFastLimit, optInSlowLimit), "TA_MAMA",
+    [&](int* outBegIdx, int* outNBElement, double* outMAMA, double* outFAMA) {
+      return TA_MAMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInFastLimit, optInSlowLimit, outBegIdx, outNBElement, outMAMA, outFAMA);
+    });
 }
 
 // ---------------------------------------------------------
@@ -177,51 +83,22 @@ nb::tuple mama(DoubleArrayIN inReal, double optInFastLimit = 0.5,
 // ---------------------------------------------------------
 DoubleArrayOUT ma(DoubleArrayIN inReal, int optInTimePeriod = 30,
                   int optInMAType = 0) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback =
-      TA_MA_Lookback(optInTimePeriod, static_cast<TA_MAType>(optInMAType));
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode = TA_MA(0, gsl::narrow<int>(size - 1), inReal.data(),
-                    optInTimePeriod, static_cast<TA_MAType>(optInMAType),
-                    &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_MA_Lookback(optInTimePeriod, static_cast<TA_MAType>(optInMAType)), "TA_MA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_MA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, static_cast<TA_MAType>(optInMAType), outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
 // MIDPOINT OVER PERIOD (MIDPOINT)
 // ---------------------------------------------------------
 DoubleArrayOUT midpoint(DoubleArrayIN inReal, int optInTimePeriod = 14) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_MIDPOINT_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument(
-        "TA_MIDPOINT: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_MIDPOINT(0, gsl::narrow<int>(size - 1), inReal.data(),
-                            optInTimePeriod, &outBegIdx, &outNBElement,
-                            outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_MIDPOINT");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_MIDPOINT_Lookback(optInTimePeriod), "TA_MIDPOINT",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_MIDPOINT(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -229,28 +106,12 @@ DoubleArrayOUT midpoint(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // ---------------------------------------------------------
 DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    double optInAcceleration = 0.02, double optInMaximum = 0.2) {
-  if (inHigh.size() == 0 || inLow.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
+  if (inHigh.size() == 0 || inLow.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
   check_lengths("SAR", inHigh.shape(0), {inLow.shape(0)});
-  size_t size = inHigh.shape(0);
-  int lookback = TA_SAR_Lookback(optInAcceleration, optInMaximum);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_SAR: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_SAR(0, gsl::narrow<int>(size - 1), inHigh.data(),
-                       inLow.data(), optInAcceleration, optInMaximum,
-                       &outBegIdx, &outNBElement, outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_SAR");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inHigh.shape(0), TA_SAR_Lookback(optInAcceleration, optInMaximum), "TA_SAR",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_SAR(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(), inLow.data(), optInAcceleration, optInMaximum, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -258,102 +119,44 @@ DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 // ---------------------------------------------------------
 DoubleArrayOUT t3(DoubleArrayIN inReal, int optInTimePeriod = 5,
                   double optInVFactor = 0.7) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_T3_Lookback(optInTimePeriod, optInVFactor);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_T3: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_T3(0, gsl::narrow<int>(size - 1), inReal.data(),
-                      optInTimePeriod, optInVFactor, &outBegIdx, &outNBElement,
-                      outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_T3");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_T3_Lookback(optInTimePeriod, optInVFactor), "TA_T3",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_T3(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, optInVFactor, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
 // TRIPLE EXPONENTIAL MOVING AVERAGE (TEMA)
 // ---------------------------------------------------------
 DoubleArrayOUT tema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_TEMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_TEMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_TEMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_TEMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_TEMA_Lookback(optInTimePeriod), "TA_TEMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_TEMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
 // TRIANGULAR MOVING AVERAGE (TRIMA)
 // ---------------------------------------------------------
 DoubleArrayOUT trima(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_TRIMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_TRIMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_TRIMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                 &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_TRIMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_TRIMA_Lookback(optInTimePeriod), "TA_TRIMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_TRIMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
 // WEIGHTED MOVING AVERAGE (WMA)
 // ---------------------------------------------------------
 DoubleArrayOUT wma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
-  if (inReal.size() == 0) {
-    return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  }
-  size_t size = inReal.shape(0);
-  int lookback = TA_WMA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_WMA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_WMA(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_WMA");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  return apply_ta_func(inReal.shape(0), TA_WMA_Lookback(optInTimePeriod), "TA_WMA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_WMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -371,7 +174,7 @@ DoubleArrayOUT zigzag(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   std::fill(out.begin(), out.end(), NaN);
 
   if (size < 2) {
-    return DoubleArrayOUT(out.data(), {size}, owner);
+    return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }
 
   gsl::span<const double> hi(inHigh.data(), size);
@@ -464,7 +267,7 @@ DoubleArrayOUT zigzag(DoubleArrayIN inHigh, DoubleArrayIN inLow,
     }
   }
 
-  return DoubleArrayOUT(out.data(), {size}, owner);
+  return DoubleArrayOUT(out.data(), {size}, std::move(owner));
 }
 
 // ---------------------------------------------------------
@@ -480,7 +283,7 @@ DoubleArrayOUT alma(DoubleArrayIN inReal, int optInTimePeriod = 9,
   gsl::span<double> out(outData.get(), size);
   std::fill(out.begin(), out.end(), NaN);
   if (size < static_cast<size_t>(optInTimePeriod)) {
-    return DoubleArrayOUT(out.data(), {size}, owner);
+    return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }
 
   std::vector<double> wts(optInTimePeriod);
@@ -511,7 +314,7 @@ DoubleArrayOUT alma(DoubleArrayIN inReal, int optInTimePeriod = 9,
       out[i] = sum;
     }
   }
-  return DoubleArrayOUT(out.data(), {size}, owner);
+  return DoubleArrayOUT(out.data(), {size}, std::move(owner));
 }
 
 // ---------------------------------------------------------
@@ -528,7 +331,7 @@ DoubleArrayOUT evwma(DoubleArrayIN inReal, DoubleArrayIN inVolume,
   gsl::span<double> out(outData.get(), size);
   std::fill(out.begin(), out.end(), NaN);
   if (size < static_cast<size_t>(optInTimePeriod)) {
-    return DoubleArrayOUT(out.data(), {size}, owner);
+    return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }
 
   gsl::span<const double> pr(inReal.data(), size);
@@ -554,7 +357,7 @@ DoubleArrayOUT evwma(DoubleArrayIN inReal, DoubleArrayIN inVolume,
       }
     }
   }
-  return DoubleArrayOUT(out.data(), {size}, owner);
+  return DoubleArrayOUT(out.data(), {size}, std::move(owner));
 }
 
 // ---------------------------------------------------------
@@ -569,7 +372,7 @@ DoubleArrayOUT zlema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   gsl::span<double> out(outData.get(), size);
   std::fill(out.begin(), out.end(), NaN);
   if (size < static_cast<size_t>(optInTimePeriod)) {
-    return DoubleArrayOUT(out.data(), {size}, owner);
+    return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }
 
   gsl::span<const double> in(inReal.data(), size);
@@ -603,5 +406,5 @@ DoubleArrayOUT zlema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
       out[i] = (ratio * value) + (r1 * out[i - 1]);
     }
   }
-  return DoubleArrayOUT(out.data(), {size}, owner);
+  return DoubleArrayOUT(out.data(), {size}, std::move(owner));
 }

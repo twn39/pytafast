@@ -12,11 +12,12 @@
 namespace nb = nanobind;
 
 // Type aliases for numpy array I/O
+// nb::device::cpu allows accepting numpy, pytorch, jax arrays directly without copy
 using DoubleArrayIN =
-    nb::ndarray<nb::numpy, const double, nb::c_contig, nb::ndim<1>>;
+    nb::ndarray<nb::device::cpu, const double, nb::c_contig, nb::ndim<1>>;
 using DoubleArrayOUT = nb::ndarray<nb::numpy, double, nb::ndim<1>>;
 
-static const double NaN = std::numeric_limits<double>::quiet_NaN();
+constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
 
 // Check TA-Lib return codes
 inline void check_ta_retcode(TA_RetCode code, const char *func) {
@@ -26,9 +27,7 @@ inline void check_ta_retcode(TA_RetCode code, const char *func) {
   }
 }
 
-// Helper: allocate a double array, wrap in capsule, fill lookback prefix with
-// NaN. Only the [0, lookback) region needs initializing; TA-Lib fills
-// [lookback, size).
+// Helper: allocate a double array, wrap in capsule, fill lookback prefix with NaN.
 struct AllocResult {
   gsl::not_null<double *> data;
   nb::capsule owner;
@@ -36,10 +35,8 @@ struct AllocResult {
 
 inline AllocResult alloc_output(size_t size, int lookback) {
   std::unique_ptr<double[]> data(new double[size]);
-  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] (double *)p; });
+  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] static_cast<double*>(p); });
 
-  // Only fill the lookback prefix with NaN; TA-Lib writes all remaining
-  // elements.
   if (lookback > 0 && size > 0) {
     std::fill(data.get(),
               data.get() + std::min(static_cast<size_t>(lookback), size), NaN);
@@ -54,22 +51,80 @@ struct AllocIntResult {
 };
 
 inline AllocIntResult alloc_int_output(size_t size, int /*lookback*/) {
-  // Value-initialize (zero-fill) the entire array via new int[size]().
-  // This is correct for both the NaN-prefix region and the TA-Lib output
-  // region.
   std::unique_ptr<int[]> data(new int[size]());
-  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] (int *)p; });
+  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] static_cast<int*>(p); });
   return {gsl::make_not_null(data.release()), std::move(owner)};
 }
 
 // Helper: validate that all array sizes in the list equal `expected`.
-// Usage: check_lengths("funcname", size, {inLow.shape(0), inClose.shape(0)});
 inline void check_lengths(const char *func, size_t expected,
                           std::initializer_list<size_t> others) {
   for (size_t s : others) {
     if (s != expected) {
-      throw std::runtime_error(std::string(func) +
-                               ": input array lengths must match");
+      throw std::invalid_argument(std::string(func) +
+                                  ": input array lengths must match");
     }
   }
+}
+
+// --- Boilerplate Abstraction Templates ---
+
+template <typename Func>
+DoubleArrayOUT apply_ta_func(size_t size, int lookback, const char* name, Func&& compute_func) {
+  if (lookback < 0) {
+    throw std::invalid_argument(std::string(name) + ": Invalid parameter (lookback < 0)");
+  }
+  auto [outData, owner] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = compute_func(&outBegIdx, &outNBElement, outData.get() + lookback);
+    }
+    check_ta_retcode(retCode, name);
+  }
+  return DoubleArrayOUT(outData.get(), {size}, std::move(owner));
+}
+
+template <typename Func>
+nb::tuple apply_ta_func_2out(size_t size, int lookback, const char* name, Func&& compute_func) {
+  if (lookback < 0) {
+    throw std::invalid_argument(std::string(name) + ": Invalid parameter (lookback < 0)");
+  }
+  auto [out1, owner1] = alloc_output(size, lookback);
+  auto [out2, owner2] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = compute_func(&outBegIdx, &outNBElement, out1.get() + lookback, out2.get() + lookback);
+    }
+    check_ta_retcode(retCode, name);
+  }
+  return nb::make_tuple(DoubleArrayOUT(out1.get(), {size}, std::move(owner1)),
+                        DoubleArrayOUT(out2.get(), {size}, std::move(owner2)));
+}
+
+template <typename Func>
+nb::tuple apply_ta_func_3out(size_t size, int lookback, const char* name, Func&& compute_func) {
+  if (lookback < 0) {
+    throw std::invalid_argument(std::string(name) + ": Invalid parameter (lookback < 0)");
+  }
+  auto [out1, owner1] = alloc_output(size, lookback);
+  auto [out2, owner2] = alloc_output(size, lookback);
+  auto [out3, owner3] = alloc_output(size, lookback);
+  if (size > static_cast<size_t>(lookback)) {
+    int outBegIdx = 0, outNBElement = 0;
+    TA_RetCode retCode;
+    {
+      nb::gil_scoped_release release;
+      retCode = compute_func(&outBegIdx, &outNBElement, out1.get() + lookback, out2.get() + lookback, out3.get() + lookback);
+    }
+    check_ta_retcode(retCode, name);
+  }
+  return nb::make_tuple(DoubleArrayOUT(out1.get(), {size}, std::move(owner1)),
+                        DoubleArrayOUT(out2.get(), {size}, std::move(owner2)),
+                        DoubleArrayOUT(out3.get(), {size}, std::move(owner3)));
 }

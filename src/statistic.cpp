@@ -11,24 +11,11 @@ DoubleArrayOUT beta(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   check_lengths("BETA", inReal0.shape(0), {inReal1.shape(0)});
-  size_t size = inReal0.shape(0);
-  int lookback = TA_BETA_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_BETA: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_BETA(0, gsl::narrow<int>(size - 1), inReal0.data(),
-                        inReal1.data(), optInTimePeriod, &outBegIdx,
-                        &outNBElement, outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_BETA");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal0.shape(0), TA_BETA_Lookback(optInTimePeriod), "TA_BETA",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_BETA(0, gsl::narrow<int>(inReal0.shape(0) - 1), inReal0.data(),
+                        inReal1.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -40,24 +27,11 @@ DoubleArrayOUT correl(DoubleArrayIN inReal0, DoubleArrayIN inReal1,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   check_lengths("CORREL", inReal0.shape(0), {inReal1.shape(0)});
-  size_t size = inReal0.shape(0);
-  int lookback = TA_CORREL_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_CORREL: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_CORREL(0, gsl::narrow<int>(size - 1), inReal0.data(),
-                          inReal1.data(), optInTimePeriod, &outBegIdx,
-                          &outNBElement, outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_CORREL");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal0.shape(0), TA_CORREL_Lookback(optInTimePeriod), "TA_CORREL",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_CORREL(0, gsl::narrow<int>(inReal0.shape(0) - 1), inReal0.data(),
+                          inReal1.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -67,25 +41,11 @@ DoubleArrayOUT linearreg(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_LINEARREG_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument(
-        "TA_LINEARREG: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_LINEARREG(0, gsl::narrow<int>(size - 1), inReal.data(),
-                             optInTimePeriod, &outBegIdx, &outNBElement,
-                             outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_LINEARREG");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_LINEARREG_Lookback(optInTimePeriod), "TA_LINEARREG",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_LINEARREG(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                             optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -95,25 +55,11 @@ DoubleArrayOUT linearreg_angle(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument(
-        "TA_LINEARREG_ANGLE: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_LINEARREG_ANGLE(0, gsl::narrow<int>(size - 1), inReal.data(),
-                                   optInTimePeriod, &outBegIdx, &outNBElement,
-                                   outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_LINEARREG_ANGLE");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_LINEARREG_ANGLE_Lookback(optInTimePeriod), "TA_LINEARREG_ANGLE",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_LINEARREG_ANGLE(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                                   optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -124,25 +70,12 @@ DoubleArrayOUT linearreg_intercept(DoubleArrayIN inReal,
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_LINEARREG_INTERCEPT_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument(
-        "TA_LINEARREG_INTERCEPT: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_LINEARREG_INTERCEPT(
-          0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-          &outBegIdx, &outNBElement, outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_LINEARREG_INTERCEPT");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_LINEARREG_INTERCEPT_Lookback(optInTimePeriod), "TA_LINEARREG_INTERCEPT",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_LINEARREG_INTERCEPT(
+          0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+          outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -152,25 +85,11 @@ DoubleArrayOUT linearreg_slope(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_LINEARREG_SLOPE_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument(
-        "TA_LINEARREG_SLOPE: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_LINEARREG_SLOPE(0, gsl::narrow<int>(size - 1), inReal.data(),
-                                   optInTimePeriod, &outBegIdx, &outNBElement,
-                                   outData.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_LINEARREG_SLOPE");
-  }
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_LINEARREG_SLOPE_Lookback(optInTimePeriod), "TA_LINEARREG_SLOPE",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_LINEARREG_SLOPE(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                                   optInTimePeriod, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -180,22 +99,11 @@ DoubleArrayOUT tsf(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_TSF_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_TSF: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_TSF(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_TSF");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_TSF_Lookback(optInTimePeriod), "TA_TSF",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_TSF(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+               outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -206,22 +114,11 @@ DoubleArrayOUT var(DoubleArrayIN inReal, int optInTimePeriod = 5,
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_VAR_Lookback(optInTimePeriod, optInNbDev);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_VAR: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_VAR(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               optInNbDev, &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_VAR");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_VAR_Lookback(optInTimePeriod, optInNbDev), "TA_VAR",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_VAR(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+               optInNbDev, outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -231,22 +128,11 @@ DoubleArrayOUT avgdev(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_AVGDEV_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_AVGDEV: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_AVGDEV(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-                  &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_AVGDEV");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_AVGDEV_Lookback(optInTimePeriod), "TA_AVGDEV",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_AVGDEV(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+                  outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -256,22 +142,11 @@ DoubleArrayOUT ta_max(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_MAX_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_MAX: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_MAX(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MAX");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_MAX_Lookback(optInTimePeriod), "TA_MAX",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_MAX(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+               outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -281,22 +156,11 @@ DoubleArrayOUT ta_min(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_MIN_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_MIN: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_MIN(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_MIN");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_MIN_Lookback(optInTimePeriod), "TA_MIN",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_MIN(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+               outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -306,22 +170,11 @@ DoubleArrayOUT ta_sum(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_SUM_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_SUM: Invalid parameter (lookback < 0)");
-  }
-  auto [outData, owner] = alloc_output(size, lookback);
-  int outBegIdx = 0, outNBElement = 0;
-  TA_RetCode retCode;
-  {
-    nb::gil_scoped_release release;
-    retCode =
-        TA_SUM(0, gsl::narrow<int>(size - 1), inReal.data(), optInTimePeriod,
-               &outBegIdx, &outNBElement, outData.get() + lookback);
-  }
-  check_ta_retcode(retCode, "TA_SUM");
-  return DoubleArrayOUT(outData.get(), {size}, owner);
+  return apply_ta_func(inReal.shape(0), TA_SUM_Lookback(optInTimePeriod), "TA_SUM",
+    [&](int* outBegIdx, int* outNBElement, double* outData) {
+      return TA_SUM(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod,
+               outBegIdx, outNBElement, outData);
+    });
 }
 
 // ---------------------------------------------------------
@@ -332,26 +185,11 @@ nb::tuple minmax(DoubleArrayIN inReal, int optInTimePeriod = 30) {
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
-  size_t size = inReal.shape(0);
-  int lookback = TA_MINMAX_Lookback(optInTimePeriod);
-  if (lookback < 0) {
-    throw std::invalid_argument("TA_MINMAX: Invalid parameter (lookback < 0)");
-  }
-  auto [outMin, ownerMin] = alloc_output(size, lookback);
-  auto [outMax, ownerMax] = alloc_output(size, lookback);
-  if (size > static_cast<size_t>(lookback)) {
-    int outBegIdx = 0, outNBElement = 0;
-    TA_RetCode retCode;
-    {
-      nb::gil_scoped_release release;
-      retCode = TA_MINMAX(0, gsl::narrow<int>(size - 1), inReal.data(),
-                          optInTimePeriod, &outBegIdx, &outNBElement,
-                          outMin.get() + lookback, outMax.get() + lookback);
-    }
-    check_ta_retcode(retCode, "TA_MINMAX");
-  }
-  return nb::make_tuple(DoubleArrayOUT(outMin.get(), {size}, ownerMin),
-                        DoubleArrayOUT(outMax.get(), {size}, ownerMax));
+  return apply_ta_func_2out(inReal.shape(0), TA_MINMAX_Lookback(optInTimePeriod), "TA_MINMAX",
+    [&](int* outBegIdx, int* outNBElement, double* out1, double* out2) {
+      return TA_MINMAX(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                          optInTimePeriod, outBegIdx, outNBElement, out1, out2);
+    });
 }
 
 // ---------------------------------------------------------

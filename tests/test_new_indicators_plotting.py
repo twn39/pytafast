@@ -3,6 +3,7 @@ import pytest
 import pandas as pd
 import pytafast
 
+
 @pytest.mark.skipif(
     os.getenv("GITHUB_ACTIONS") == "true",
     reason="Skipping plotting tests in CI environment",
@@ -13,8 +14,8 @@ def test_new_indicators_plotting():
         os.path.dirname(__file__), "..", "data", "nasdaq100_2025_now.csv"
     )
     if not os.path.exists(data_path):
-         pytest.skip(f"Data file not found: {data_path}")
-         
+        pytest.skip(f"Data file not found: {data_path}")
+
     df = pd.read_csv(data_path)
 
     # Create a chart with the new indicators

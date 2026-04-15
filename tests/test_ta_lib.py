@@ -1,5 +1,7 @@
+# pyright: reportArgumentType=false, reportAttributeAccessIssue=false
 import pytest
 import numpy as np
+from typing import cast, Any
 import pandas as pd
 import pytafast
 
@@ -7,7 +9,6 @@ try:
     import talib
 except ImportError:
     pytest.skip("talib not available", allow_module_level=True)
-
 
 
 def test_sma_numpy():
@@ -63,7 +64,6 @@ def test_invalid_input():
 
 @pytest.mark.parametrize("period", [2, 5, 14, 30])
 def test_sma_against_official_talib(random_prices, period):
-
     in_real = random_prices["real"]
 
     # Compare with official talib
@@ -392,7 +392,7 @@ def test_ma_against_official_talib(random_prices):
         6,
         8,
     ]:  # SMA, EMA, WMA, DEMA, TEMA, TRIMA, KAMA, T3
-        o_out = talib.MA(in_real, timeperiod=14, matype=matype_val)
+        o_out = talib.MA(in_real, timeperiod=14, matype=cast(Any, matype_val))
         p_out = pytafast.MA(in_real, timeperiod=14, matype=matype_val)
         np.testing.assert_allclose(p_out, o_out, equal_nan=True)
 
@@ -530,20 +530,20 @@ def test_macdext_against_official_talib(random_prices):
     o_macd, o_signal, o_hist = talib.MACDEXT(
         in_real,
         fastperiod=12,
-        fastmatype=0,
+        fastmatype=cast(Any, 0),
         slowperiod=26,
-        slowmatype=0,
+        slowmatype=cast(Any, 0),
         signalperiod=9,
-        signalmatype=0,
+        signalmatype=cast(Any, 0),
     )
     p_macd, p_signal, p_hist = pytafast.MACDEXT(
         in_real,
         fastperiod=12,
-        fastmatype=0,
+        fastmatype=cast(Any, 0),
         slowperiod=26,
-        slowmatype=0,
+        slowmatype=cast(Any, 0),
         signalperiod=9,
-        signalmatype=0,
+        signalmatype=cast(Any, 0),
     )
     np.testing.assert_allclose(p_macd, o_macd, equal_nan=True)
     np.testing.assert_allclose(p_signal, o_signal, equal_nan=True)
@@ -564,10 +564,20 @@ def test_stochf_against_official_talib(random_prices):
     in_low = random_prices["low"]
     in_close = random_prices["close"]
     o_fastk, o_fastd = talib.STOCHF(
-        in_high, in_low, in_close, fastk_period=5, fastd_period=3, fastd_matype=0
+        in_high,
+        in_low,
+        in_close,
+        fastk_period=5,
+        fastd_period=3,
+        fastd_matype=cast(Any, 0),
     )
     p_fastk, p_fastd = pytafast.STOCHF(
-        in_high, in_low, in_close, fastk_period=5, fastd_period=3, fastd_matype=0
+        in_high,
+        in_low,
+        in_close,
+        fastk_period=5,
+        fastd_period=3,
+        fastd_matype=cast(Any, 0),
     )
     np.testing.assert_allclose(p_fastk, o_fastk, equal_nan=True)
     np.testing.assert_allclose(p_fastd, o_fastd, equal_nan=True)
@@ -576,10 +586,18 @@ def test_stochf_against_official_talib(random_prices):
 def test_stochrsi_against_official_talib(random_prices):
     in_real = random_prices["real"]
     o_fastk, o_fastd = talib.STOCHRSI(
-        in_real, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0
+        in_real,
+        timeperiod=14,
+        fastk_period=5,
+        fastd_period=3,
+        fastd_matype=cast(Any, 0),
     )
     p_fastk, p_fastd = pytafast.STOCHRSI(
-        in_real, timeperiod=14, fastk_period=5, fastd_period=3, fastd_matype=0
+        in_real,
+        timeperiod=14,
+        fastk_period=5,
+        fastd_period=3,
+        fastd_matype=cast(Any, 0),
     )
     np.testing.assert_allclose(p_fastk, o_fastk, equal_nan=True)
     np.testing.assert_allclose(p_fastd, o_fastd, equal_nan=True)
@@ -860,7 +878,7 @@ def test_ht_trendmode_against_official_talib(random_prices):
     o_out = talib.HT_TRENDMODE(in_real)
     p_out = pytafast.HT_TRENDMODE(in_real)
     # Compare valid positions (after lookback)
-    valid = ~np.isnan(o_out.astype(float))
+    valid = ~np.isnan(cast(Any, o_out).astype(float))
     np.testing.assert_array_equal(
         np.array(p_out)[valid], np.array(o_out)[valid].astype(int)
     )

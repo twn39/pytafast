@@ -964,7 +964,6 @@ class TestPublicAPI:
         for m in expected:
             assert hasattr(MAType, m), f"Missing MAType member: {m}"
 
-
     def test_version_string(self):
         assert hasattr(pytafast, "__version__")
         assert isinstance(pytafast.__version__, str)

@@ -1,8 +1,6 @@
 import pytest
 import numpy as np
-import pandas as pd
 import pytafast
-import os
 
 
 def get_talib():
