@@ -9,8 +9,7 @@ DoubleArrayOUT atr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::invalid_argument("Input lengths must match");
+  check_lengths("ATR", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
 
   return apply_ta_func(inHigh.shape(0), TA_ATR_Lookback(optInTimePeriod), "TA_ATR",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
@@ -27,8 +26,7 @@ DoubleArrayOUT natr(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::invalid_argument("Input lengths must match");
+  check_lengths("NATR", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
 
   return apply_ta_func(inHigh.shape(0), TA_NATR_Lookback(optInTimePeriod), "TA_NATR",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
@@ -45,8 +43,7 @@ DoubleArrayOUT trange(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   if (inHigh.size() == 0 || inLow.size() == 0 || inClose.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  if (inHigh.shape(0) != inLow.shape(0) || inHigh.shape(0) != inClose.shape(0))
-    throw std::invalid_argument("Input lengths must match");
+  check_lengths("TRANGE", inHigh.shape(0), {inLow.shape(0), inClose.shape(0)});
   return apply_ta_func(inHigh.shape(0), TA_TRANGE_Lookback(), "TA_TRANGE",
     [&](int* outBegIdx, int* outNBElement, double* outData) {
       return TA_TRANGE(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),

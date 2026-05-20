@@ -11,6 +11,7 @@ from . import pytafast_ext
 from .plotting import Chart as Chart
 from .pytafast_ext import (
     MAType,
+    TALibError,
     CDL2CROWS,
     CDL3BLACKCROWS,
     CDL3INSIDE,
@@ -267,6 +268,7 @@ __all__ = [
     "CDLMATHOLD",
     "CDLMORNINGDOJISTAR",
     "CDLMORNINGSTAR",
+    "TALibError",
 ]
 
 # --- Module-level pandas detection (optimization #1) ---
@@ -1558,5 +1560,11 @@ _sys.modules["pytafast.aio"] = aio
 # Initialize TA-Lib context
 # ===================================================================
 
+def _safe_shutdown():
+    try:
+        pytafast_ext.shutdown()
+    except Exception:
+        pass
+
 pytafast_ext.initialize()
-atexit.register(pytafast_ext.shutdown)
+atexit.register(_safe_shutdown)

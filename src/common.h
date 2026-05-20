@@ -19,10 +19,15 @@ using DoubleArrayOUT = nb::ndarray<nb::numpy, double, nb::ndim<1>>;
 
 constexpr double NaN = std::numeric_limits<double>::quiet_NaN();
 
+class ta_error : public std::runtime_error {
+public:
+  using std::runtime_error::runtime_error;
+};
+
 // Check TA-Lib return codes
 inline void check_ta_retcode(TA_RetCode code, const char *func) {
   if (code != TA_SUCCESS) {
-    throw std::runtime_error(
+    throw ta_error(
         std::string(func) + " failed with TA_RetCode: " + std::to_string(code));
   }
 }
@@ -35,14 +40,16 @@ struct AllocResult {
 
 inline AllocResult alloc_output(size_t size, int lookback) {
   std::unique_ptr<double[]> data(new double[size]);
-  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] static_cast<double*>(p); });
 
   if (lookback > 0 && size > 0) {
     std::fill(data.get(),
               data.get() + std::min(static_cast<size_t>(lookback), size), NaN);
   }
 
-  return {gsl::make_not_null(data.release()), std::move(owner)};
+  double* raw_ptr = data.release();
+  nb::capsule owner(raw_ptr, [](void *p) noexcept { delete[] static_cast<double*>(p); });
+
+  return {gsl::make_not_null(raw_ptr), std::move(owner)};
 }
 
 struct AllocIntResult {
@@ -52,8 +59,9 @@ struct AllocIntResult {
 
 inline AllocIntResult alloc_int_output(size_t size, int /*lookback*/) {
   std::unique_ptr<int[]> data(new int[size]());
-  nb::capsule owner(data.get(), [](void *p) noexcept { delete[] static_cast<int*>(p); });
-  return {gsl::make_not_null(data.release()), std::move(owner)};
+  int* raw_ptr = data.release();
+  nb::capsule owner(raw_ptr, [](void *p) noexcept { delete[] static_cast<int*>(p); });
+  return {gsl::make_not_null(raw_ptr), std::move(owner)};
 }
 
 // Helper: validate that all array sizes in the list equal `expected`.

@@ -279,9 +279,9 @@ DoubleArrayOUT alma(DoubleArrayIN inReal, int optInTimePeriod = 9,
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   size_t size = inReal.shape(0);
-  auto [outData, owner] = alloc_output(size, 0);
+  int lookback = optInTimePeriod - 1;
+  auto [outData, owner] = alloc_output(size, lookback);
   gsl::span<double> out(outData.get(), size);
-  std::fill(out.begin(), out.end(), NaN);
   if (size < static_cast<size_t>(optInTimePeriod)) {
     return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }
@@ -327,9 +327,9 @@ DoubleArrayOUT evwma(DoubleArrayIN inReal, DoubleArrayIN inVolume,
   }
   check_lengths("EVWMA", inReal.shape(0), {inVolume.shape(0)});
   size_t size = inReal.shape(0);
-  auto [outData, owner] = alloc_output(size, 0);
+  int lookback = optInTimePeriod - 1;
+  auto [outData, owner] = alloc_output(size, lookback);
   gsl::span<double> out(outData.get(), size);
-  std::fill(out.begin(), out.end(), NaN);
   if (size < static_cast<size_t>(optInTimePeriod)) {
     return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }
@@ -368,9 +368,9 @@ DoubleArrayOUT zlema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
   size_t size = inReal.shape(0);
-  auto [outData, owner] = alloc_output(size, 0);
+  int lookback = optInTimePeriod - 1;
+  auto [outData, owner] = alloc_output(size, lookback);
   gsl::span<double> out(outData.get(), size);
-  std::fill(out.begin(), out.end(), NaN);
   if (size < static_cast<size_t>(optInTimePeriod)) {
     return DoubleArrayOUT(out.data(), {size}, std::move(owner));
   }

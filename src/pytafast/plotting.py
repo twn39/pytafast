@@ -114,7 +114,7 @@ class Chart:
         is_dark = "dark" in self.theme
         inc = "#26a69a" if not is_dark else "#00ffad"
         dec = "#ef5350" if not is_dark else "#ff5e5e"
-        colors = [inc if c >= o else dec for c, o in zip(self.C, self.O)]
+        colors = np.where(self.C >= self.O, inc, dec)
         return self._add_subplot(
             [
                 go.Bar(
@@ -195,7 +195,7 @@ class Chart:
         self._add_overlay(low_val, "Donchian Low", "rgba(200,200,200,0.3)", 1)
         self.main_traces[-1].fill = "tonexty"
         self.main_traces[-1].fillcolor = "rgba(200,200,200,0.05)"
-        return self
+        return self._add_overlay(m, "Donchian Mid", "rgba(128, 128, 128, 0.5)", 1, "dash")
 
     def add_ichimoku(self, n1=9, n2=26, n3=52):
         """Add Ichimoku Kinko Hyo (Cloud) to the main chart."""
@@ -222,7 +222,7 @@ class Chart:
         delta = dt_shifted.diff().median()
         # Create future index
         future_dt = [dt_shifted.iloc[-1] + (i * delta) for i in range(1, n2 + 1)]
-        all_dt = pd.concat([self.dt, pd.Series(future_dt)])
+        all_dt = np.concatenate([self.dt.values, np.array(future_dt)])
 
         # Create padded series for spans
         ssa_padded = np.full(len(all_dt), np.nan)
@@ -391,7 +391,7 @@ class Chart:
                 x=self.dt,
                 y=h,
                 name="MACD Hist",
-                marker_color=[inc if x >= 0 else dec for x in h],
+                marker_color=np.where(h >= 0, inc, dec),
             ),
             go.Scatter(x=self.dt, y=m, name="MACD"),
             go.Scatter(x=self.dt, y=signal, name="Signal"),
@@ -647,7 +647,7 @@ class Chart:
                     x=self.dt,
                     y=v,
                     name=f"DPO({n})",
-                    marker_color=["green" if x >= 0 else "red" for x in v],
+                    marker_color=np.where(v >= 0, "green", "red"),
                 )
             ],
             "DPO",
@@ -683,6 +683,7 @@ class Chart:
     def add_patterns(self):
         """Automatically find and label all recognized candlestick patterns."""
         patterns = [m for m in dir(pytafast) if m.startswith("CDL")]
+        first_pattern = True
         for p_name in patterns:
             res = getattr(pytafast, p_name)(self.O, self.H, self.L, self.C)
             # Find indices where pattern is detected (100 or -100)
@@ -692,13 +693,17 @@ class Chart:
                     go.Scatter(
                         x=self.dt.iloc[hit_idx],
                         y=self.H[hit_idx] * 1.02,
-                        mode="markers+text",
-                        name=p_name,
+                        mode="markers",
+                        name="Candlestick Patterns" if first_pattern else p_name,
+                        legendgroup="candlestick_patterns",
+                        showlegend=first_pattern,
                         text=[p_name[3:]] * len(hit_idx),
-                        textposition="top center",
+                        hovertext=[f"{p_name[3:]} ({'Bullish' if res[idx] > 0 else 'Bearish'})" for idx in hit_idx],
+                        hoverinfo="text",
                         marker=dict(symbol="triangle-down", size=8),
                     )
                 )
+                first_pattern = False
         return self
 
     # --- Render Engine ---
@@ -795,6 +800,24 @@ class Chart:
             xaxis_rangeslider_visible=False,
             height=600 + (n_subplots * 150),
             margin=dict(l=60, r=40, t=60, b=40),
+            hovermode="x unified",
+            hoversubplots="axis",
+        )
+        fig.update_xaxes(
+            showspikes=True,
+            spikemode="across",
+            spikesnap="cursor",
+            spikethickness=1,
+            spikedash="dash",
+            spikecolor="rgba(128, 128, 128, 0.5)",
+        )
+        fig.update_yaxes(
+            showspikes=True,
+            spikemode="across",
+            spikesnap="cursor",
+            spikethickness=1,
+            spikedash="dash",
+            spikecolor="rgba(128, 128, 128, 0.5)",
         )
         fig.update_xaxes(rangeslider=dict(visible=True), row=1 + n_subplots, col=1)
         return fig
@@ -816,7 +839,14 @@ class Chart:
                 "Install it with 'pip install kaleido'."
             )
 
+        import warnings
+
         f = self.render()
         f.update_layout(width=w, height=h)
-        f.write_image(filename)
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                category=DeprecationWarning,
+            )
+            f.write_image(filename)
         print(f"Chart image saved to {filename}")

@@ -214,6 +214,8 @@ NB_MODULE(pytafast_ext, m) {
   using namespace nb::literals;
   m.doc() = "TA-Lib wrapper using nanobind";
 
+  nb::exception<ta_error>(m, "TALibError");
+
   nb::enum_<TA_MAType>(m, "MAType")
       .value("SMA", TA_MAType_SMA)
       .value("EMA", TA_MAType_EMA)

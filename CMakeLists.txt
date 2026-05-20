@@ -44,6 +44,7 @@ add_subdirectory(third_party/nanobind)
 
 # The main python module
 nanobind_add_module(pytafast_ext
+  FREE_THREADED
   src/pytafast_ext.cpp
   src/overlap.cpp
   src/momentum.cpp
