@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15...3.27)
-project(pytafast VERSION 0.4.0)
+project(pytafast VERSION 0.5.3)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

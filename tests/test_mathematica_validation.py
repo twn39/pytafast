@@ -21,12 +21,52 @@ def _should_skip():
     if not HAS_WOLFRAM:
         return True
     import shutil
+    import subprocess
 
-    return not (
+    has_kernel = (
         os.path.exists("/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel")
         or shutil.which("WolframKernel")
         or shutil.which("wolframscript")
     )
+    if not has_kernel:
+        return True
+
+    try:
+        # Check if Wolfram Engine is activated and working
+        wscript = shutil.which("wolframscript")
+        if wscript:
+            res = subprocess.run(
+                [wscript, "-code", "1"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if (
+                res.returncode != 0
+                or "activate" in res.stderr.lower()
+                or "license" in res.stderr.lower()
+                or "activate" in res.stdout.lower()
+            ):
+                return True
+        else:
+            kernel = "/Applications/Wolfram Engine.app/Contents/MacOS/WolframKernel"
+            if not os.path.exists(kernel):
+                kernel = shutil.which("WolframKernel")
+            if kernel:
+                res = subprocess.run(
+                    [kernel, "-noprompt", "-run", "Exit[]"],
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if res.returncode != 0:
+                    return True
+            else:
+                return True
+    except Exception:
+        return True
+
+    return False
 
 
 pytestmark = pytest.mark.skipif(
