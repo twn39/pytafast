@@ -23,8 +23,10 @@ from .plotters import (
     EnvelopePlotter,
 )
 
+from typing import Dict, Any
+
 # Map indicator function name (as an uppercase string) to its Plotter configuration
-INDICATOR_REGISTRY = {
+INDICATOR_REGISTRY: Dict[str, Any] = {
     # Overlap Studies (Main Chart Overlays)
     "SMA": {"plotter": LinePlotter, "default_kwargs": {"color": "#f29d4b"}},
     "EMA": {"plotter": LinePlotter, "default_kwargs": {"color": "#5d62b5"}},
