@@ -1560,11 +1560,13 @@ _sys.modules["pytafast.aio"] = aio
 # Initialize TA-Lib context
 # ===================================================================
 
+
 def _safe_shutdown():
     try:
         pytafast_ext.shutdown()
     except Exception:
         pass
+
 
 pytafast_ext.initialize()
 atexit.register(_safe_shutdown)

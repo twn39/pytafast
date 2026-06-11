@@ -8,6 +8,7 @@ from plotly.subplots import make_subplots
 from .registry import INDICATOR_REGISTRY
 from .plotters import LinePlotter
 
+
 class Chart:
     """
     A quantmod-inspired chaining chart builder for pytafast using Plotly.
@@ -139,6 +140,7 @@ class Chart:
         if indicator_fn is not None:
             if isinstance(indicator_fn, str):
                 import pytafast
+
                 name = indicator_fn.upper()
                 indicator_fn = getattr(pytafast, name)
             else:
@@ -149,7 +151,7 @@ class Chart:
         # 2. Look up config in registry
         config = INDICATOR_REGISTRY.get(name, {})
         plotter_cls = plotter or config.get("plotter", LinePlotter)
-        
+
         # 3. Merge default kwargs with user kwargs
         merged_kwargs = {**config.get("default_kwargs", {}), **kwargs}
 
@@ -165,22 +167,29 @@ class Chart:
         """
         if name.startswith("add_"):
             indicator_name = name[4:].upper()
-            
+
             import pytafast
+
             config = INDICATOR_REGISTRY.get(indicator_name, {})
-            
+
             func = config.get("indicator_fn")
             if func is None:
                 func_name = config.get("function", indicator_name)
                 func = getattr(pytafast, func_name, None)
-            
+
             if indicator_name in INDICATOR_REGISTRY or func is not None:
                 plotter_cls = config.get("plotter", LinePlotter)
+
                 def wrapper(*args, **kwargs):
-                    return self.add_indicator(func, *args, plotter=plotter_cls, **kwargs)
+                    return self.add_indicator(
+                        func, *args, plotter=plotter_cls, **kwargs
+                    )
+
                 return wrapper
 
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{name}'"
+        )
 
     # --- Shapes and Annotation Overlays ---
     def add_shading(self, start, end, color="rgba(128, 128, 128, 0.2)"):
@@ -388,6 +397,7 @@ class Chart:
             )
 
         import warnings
+
         f = self.render()
         f.update_layout(width=w, height=h)
         with warnings.catch_warnings():
