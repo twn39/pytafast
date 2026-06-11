@@ -12,7 +12,8 @@
 namespace nb = nanobind;
 
 // Type aliases for numpy array I/O
-// nb::device::cpu allows accepting numpy, pytorch, jax arrays directly without copy
+// nb::device::cpu allows accepting numpy, pytorch, jax arrays directly without
+// copy
 using DoubleArrayIN =
     nb::ndarray<nb::device::cpu, const double, nb::c_contig, nb::ndim<1>>;
 using DoubleArrayOUT = nb::ndarray<nb::numpy, double, nb::ndim<1>>;
@@ -27,12 +28,13 @@ public:
 // Check TA-Lib return codes
 inline void check_ta_retcode(TA_RetCode code, const char *func) {
   if (code != TA_SUCCESS) {
-    throw ta_error(
-        std::string(func) + " failed with TA_RetCode: " + std::to_string(code));
+    throw ta_error(std::string(func) +
+                   " failed with TA_RetCode: " + std::to_string(code));
   }
 }
 
-// Helper: allocate a double array, wrap in capsule, fill lookback prefix with NaN.
+// Helper: allocate a double array, wrap in capsule, fill lookback prefix with
+// NaN.
 struct AllocResult {
   gsl::not_null<double *> data;
   nb::capsule owner;
@@ -46,8 +48,9 @@ inline AllocResult alloc_output(size_t size, int lookback) {
               data.get() + std::min(static_cast<size_t>(lookback), size), NaN);
   }
 
-  double* raw_ptr = data.release();
-  nb::capsule owner(raw_ptr, [](void *p) noexcept { delete[] static_cast<double*>(p); });
+  double *raw_ptr = data.release();
+  nb::capsule owner(
+      raw_ptr, [](void *p) noexcept { delete[] static_cast<double *>(p); });
 
   return {gsl::make_not_null(raw_ptr), std::move(owner)};
 }
@@ -59,8 +62,9 @@ struct AllocIntResult {
 
 inline AllocIntResult alloc_int_output(size_t size, int /*lookback*/) {
   std::unique_ptr<int[]> data(new int[size]());
-  int* raw_ptr = data.release();
-  nb::capsule owner(raw_ptr, [](void *p) noexcept { delete[] static_cast<int*>(p); });
+  int *raw_ptr = data.release();
+  nb::capsule owner(raw_ptr,
+                    [](void *p) noexcept { delete[] static_cast<int *>(p); });
   return {gsl::make_not_null(raw_ptr), std::move(owner)};
 }
 
@@ -78,9 +82,11 @@ inline void check_lengths(const char *func, size_t expected,
 // --- Boilerplate Abstraction Templates ---
 
 template <typename Func>
-DoubleArrayOUT apply_ta_func(size_t size, int lookback, const char* name, Func&& compute_func) {
+DoubleArrayOUT apply_ta_func(size_t size, int lookback, const char *name,
+                             Func &&compute_func) {
   if (lookback < 0) {
-    throw std::invalid_argument(std::string(name) + ": Invalid parameter (lookback < 0)");
+    throw std::invalid_argument(std::string(name) +
+                                ": Invalid parameter (lookback < 0)");
   }
   auto [outData, owner] = alloc_output(size, lookback);
   if (size > static_cast<size_t>(lookback)) {
@@ -88,7 +94,8 @@ DoubleArrayOUT apply_ta_func(size_t size, int lookback, const char* name, Func&&
     TA_RetCode retCode;
     {
       nb::gil_scoped_release release;
-      retCode = compute_func(&outBegIdx, &outNBElement, outData.get() + lookback);
+      retCode =
+          compute_func(&outBegIdx, &outNBElement, outData.get() + lookback);
     }
     check_ta_retcode(retCode, name);
   }
@@ -96,9 +103,11 @@ DoubleArrayOUT apply_ta_func(size_t size, int lookback, const char* name, Func&&
 }
 
 template <typename Func>
-nb::tuple apply_ta_func_2out(size_t size, int lookback, const char* name, Func&& compute_func) {
+nb::tuple apply_ta_func_2out(size_t size, int lookback, const char *name,
+                             Func &&compute_func) {
   if (lookback < 0) {
-    throw std::invalid_argument(std::string(name) + ": Invalid parameter (lookback < 0)");
+    throw std::invalid_argument(std::string(name) +
+                                ": Invalid parameter (lookback < 0)");
   }
   auto [out1, owner1] = alloc_output(size, lookback);
   auto [out2, owner2] = alloc_output(size, lookback);
@@ -107,7 +116,8 @@ nb::tuple apply_ta_func_2out(size_t size, int lookback, const char* name, Func&&
     TA_RetCode retCode;
     {
       nb::gil_scoped_release release;
-      retCode = compute_func(&outBegIdx, &outNBElement, out1.get() + lookback, out2.get() + lookback);
+      retCode = compute_func(&outBegIdx, &outNBElement, out1.get() + lookback,
+                             out2.get() + lookback);
     }
     check_ta_retcode(retCode, name);
   }
@@ -116,9 +126,11 @@ nb::tuple apply_ta_func_2out(size_t size, int lookback, const char* name, Func&&
 }
 
 template <typename Func>
-nb::tuple apply_ta_func_3out(size_t size, int lookback, const char* name, Func&& compute_func) {
+nb::tuple apply_ta_func_3out(size_t size, int lookback, const char *name,
+                             Func &&compute_func) {
   if (lookback < 0) {
-    throw std::invalid_argument(std::string(name) + ": Invalid parameter (lookback < 0)");
+    throw std::invalid_argument(std::string(name) +
+                                ": Invalid parameter (lookback < 0)");
   }
   auto [out1, owner1] = alloc_output(size, lookback);
   auto [out2, owner2] = alloc_output(size, lookback);
@@ -128,7 +140,8 @@ nb::tuple apply_ta_func_3out(size_t size, int lookback, const char* name, Func&&
     TA_RetCode retCode;
     {
       nb::gil_scoped_release release;
-      retCode = compute_func(&outBegIdx, &outNBElement, out1.get() + lookback, out2.get() + lookback, out3.get() + lookback);
+      retCode = compute_func(&outBegIdx, &outNBElement, out1.get() + lookback,
+                             out2.get() + lookback, out3.get() + lookback);
     }
     check_ta_retcode(retCode, name);
   }

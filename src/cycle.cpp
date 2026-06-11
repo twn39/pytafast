@@ -9,10 +9,12 @@ DoubleArrayOUT ht_dcperiod(DoubleArrayIN inReal) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  return apply_ta_func(inReal.shape(0), TA_HT_DCPERIOD_Lookback(), "TA_HT_DCPERIOD",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_HT_DCPERIOD(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_HT_DCPERIOD_Lookback(), "TA_HT_DCPERIOD",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_HT_DCPERIOD(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                              inReal.data(), outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -22,10 +24,12 @@ DoubleArrayOUT ht_dcphase(DoubleArrayIN inReal) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  return apply_ta_func(inReal.shape(0), TA_HT_DCPHASE_Lookback(), "TA_HT_DCPHASE",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_HT_DCPHASE(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_HT_DCPHASE_Lookback(), "TA_HT_DCPHASE",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_HT_DCPHASE(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                             inReal.data(), outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -36,10 +40,12 @@ nb::tuple ht_phasor(DoubleArrayIN inReal) {
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
-  return apply_ta_func_2out(inReal.shape(0), TA_HT_PHASOR_Lookback(), "TA_HT_PHASOR",
-    [&](int* outBegIdx, int* outNBElement, double* out1, double* out2) {
-      return TA_HT_PHASOR(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), outBegIdx, outNBElement, out1, out2);
-    });
+  return apply_ta_func_2out(
+      inReal.shape(0), TA_HT_PHASOR_Lookback(), "TA_HT_PHASOR",
+      [&](int *outBegIdx, int *outNBElement, double *out1, double *out2) {
+        return TA_HT_PHASOR(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                            inReal.data(), outBegIdx, outNBElement, out1, out2);
+      });
 }
 
 // ---------------------------------------------------------
@@ -50,11 +56,12 @@ nb::tuple ht_sine(DoubleArrayIN inReal) {
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
-  return apply_ta_func_2out(inReal.shape(0), TA_HT_SINE_Lookback(), "TA_HT_SINE",
-    [&](int* outBegIdx, int* outNBElement, double* out1, double* out2) {
-      return TA_HT_SINE(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
-                           outBegIdx, outNBElement, out1, out2);
-    });
+  return apply_ta_func_2out(
+      inReal.shape(0), TA_HT_SINE_Lookback(), "TA_HT_SINE",
+      [&](int *outBegIdx, int *outNBElement, double *out1, double *out2) {
+        return TA_HT_SINE(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                          inReal.data(), outBegIdx, outNBElement, out1, out2);
+      });
 }
 
 // ---------------------------------------------------------
@@ -64,11 +71,12 @@ DoubleArrayOUT ht_trendline(DoubleArrayIN inReal) {
   if (inReal.size() == 0) {
     return DoubleArrayOUT(nullptr, {0}, nb::handle());
   }
-  return apply_ta_func(inReal.shape(0), TA_HT_TRENDLINE_Lookback(), "TA_HT_TRENDLINE",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_HT_TRENDLINE(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
-                        outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_HT_TRENDLINE_Lookback(), "TA_HT_TRENDLINE",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_HT_TRENDLINE(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                               inReal.data(), outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------

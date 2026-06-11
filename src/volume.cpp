@@ -10,9 +10,11 @@ DoubleArrayOUT obv(DoubleArrayIN inReal, DoubleArrayIN inVolume) {
   check_lengths("OBV", inReal.shape(0), {inVolume.shape(0)});
 
   return apply_ta_func(inReal.shape(0), TA_OBV_Lookback(), "TA_OBV",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_OBV(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), inVolume.data(), outBegIdx, outNBElement, outData);
-    });
+                       [&](int *outBegIdx, int *outNBElement, double *outData) {
+                         return TA_OBV(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                                       inReal.data(), inVolume.data(),
+                                       outBegIdx, outNBElement, outData);
+                       });
 }
 
 // ---------------------------------------------------------
@@ -27,10 +29,12 @@ DoubleArrayOUT ad(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   check_lengths("AD", inHigh.shape(0),
                 {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
   return apply_ta_func(inHigh.shape(0), TA_AD_Lookback(), "TA_AD",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_AD(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),
-                      inLow.data(), inClose.data(), inVolume.data(), outBegIdx, outNBElement, outData);
-    });
+                       [&](int *outBegIdx, int *outNBElement, double *outData) {
+                         return TA_AD(0, gsl::narrow<int>(inHigh.shape(0) - 1),
+                                      inHigh.data(), inLow.data(),
+                                      inClose.data(), inVolume.data(),
+                                      outBegIdx, outNBElement, outData);
+                       });
 }
 
 // ---------------------------------------------------------
@@ -45,10 +49,12 @@ DoubleArrayOUT adosc(DoubleArrayIN inHigh, DoubleArrayIN inLow,
   }
   check_lengths("ADOSC", inHigh.shape(0),
                 {inLow.shape(0), inClose.shape(0), inVolume.shape(0)});
-  return apply_ta_func(inHigh.shape(0), TA_ADOSC_Lookback(optInFastPeriod, optInSlowPeriod), "TA_ADOSC",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_ADOSC(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),
-                         inLow.data(), inClose.data(), inVolume.data(),
-                         optInFastPeriod, optInSlowPeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inHigh.shape(0), TA_ADOSC_Lookback(optInFastPeriod, optInSlowPeriod),
+      "TA_ADOSC", [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_ADOSC(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),
+                        inLow.data(), inClose.data(), inVolume.data(),
+                        optInFastPeriod, optInSlowPeriod, outBegIdx,
+                        outNBElement, outData);
+      });
 }

@@ -231,29 +231,24 @@ NB_MODULE(pytafast_ext, m) {
   m.def("SMA", &sma, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("EMA", &ema, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("BBANDS", &bbands, "inReal"_a, "optInTimePeriod"_a = 5,
-        "optInNbDevUp"_a = 2.0, "optInNbDevDn"_a = 2.0,
-        "optInMAType"_a = 0);
+        "optInNbDevUp"_a = 2.0, "optInNbDevDn"_a = 2.0, "optInMAType"_a = 0);
   m.def("DEMA", &dema, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("KAMA", &kama, "inReal"_a, "optInTimePeriod"_a = 30);
-  m.def("MA", &ma, "inReal"_a, "optInTimePeriod"_a = 30,
-        "optInMAType"_a = 0);
-  m.def("T3", &t3, "inReal"_a, "optInTimePeriod"_a = 5,
-        "optInVFactor"_a = 0.7);
+  m.def("MA", &ma, "inReal"_a, "optInTimePeriod"_a = 30, "optInMAType"_a = 0);
+  m.def("T3", &t3, "inReal"_a, "optInTimePeriod"_a = 5, "optInVFactor"_a = 0.7);
   m.def("MAMA", &mama, "inReal"_a, "optInFastLimit"_a = 0.5,
         "optInSlowLimit"_a = 0.05);
   m.def("TEMA", &tema, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("TRIMA", &trima, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("WMA", &wma, "inReal"_a, "optInTimePeriod"_a = 30);
-  m.def("SAR", &sar, "inHigh"_a, "inLow"_a,
-        "optInAcceleration"_a = 0.02, "optInMaximum"_a = 0.2);
-  m.def("MIDPOINT", &midpoint, "inReal"_a,
-        "optInTimePeriod"_a = 14);
-  m.def("ZIGZAG", &zigzag, "inHigh"_a, "inLow"_a,
-        "change"_a = 10.0, "percent"_a = true);
+  m.def("SAR", &sar, "inHigh"_a, "inLow"_a, "optInAcceleration"_a = 0.02,
+        "optInMaximum"_a = 0.2);
+  m.def("MIDPOINT", &midpoint, "inReal"_a, "optInTimePeriod"_a = 14);
+  m.def("ZIGZAG", &zigzag, "inHigh"_a, "inLow"_a, "change"_a = 10.0,
+        "percent"_a = true);
   m.def("ALMA", &alma, "inReal"_a, "optInTimePeriod"_a = 9,
         "optInOffset"_a = 0.85, "optInSigma"_a = 6.0);
-  m.def("EVWMA", &evwma, "inReal"_a, "inVolume"_a,
-        "optInTimePeriod"_a = 30);
+  m.def("EVWMA", &evwma, "inReal"_a, "inVolume"_a, "optInTimePeriod"_a = 30);
   m.def("ZLEMA", &zlema, "inReal"_a, "optInTimePeriod"_a = 30);
 
   // --- Momentum ---
@@ -264,23 +259,21 @@ NB_MODULE(pytafast_ext, m) {
         "optInFastMAType"_a = 0, "optInSlowPeriod"_a = 26,
         "optInSlowMAType"_a = 0, "optInSignalPeriod"_a = 9,
         "optInSignalMAType"_a = 0);
-  m.def("MACDFIX", &macdfix, "inReal"_a,
-        "optInSignalPeriod"_a = 9);
+  m.def("MACDFIX", &macdfix, "inReal"_a, "optInSignalPeriod"_a = 9);
   m.def("ROC", &roc, "inReal"_a, "optInTimePeriod"_a = 10);
   m.def("ROCP", &rocp, "inReal"_a, "optInTimePeriod"_a = 10);
   m.def("ROCR", &rocr, "inReal"_a, "optInTimePeriod"_a = 10);
-  m.def("ROCR100", &rocr100, "inReal"_a,
-        "optInTimePeriod"_a = 10);
-  m.def("STOCH", &stoch, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "optInFastK_Period"_a = 5,
-        "optInSlowK_Period"_a = 3, "optInSlowK_MAType"_a = 0,
-        "optInSlowD_Period"_a = 3, "optInSlowD_MAType"_a = 0);
-  m.def("STOCHF", &stochf, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "optInFastK_Period"_a = 5,
-        "optInFastD_Period"_a = 3, "optInFastD_MAType"_a = 0);
-  m.def("STOCHRSI", &stochrsi, "inReal"_a,
-        "optInTimePeriod"_a = 14, "optInFastK_Period"_a = 5,
-        "optInFastD_Period"_a = 3, "optInFastD_MAType"_a = 0);
+  m.def("ROCR100", &rocr100, "inReal"_a, "optInTimePeriod"_a = 10);
+  m.def("STOCH", &stoch, "inHigh"_a, "inLow"_a, "inClose"_a,
+        "optInFastK_Period"_a = 5, "optInSlowK_Period"_a = 3,
+        "optInSlowK_MAType"_a = 0, "optInSlowD_Period"_a = 3,
+        "optInSlowD_MAType"_a = 0);
+  m.def("STOCHF", &stochf, "inHigh"_a, "inLow"_a, "inClose"_a,
+        "optInFastK_Period"_a = 5, "optInFastD_Period"_a = 3,
+        "optInFastD_MAType"_a = 0);
+  m.def("STOCHRSI", &stochrsi, "inReal"_a, "optInTimePeriod"_a = 14,
+        "optInFastK_Period"_a = 5, "optInFastD_Period"_a = 3,
+        "optInFastD_MAType"_a = 0);
   m.def("MOM", &mom, "inReal"_a, "optInTimePeriod"_a = 10);
   m.def("CMO", &cmo, "inReal"_a, "optInTimePeriod"_a = 14);
   m.def("APO", &apo, "inReal"_a, "optInFastPeriod"_a = 12,
@@ -288,61 +281,50 @@ NB_MODULE(pytafast_ext, m) {
   m.def("PPO", &ppo, "inReal"_a, "optInFastPeriod"_a = 12,
         "optInSlowPeriod"_a = 26, "optInMAType"_a = 0);
   m.def("TRIX", &trix, "inReal"_a, "optInTimePeriod"_a = 30);
-  m.def("AROON", &aroon, "inHigh"_a, "inLow"_a,
-        "optInTimePeriod"_a = 14);
-  m.def("AROONOSC", &aroonosc, "inHigh"_a, "inLow"_a,
-        "optInTimePeriod"_a = 14);
+  m.def("AROON", &aroon, "inHigh"_a, "inLow"_a, "optInTimePeriod"_a = 14);
+  m.def("AROONOSC", &aroonosc, "inHigh"_a, "inLow"_a, "optInTimePeriod"_a = 14);
   m.def("ADX", &adx, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
   m.def("ADXR", &adxr, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
   m.def("DX", &dx, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
-  m.def("MINUS_DI", &minus_di, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "optInTimePeriod"_a = 14);
-  m.def("MINUS_DM", &minus_dm, "inHigh"_a, "inLow"_a,
+  m.def("MINUS_DI", &minus_di, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
-  m.def("PLUS_DI", &plus_di, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "optInTimePeriod"_a = 14);
-  m.def("PLUS_DM", &plus_dm, "inHigh"_a, "inLow"_a,
+  m.def("MINUS_DM", &minus_dm, "inHigh"_a, "inLow"_a, "optInTimePeriod"_a = 14);
+  m.def("PLUS_DI", &plus_di, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
-  m.def("WILLR", &willr, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "optInTimePeriod"_a = 14);
-  m.def("MFI", &mfi, "inHigh"_a, "inLow"_a, "inClose"_a,
-        "inVolume"_a, "optInTimePeriod"_a = 14);
+  m.def("PLUS_DM", &plus_dm, "inHigh"_a, "inLow"_a, "optInTimePeriod"_a = 14);
+  m.def("WILLR", &willr, "inHigh"_a, "inLow"_a, "inClose"_a,
+        "optInTimePeriod"_a = 14);
+  m.def("MFI", &mfi, "inHigh"_a, "inLow"_a, "inClose"_a, "inVolume"_a,
+        "optInTimePeriod"_a = 14);
   m.def("CCI", &cci, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
-  m.def("ULTOSC", &ultosc, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "optInTimePeriod1"_a = 7,
-        "optInTimePeriod2"_a = 14, "optInTimePeriod3"_a = 28);
-  m.def("BOP", &bop, "inOpen"_a, "inHigh"_a, "inLow"_a,
-        "inClose"_a);
+  m.def("ULTOSC", &ultosc, "inHigh"_a, "inLow"_a, "inClose"_a,
+        "optInTimePeriod1"_a = 7, "optInTimePeriod2"_a = 14,
+        "optInTimePeriod3"_a = 28);
+  m.def("BOP", &bop, "inOpen"_a, "inHigh"_a, "inLow"_a, "inClose"_a);
 
   // --- Volatility ---
   m.def("ATR", &atr, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
   m.def("NATR", &natr, "inHigh"_a, "inLow"_a, "inClose"_a,
         "optInTimePeriod"_a = 14);
-  m.def("TRANGE", &trange, "inHigh"_a, "inLow"_a,
-        "inClose"_a);
+  m.def("TRANGE", &trange, "inHigh"_a, "inLow"_a, "inClose"_a);
   m.def("STDDEV", &stddev, "inReal"_a, "optInTimePeriod"_a = 5,
         "optInNbDev"_a = 1.0);
 
   // --- Volume ---
   m.def("OBV", &obv, "inReal"_a, "inVolume"_a);
-  m.def("AD", &ad, "inHigh"_a, "inLow"_a, "inClose"_a,
-        "inVolume"_a);
-  m.def("ADOSC", &adosc, "inHigh"_a, "inLow"_a,
-        "inClose"_a, "inVolume"_a, "optInFastPeriod"_a = 3,
-        "optInSlowPeriod"_a = 10);
+  m.def("AD", &ad, "inHigh"_a, "inLow"_a, "inClose"_a, "inVolume"_a);
+  m.def("ADOSC", &adosc, "inHigh"_a, "inLow"_a, "inClose"_a, "inVolume"_a,
+        "optInFastPeriod"_a = 3, "optInSlowPeriod"_a = 10);
 
   // --- Statistics ---
-  m.def("BETA", &beta, "inReal0"_a, "inReal1"_a,
-        "optInTimePeriod"_a = 5);
-  m.def("CORREL", &correl, "inReal0"_a, "inReal1"_a,
-        "optInTimePeriod"_a = 30);
-  m.def("LINEARREG", &linearreg, "inReal"_a,
-        "optInTimePeriod"_a = 14);
+  m.def("BETA", &beta, "inReal0"_a, "inReal1"_a, "optInTimePeriod"_a = 5);
+  m.def("CORREL", &correl, "inReal0"_a, "inReal1"_a, "optInTimePeriod"_a = 30);
+  m.def("LINEARREG", &linearreg, "inReal"_a, "optInTimePeriod"_a = 14);
   m.def("LINEARREG_ANGLE", &linearreg_angle, "inReal"_a,
         "optInTimePeriod"_a = 14);
   m.def("LINEARREG_INTERCEPT", &linearreg_intercept, "inReal"_a,
@@ -350,20 +332,15 @@ NB_MODULE(pytafast_ext, m) {
   m.def("LINEARREG_SLOPE", &linearreg_slope, "inReal"_a,
         "optInTimePeriod"_a = 14);
   m.def("TSF", &tsf, "inReal"_a, "optInTimePeriod"_a = 14);
-  m.def("VAR", &var, "inReal"_a, "optInTimePeriod"_a = 5,
-        "optInNbDev"_a = 1.0);
+  m.def("VAR", &var, "inReal"_a, "optInTimePeriod"_a = 5, "optInNbDev"_a = 1.0);
   m.def("AVGDEV", &avgdev, "inReal"_a, "optInTimePeriod"_a = 14);
 
   // --- Price Transform ---
-  m.def("AVGPRICE", &avgprice, "inOpen"_a, "inHigh"_a,
-        "inLow"_a, "inClose"_a);
+  m.def("AVGPRICE", &avgprice, "inOpen"_a, "inHigh"_a, "inLow"_a, "inClose"_a);
   m.def("MEDPRICE", &medprice, "inHigh"_a, "inLow"_a);
-  m.def("TYPPRICE", &typprice, "inHigh"_a, "inLow"_a,
-        "inClose"_a);
-  m.def("WCLPRICE", &wclprice, "inHigh"_a, "inLow"_a,
-        "inClose"_a);
-  m.def("MIDPRICE", &midprice, "inHigh"_a, "inLow"_a,
-        "optInTimePeriod"_a = 14);
+  m.def("TYPPRICE", &typprice, "inHigh"_a, "inLow"_a, "inClose"_a);
+  m.def("WCLPRICE", &wclprice, "inHigh"_a, "inLow"_a, "inClose"_a);
+  m.def("MIDPRICE", &midprice, "inHigh"_a, "inLow"_a, "optInTimePeriod"_a = 14);
 
   // --- Math Operators ---
   m.def("ADD", &add, "inReal0"_a, "inReal1"_a);
@@ -393,8 +370,7 @@ NB_MODULE(pytafast_ext, m) {
   m.def("MIN", &ta_min, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("SUM", &ta_sum, "inReal"_a, "optInTimePeriod"_a = 30);
   m.def("MINMAX", &minmax, "inReal"_a, "optInTimePeriod"_a = 30);
-  m.def("MINMAXINDEX", &minmaxindex, "inReal"_a,
-        "optInTimePeriod"_a = 30);
+  m.def("MINMAXINDEX", &minmaxindex, "inReal"_a, "optInTimePeriod"_a = 30);
 
   // --- Cycle ---
   m.def("HT_DCPERIOD", &ht_dcperiod, "inReal"_a);
@@ -406,8 +382,7 @@ NB_MODULE(pytafast_ext, m) {
 
   // --- Candlestick Patterns (standard OHLC) ---
 #define CDL_BIND(NAME, FUNC)                                                   \
-  m.def(#NAME, &FUNC, "inOpen"_a, "inHigh"_a, "inLow"_a,  \
-        "inClose"_a)
+  m.def(#NAME, &FUNC, "inOpen"_a, "inHigh"_a, "inLow"_a, "inClose"_a)
   CDL_BIND(CDL2CROWS, cdl2crows);
   CDL_BIND(CDL3BLACKCROWS, cdl3blackcrows);
   CDL_BIND(CDL3INSIDE, cdl3inside);
@@ -466,8 +441,8 @@ NB_MODULE(pytafast_ext, m) {
 
   // --- Candlestick Patterns (with penetration) ---
 #define CDL_BIND_PEN(NAME, FUNC, DEF)                                          \
-  m.def(#NAME, &FUNC, "inOpen"_a, "inHigh"_a, "inLow"_a,  \
-        "inClose"_a, "penetration"_a = DEF)
+  m.def(#NAME, &FUNC, "inOpen"_a, "inHigh"_a, "inLow"_a, "inClose"_a,          \
+        "penetration"_a = DEF)
   CDL_BIND_PEN(CDLABANDONEDBABY, cdlabandonedbaby, 0.3);
   CDL_BIND_PEN(CDLDARKCLOUDCOVER, cdldarkcloudcover, 0.5);
   CDL_BIND_PEN(CDLEVENINGDOJISTAR, cdleveningdojistar, 0.3);

@@ -8,10 +8,12 @@
 // ---------------------------------------------------------
 DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_SMA_Lookback(optInTimePeriod), "TA_SMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_SMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_SMA_Lookback(optInTimePeriod), "TA_SMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_SMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                      optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -19,10 +21,12 @@ DoubleArrayOUT sma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // ---------------------------------------------------------
 DoubleArrayOUT ema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_EMA_Lookback(optInTimePeriod), "TA_EMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_EMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_EMA_Lookback(optInTimePeriod), "TA_EMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_EMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                      optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -35,10 +39,19 @@ nb::tuple bbands(DoubleArrayIN inReal, int optInTimePeriod = 5,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty, empty);
   }
-  return apply_ta_func_3out(inReal.shape(0), TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, static_cast<TA_MAType>(optInMAType)), "TA_BBANDS",
-    [&](int* outBegIdx, int* outNBElement, double* outUpper, double* outMiddle, double* outLower) {
-      return TA_BBANDS(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, optInNbDevUp, optInNbDevDn, static_cast<TA_MAType>(optInMAType), outBegIdx, outNBElement, outUpper, outMiddle, outLower);
-    });
+  return apply_ta_func_3out(
+      inReal.shape(0),
+      TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn,
+                         static_cast<TA_MAType>(optInMAType)),
+      "TA_BBANDS",
+      [&](int *outBegIdx, int *outNBElement, double *outUpper,
+          double *outMiddle, double *outLower) {
+        return TA_BBANDS(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                         inReal.data(), optInTimePeriod, optInNbDevUp,
+                         optInNbDevDn, static_cast<TA_MAType>(optInMAType),
+                         outBegIdx, outNBElement, outUpper, outMiddle,
+                         outLower);
+      });
 }
 
 // ---------------------------------------------------------
@@ -46,10 +59,12 @@ nb::tuple bbands(DoubleArrayIN inReal, int optInTimePeriod = 5,
 // ---------------------------------------------------------
 DoubleArrayOUT dema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_DEMA_Lookback(optInTimePeriod), "TA_DEMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_DEMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_DEMA_Lookback(optInTimePeriod), "TA_DEMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_DEMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                       optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -57,10 +72,12 @@ DoubleArrayOUT dema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // ---------------------------------------------------------
 DoubleArrayOUT kama(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_KAMA_Lookback(optInTimePeriod), "TA_KAMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_KAMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_KAMA_Lookback(optInTimePeriod), "TA_KAMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_KAMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                       optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -72,10 +89,14 @@ nb::tuple mama(DoubleArrayIN inReal, double optInFastLimit = 0.5,
     auto empty = DoubleArrayOUT(nullptr, {0}, nb::handle());
     return nb::make_tuple(empty, empty);
   }
-  return apply_ta_func_2out(inReal.shape(0), TA_MAMA_Lookback(optInFastLimit, optInSlowLimit), "TA_MAMA",
-    [&](int* outBegIdx, int* outNBElement, double* outMAMA, double* outFAMA) {
-      return TA_MAMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInFastLimit, optInSlowLimit, outBegIdx, outNBElement, outMAMA, outFAMA);
-    });
+  return apply_ta_func_2out(
+      inReal.shape(0), TA_MAMA_Lookback(optInFastLimit, optInSlowLimit),
+      "TA_MAMA",
+      [&](int *outBegIdx, int *outNBElement, double *outMAMA, double *outFAMA) {
+        return TA_MAMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                       optInFastLimit, optInSlowLimit, outBegIdx, outNBElement,
+                       outMAMA, outFAMA);
+      });
 }
 
 // ---------------------------------------------------------
@@ -84,10 +105,14 @@ nb::tuple mama(DoubleArrayIN inReal, double optInFastLimit = 0.5,
 DoubleArrayOUT ma(DoubleArrayIN inReal, int optInTimePeriod = 30,
                   int optInMAType = 0) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_MA_Lookback(optInTimePeriod, static_cast<TA_MAType>(optInMAType)), "TA_MA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_MA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, static_cast<TA_MAType>(optInMAType), outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0),
+      TA_MA_Lookback(optInTimePeriod, static_cast<TA_MAType>(optInMAType)),
+      "TA_MA", [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_MA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                     optInTimePeriod, static_cast<TA_MAType>(optInMAType),
+                     outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -95,10 +120,13 @@ DoubleArrayOUT ma(DoubleArrayIN inReal, int optInTimePeriod = 30,
 // ---------------------------------------------------------
 DoubleArrayOUT midpoint(DoubleArrayIN inReal, int optInTimePeriod = 14) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_MIDPOINT_Lookback(optInTimePeriod), "TA_MIDPOINT",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_MIDPOINT(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_MIDPOINT_Lookback(optInTimePeriod), "TA_MIDPOINT",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_MIDPOINT(0, gsl::narrow<int>(inReal.shape(0) - 1),
+                           inReal.data(), optInTimePeriod, outBegIdx,
+                           outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -106,12 +134,16 @@ DoubleArrayOUT midpoint(DoubleArrayIN inReal, int optInTimePeriod = 14) {
 // ---------------------------------------------------------
 DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
                    double optInAcceleration = 0.02, double optInMaximum = 0.2) {
-  if (inHigh.size() == 0 || inLow.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
+  if (inHigh.size() == 0 || inLow.size() == 0)
+    return DoubleArrayOUT(nullptr, {0}, nb::handle());
   check_lengths("SAR", inHigh.shape(0), {inLow.shape(0)});
-  return apply_ta_func(inHigh.shape(0), TA_SAR_Lookback(optInAcceleration, optInMaximum), "TA_SAR",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_SAR(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(), inLow.data(), optInAcceleration, optInMaximum, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inHigh.shape(0), TA_SAR_Lookback(optInAcceleration, optInMaximum),
+      "TA_SAR", [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_SAR(0, gsl::narrow<int>(inHigh.shape(0) - 1), inHigh.data(),
+                      inLow.data(), optInAcceleration, optInMaximum, outBegIdx,
+                      outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -120,10 +152,13 @@ DoubleArrayOUT sar(DoubleArrayIN inHigh, DoubleArrayIN inLow,
 DoubleArrayOUT t3(DoubleArrayIN inReal, int optInTimePeriod = 5,
                   double optInVFactor = 0.7) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_T3_Lookback(optInTimePeriod, optInVFactor), "TA_T3",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_T3(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, optInVFactor, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_T3_Lookback(optInTimePeriod, optInVFactor), "TA_T3",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_T3(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                     optInTimePeriod, optInVFactor, outBegIdx, outNBElement,
+                     outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -131,10 +166,12 @@ DoubleArrayOUT t3(DoubleArrayIN inReal, int optInTimePeriod = 5,
 // ---------------------------------------------------------
 DoubleArrayOUT tema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_TEMA_Lookback(optInTimePeriod), "TA_TEMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_TEMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_TEMA_Lookback(optInTimePeriod), "TA_TEMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_TEMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                       optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -142,10 +179,12 @@ DoubleArrayOUT tema(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // ---------------------------------------------------------
 DoubleArrayOUT trima(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_TRIMA_Lookback(optInTimePeriod), "TA_TRIMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_TRIMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_TRIMA_Lookback(optInTimePeriod), "TA_TRIMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_TRIMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                        optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
@@ -153,10 +192,12 @@ DoubleArrayOUT trima(DoubleArrayIN inReal, int optInTimePeriod = 30) {
 // ---------------------------------------------------------
 DoubleArrayOUT wma(DoubleArrayIN inReal, int optInTimePeriod = 30) {
   if (inReal.size() == 0) return DoubleArrayOUT(nullptr, {0}, nb::handle());
-  return apply_ta_func(inReal.shape(0), TA_WMA_Lookback(optInTimePeriod), "TA_WMA",
-    [&](int* outBegIdx, int* outNBElement, double* outData) {
-      return TA_WMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(), optInTimePeriod, outBegIdx, outNBElement, outData);
-    });
+  return apply_ta_func(
+      inReal.shape(0), TA_WMA_Lookback(optInTimePeriod), "TA_WMA",
+      [&](int *outBegIdx, int *outNBElement, double *outData) {
+        return TA_WMA(0, gsl::narrow<int>(inReal.shape(0) - 1), inReal.data(),
+                      optInTimePeriod, outBegIdx, outNBElement, outData);
+      });
 }
 
 // ---------------------------------------------------------
